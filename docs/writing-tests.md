@@ -6,6 +6,10 @@ assertions, and the quarantine ledger. Drivers are consumed via `DriverHandle`
 
 ## Quick start (demo suite)
 
+Phases 00–03 dogfood against **MockDriver** only (see
+[GAME-INTEGRATION.md](GAME-INTEGRATION.md) §4). Real game suites live in the game
+repo under `automation/` (same layout; created as a phase-05 exit task).
+
 ```bash
 # From the repo root — MockDriver fake game under examples/demo-tests/
 uv run pytest examples/demo-tests \

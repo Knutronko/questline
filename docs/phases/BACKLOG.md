@@ -16,3 +16,4 @@ Format: `- [ ] (phase-NN) description`
 - [ ] (phase-03) Richer death-point API (close_code, structured HealthSnapshot) once Phase 06 HealthMonitor exists — today plugin stores `is_alive` + `app_state` in TestFinished.tags.
 - [ ] (phase-03) Plugin auto-discovery of project `questline.toml` at repo root without `--questline-config` when running nested example suites.
 - [ ] (phase-03) Quarantine audit nodeid normalization helper (Windows `\` vs `/`) shared by CLI and CI.
+- [ ] (phase-05 exit) Scaffold game-repo `automation/` + coverage-demo suite exercising everything through phase 05 — see `docs/GAME-INTEGRATION.md` §3 (maintainer game-side session, not a numbered fw phase).
