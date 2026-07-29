@@ -1,0 +1,9 @@
+version: 1
+entries:
+  - test_id: examples/demo-tests/test_demo_game.py::test_flaky_buy_quarantined
+    reason: Intermittent shop animation flake (demo seed for quarantine audit)
+    date: "2026-07-29"
+    owner: knutronko
+    exit_criteria: Passes 20 consecutive CI runs with --include-quarantined
+    issue: "https://github.com/Knutronko/questline/issues/0"
+    feature: demo-shop

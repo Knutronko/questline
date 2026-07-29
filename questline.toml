@@ -1,0 +1,14 @@
+# Dev/CI default config. Demo suite may still pass --questline-config explicitly.
+
+[profile.default]
+driver = "mock"
+wait.probe = 0.05
+wait.deadline = 0.5
+wait.interval = 0.01
+
+[profile.mock]
+driver = "mock"
+markers = ["quest_demo"]
+wait.probe = 0.05
+wait.deadline = 0.5
+wait.interval = 0.01

@@ -14,6 +14,7 @@
 | Doc | Description |
 |-----|-------------|
 | [drivers.md](drivers.md) | How to write a DriverPort adapter + conformance |
+| [writing-tests.md](writing-tests.md) | Authoring layer: plugin, pages, steps, quarantine |
 | [adr/](adr/) | Architecture decision records |
 
 ## Phase Briefs

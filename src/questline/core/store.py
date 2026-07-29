@@ -167,6 +167,44 @@ class RunStore:
             out.append({**test, "steps": steps})
         return out
 
+    def get_test(self, test_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._conn.execute("SELECT * FROM tests WHERE id = ?", (test_id,)).fetchone()
+        return dict(row) if row else None
+
+    def death_point(self, test_id: str) -> dict[str, Any]:
+        """Return last-started / last-finished step plus driver health tags for a test.
+
+        Driver health is expected in the most recent TestFinished event's ``tags``
+        (written by the authoring plugin on failure). Missing data yields nulls —
+        never invented values.
+        """
+        test = self.get_test(test_id)
+        steps = self.list_steps(test_id)
+        last_started = steps[-1] if steps else None
+        finished = [s for s in steps if s.get("finished_at")]
+        last_finished = finished[-1] if finished else None
+
+        driver_health: dict[str, Any] | None = None
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT payload FROM events WHERE test_id = ? AND type = ? "
+                "ORDER BY id DESC LIMIT 1",
+                (test_id, "TestFinished"),
+            ).fetchone()
+        if row is not None:
+            payload = json.loads(row["payload"])
+            tags = payload.get("tags") or {}
+            if tags:
+                driver_health = dict(tags)
+
+        return {
+            "test": test,
+            "last_started_step": last_started,
+            "last_finished_step": last_finished,
+            "driver_health": driver_health,
+        }
+
     def count_events(self, run_id: str | None = None) -> int:
         with self._lock:
             if run_id is None:
@@ -216,12 +254,19 @@ class RunStore:
         elif isinstance(event, TestStarted):
             cols = (
                 "id, run_id, nodeid, started_at, finished_at, status, "
-                "verdict, error_type, error_message"
+                "verdict, error_type, error_message, feature_id"
             )
             self._conn.execute(
                 f"INSERT OR REPLACE INTO tests ({cols}) "
-                "VALUES (?, ?, ?, ?, NULL, ?, NULL, NULL, NULL)",
-                (event.test_id, event.run_id, event.nodeid, _ts(event.timestamp), "running"),
+                "VALUES (?, ?, ?, ?, NULL, ?, NULL, NULL, NULL, ?)",
+                (
+                    event.test_id,
+                    event.run_id,
+                    event.nodeid,
+                    _ts(event.timestamp),
+                    "running",
+                    event.feature_id,
+                ),
             )
         elif isinstance(event, TestFinished):
             self._conn.execute(

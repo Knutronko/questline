@@ -11,6 +11,7 @@ from questline.core.events import EventBus, RunStarted
 from questline.core.migrations import (
     CURRENT_SCHEMA_VERSION,
     Migration,
+    _migrate_001_initial_core,
     apply_migrations,
     get_schema_version,
 )
@@ -56,7 +57,27 @@ def _make_legacy_db(path: Path) -> None:
 def test_fresh_store_is_at_current_schema_version(tmp_path: Path) -> None:
     with RunStore(tmp_path / "fresh.db") as store:
         assert store.schema_version == CURRENT_SCHEMA_VERSION
-        assert CURRENT_SCHEMA_VERSION >= 1
+        assert CURRENT_SCHEMA_VERSION >= 2
+
+
+def test_v1_store_upgrades_to_feature_id_column(tmp_path: Path) -> None:
+    """A schema_version=1 DB gains tests.feature_id via migration 2."""
+    db_path = tmp_path / "v1.db"
+    conn = sqlite3.connect(str(db_path))
+    conn.isolation_level = None
+
+    apply_migrations(conn, (Migration(1, "initial_core_schema", _migrate_001_initial_core),))
+    assert get_schema_version(conn) == 1
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(tests)").fetchall()}
+    assert "feature_id" not in cols
+    conn.close()
+
+    with RunStore(db_path) as store:
+        assert store.schema_version == CURRENT_SCHEMA_VERSION
+        probe = sqlite3.connect(str(db_path))
+        cols = {r[1] for r in probe.execute("PRAGMA table_info(tests)").fetchall()}
+        probe.close()
+        assert "feature_id" in cols
 
 
 def test_legacy_store_upgrades_cleanly_preserving_data(tmp_path: Path) -> None:

@@ -91,6 +91,7 @@ def test_timeline_reconstruction(tmp_path: Path) -> None:
         test = timeline[0]
         assert test["nodeid"] == "tests/demo.py::test_buy"
         assert test["status"] == "passed"
+        assert test["feature_id"] is None
         assert [s["name"] for s in test["steps"]] == ["open_shop", "tap_buy"]
         assert test["steps"][0]["started_at"].startswith("2026-07-29T12:00:02")
         assert test["steps"][1]["finished_at"].startswith("2026-07-29T12:00:05")
@@ -102,6 +103,51 @@ def test_timeline_reconstruction(tmp_path: Path) -> None:
         assert store.ledger_path.is_file()
         lines = store.ledger_path.read_text(encoding="utf-8").strip().splitlines()
         assert len(lines) == 8
+    finally:
+        store.close()
+
+
+def test_feature_id_persisted_and_death_point(tmp_path: Path) -> None:
+    store = RunStore(tmp_path / "store.db")
+    bus = EventBus()
+    store.attach(bus)
+    try:
+        t0 = datetime(2026, 7, 29, 12, 0, 0, tzinfo=UTC)
+        bus.publish(RunStarted(run_id="r", profile="mock", timestamp=t0))
+        bus.publish(
+            TestStarted(
+                run_id="r",
+                test_id="t1",
+                nodeid="t::a",
+                feature_id="shop-pack",
+                timestamp=t0,
+            )
+        )
+        bus.publish(
+            StepStarted(
+                run_id="r",
+                test_id="t1",
+                step_id="s1",
+                name="tap",
+                timestamp=t0 + timedelta(seconds=1),
+            )
+        )
+        bus.publish(
+            TestFinished(
+                run_id="r",
+                test_id="t1",
+                nodeid="t::a",
+                status="failed",
+                tags={"driver_alive": "true"},
+                timestamp=t0 + timedelta(seconds=2),
+            )
+        )
+        row = store.get_test("t1")
+        assert row is not None
+        assert row["feature_id"] == "shop-pack"
+        dp = store.death_point("t1")
+        assert dp["last_started_step"]["name"] == "tap"
+        assert dp["driver_health"]["driver_alive"] == "true"
     finally:
         store.close()
 

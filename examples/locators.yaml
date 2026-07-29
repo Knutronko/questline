@@ -1,16 +1,38 @@
 pages:
+  MainMenu:
+    root:
+      by: id
+      value: main.root
+    play_button:
+      by: id
+      value: main.play
+  Hud:
+    root:
+      by: id
+      value: hud.root
+    coins_label:
+      by: id
+      value: hud.coins
+    shop_button:
+      by: id
+      value: hud.shop
   Shop:
     open_button:
       by: id
-      value: shop.open
+      value: hud.shop
     root:
-      by: name
-      value: ShopPanel
-      scope: Canvas
-  Hud:
-    coins_label:
-      by: text
-      value: "Coins: 0"
-    play_button:
-      by: component
-      value: UnityEngine.UI.Button
+      by: id
+      value: shop.root
+    buy_pack_button:
+      by: id
+      value: shop.buy_pack
+    close_button:
+      by: id
+      value: shop.close
+  Popup:
+    rate_us:
+      by: id
+      value: popup.rate_us
+    dismiss:
+      by: id
+      value: popup.dismiss

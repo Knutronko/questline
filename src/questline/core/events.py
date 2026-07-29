@@ -53,6 +53,7 @@ class TestStarted(Event):
     __test__ = False  # not a pytest test class
     test_id: str = ""
     nodeid: str = ""
+    feature_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

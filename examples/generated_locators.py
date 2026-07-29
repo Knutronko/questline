@@ -8,10 +8,23 @@ from questline.drivers.locators import Locator, LocatorStrategy
 
 
 class Hud:
-    coins_label = Locator(by=LocatorStrategy.TEXT, value='Coins: 0', scope=None)
-    play_button = Locator(by=LocatorStrategy.COMPONENT, value='UnityEngine.UI.Button', scope=None)
+    coins_label = Locator(by=LocatorStrategy.ID, value='hud.coins', scope=None)
+    root = Locator(by=LocatorStrategy.ID, value='hud.root', scope=None)
+    shop_button = Locator(by=LocatorStrategy.ID, value='hud.shop', scope=None)
+
+
+class MainMenu:
+    play_button = Locator(by=LocatorStrategy.ID, value='main.play', scope=None)
+    root = Locator(by=LocatorStrategy.ID, value='main.root', scope=None)
+
+
+class Popup:
+    dismiss = Locator(by=LocatorStrategy.ID, value='popup.dismiss', scope=None)
+    rate_us = Locator(by=LocatorStrategy.ID, value='popup.rate_us', scope=None)
 
 
 class Shop:
-    open_button = Locator(by=LocatorStrategy.ID, value='shop.open', scope=None)
-    root = Locator(by=LocatorStrategy.NAME, value='ShopPanel', scope='Canvas')
+    buy_pack_button = Locator(by=LocatorStrategy.ID, value='shop.buy_pack', scope=None)
+    close_button = Locator(by=LocatorStrategy.ID, value='shop.close', scope=None)
+    open_button = Locator(by=LocatorStrategy.ID, value='hud.shop', scope=None)
+    root = Locator(by=LocatorStrategy.ID, value='shop.root', scope=None)
