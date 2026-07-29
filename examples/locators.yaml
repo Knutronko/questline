@@ -1,0 +1,16 @@
+pages:
+  Shop:
+    open_button:
+      by: id
+      value: shop.open
+    root:
+      by: name
+      value: ShopPanel
+      scope: Canvas
+  Hud:
+    coins_label:
+      by: text
+      value: "Coins: 0"
+    play_button:
+      by: component
+      value: UnityEngine.UI.Button
