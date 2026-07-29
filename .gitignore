@@ -9,5 +9,8 @@ build/
 .ruff_cache/
 .pytest_cache/
 .mypy_cache/
+.coverage
+htmlcov/
+.questline/
 *.so
 *.dylib
