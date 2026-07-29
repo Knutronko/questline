@@ -1,0 +1,18 @@
+# Sample questline.toml used by docs and doctor acceptance tests.
+
+[profile.editor]
+driver = "mock"
+device = "local"
+reporters = ["console"]
+wait.probe = 2.0
+wait.deadline = 20.0
+wait.interval = 0.5
+
+[profile.ci]
+driver = "mock"
+device = "local"
+reporters = ["console"]
+log_json = true
+wait.probe = 1.0
+wait.deadline = 30.0
+wait.interval = 0.25
