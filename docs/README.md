@@ -9,6 +9,13 @@
 | [02-AI-ROADMAP.md](02-AI-ROADMAP.md) | AI features catalog: generation, triage, agents |
 | [03-FUTURE-PHASES.md](03-FUTURE-PHASES.md) | Post-v0.1 expansion candidates (unnumbered) |
 
+## Guides & ADRs
+
+| Doc | Description |
+|-----|-------------|
+| [drivers.md](drivers.md) | How to write a DriverPort adapter + conformance |
+| [adr/](adr/) | Architecture decision records |
+
 ## Phase Briefs
 
 | Phase | Title | Brief |
