@@ -22,86 +22,11 @@ from questline.core.events import (
     TestFinished,
     TestStarted,
 )
-
-_SCHEMA = """
-CREATE TABLE IF NOT EXISTS runs (
-    id TEXT PRIMARY KEY,
-    profile TEXT,
-    started_at TEXT NOT NULL,
-    finished_at TEXT,
-    status TEXT,
-    meta TEXT
-);
-
-CREATE TABLE IF NOT EXISTS tests (
-    id TEXT PRIMARY KEY,
-    run_id TEXT NOT NULL REFERENCES runs(id),
-    nodeid TEXT NOT NULL,
-    started_at TEXT,
-    finished_at TEXT,
-    status TEXT,
-    verdict TEXT,
-    error_type TEXT,
-    error_message TEXT
-);
-
-CREATE TABLE IF NOT EXISTS steps (
-    id TEXT PRIMARY KEY,
-    test_id TEXT NOT NULL REFERENCES tests(id),
-    run_id TEXT NOT NULL,
-    name TEXT NOT NULL,
-    started_at TEXT NOT NULL,
-    finished_at TEXT,
-    status TEXT,
-    error_message TEXT
-);
-
-CREATE TABLE IF NOT EXISTS events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    run_id TEXT,
-    test_id TEXT,
-    step_id TEXT,
-    type TEXT NOT NULL,
-    timestamp TEXT NOT NULL,
-    payload TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS perf_samples (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    run_id TEXT,
-    test_id TEXT,
-    metric TEXT NOT NULL,
-    value REAL NOT NULL,
-    timestamp TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS ai_calls (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    run_id TEXT,
-    provider TEXT,
-    model TEXT,
-    tokens_in INTEGER,
-    tokens_out INTEGER,
-    cost REAL,
-    purpose TEXT,
-    duration_ms REAL,
-    timestamp TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS quarantine (
-    test_id TEXT PRIMARY KEY,
-    reason TEXT NOT NULL,
-    entered_at TEXT NOT NULL,
-    owner TEXT,
-    exit_criteria TEXT,
-    linked_issue TEXT,
-    left_at TEXT
-);
-
-CREATE INDEX IF NOT EXISTS idx_tests_run ON tests(run_id);
-CREATE INDEX IF NOT EXISTS idx_steps_test ON steps(test_id);
-CREATE INDEX IF NOT EXISTS idx_events_run ON events(run_id);
-"""
+from questline.core.migrations import (
+    CURRENT_SCHEMA_VERSION,
+    apply_migrations,
+    get_schema_version,
+)
 
 
 def _ts(value: datetime | str) -> str:
@@ -138,8 +63,13 @@ class RunStore:
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA synchronous=FULL")
-        self._conn.executescript(_SCHEMA)
+        apply_migrations(self._conn)
         self._bus: EventBus | None = None
+
+    @property
+    def schema_version(self) -> int:
+        with self._lock:
+            return get_schema_version(self._conn)
 
     def attach(self, bus: EventBus) -> None:
         """Subscribe to *bus* so every event is persisted incrementally."""
@@ -364,3 +294,6 @@ class RunStore:
 
     def __exit__(self, *args: object) -> None:
         self.close()
+
+
+__all__ = ["CURRENT_SCHEMA_VERSION", "RunStore"]

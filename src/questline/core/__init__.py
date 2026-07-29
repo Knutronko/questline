@@ -16,10 +16,12 @@ from questline.core.errors import (
     classify,
 )
 from questline.core.events import Event, EventBus
+from questline.core.migrations import CURRENT_SCHEMA_VERSION
 from questline.core.store import RunStore
 from questline.core.waits import WaitPolicy, WaitSkipped, resolve_policy, wait_for
 
 __all__ = [
+    "CURRENT_SCHEMA_VERSION",
     "AssertionFailedError",
     "AuthoringError",
     "DeviceError",

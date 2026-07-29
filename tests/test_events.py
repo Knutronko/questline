@@ -53,3 +53,18 @@ def test_unsubscribe() -> None:
     bus.unsubscribe(handler)  # idempotent
     bus.publish(RunStarted(run_id="r1", profile="x"))
     assert seen == []
+
+
+def test_event_tags_default_empty_and_roundtrip() -> None:
+    bare = RunStarted(run_id="r1", profile="editor")
+    assert bare.tags == {}
+    assert bare.to_dict()["tags"] == {}
+
+    tagged = RunStarted(
+        run_id="r1",
+        profile="editor",
+        tags={"feature_id": "feat-42", "source": "scan"},
+    )
+    payload = tagged.to_dict()
+    assert payload["tags"] == {"feature_id": "feat-42", "source": "scan"}
+    assert payload["type"] == "RunStarted"

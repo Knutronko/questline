@@ -24,6 +24,7 @@ class Event:
 
     run_id: str
     timestamp: datetime = field(default_factory=_utcnow)
+    tags: dict[str, str] = field(default_factory=dict)
 
     @property
     def type_name(self) -> str:
