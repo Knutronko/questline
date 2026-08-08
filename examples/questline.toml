@@ -1,4 +1,4 @@
-# Sample questline.toml used by docs and doctor acceptance tests.
+# Sample questline.toml used by docs, doctor, and the demo suite.
 
 [profile.editor]
 driver = "mock"
@@ -16,3 +16,12 @@ log_json = true
 wait.probe = 1.0
 wait.deadline = 30.0
 wait.interval = 0.25
+
+[profile.mock]
+driver = "mock"
+device = "local"
+reporters = ["console"]
+markers = ["quest.demo"]
+wait.probe = 0.2
+wait.deadline = 2.0
+wait.interval = 0.05

@@ -105,9 +105,20 @@ def _migrate_001_initial_core(conn: sqlite3.Connection) -> None:
     )
 
 
+def _migrate_002_tests_feature_id(conn: sqlite3.Connection) -> None:
+    """Add nullable feature_id to tests (feature-pipeline tagging hook)."""
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(tests)").fetchall()}
+    if "feature_id" not in cols:
+        conn.execute("ALTER TABLE tests ADD COLUMN feature_id TEXT")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_tests_feature ON tests(feature_id)"
+    )
+
+
 # Append-only: new modules add the next integer version here.
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_core_schema", _migrate_001_initial_core),
+    Migration(2, "tests_feature_id", _migrate_002_tests_feature_id),
 )
 
 CURRENT_SCHEMA_VERSION: int = MIGRATIONS[-1].version

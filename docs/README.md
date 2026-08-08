@@ -14,6 +14,9 @@
 | Doc | Description |
 |-----|-------------|
 | [drivers.md](drivers.md) | How to write a DriverPort adapter + conformance |
+| [writing-tests.md](writing-tests.md) | Authoring layer: plugin, pages, steps, quarantine |
+| [GAME-INTEGRATION.md](GAME-INTEGRATION.md) | Reference-game dogfood contract (phase ↔ game triggers) |
+| [FEATURE-PIPELINE-PLAN.md](FEATURE-PIPELINE-PLAN.md) | Feature→tests pipeline plan + phase addendums |
 | [adr/](adr/) | Architecture decision records |
 
 ## Phase Briefs

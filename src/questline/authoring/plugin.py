@@ -1,0 +1,415 @@
+"""pytest plugin — profile → DriverHandle → store; markers; quarantine; feature filter."""
+
+from __future__ import annotations
+
+import os
+import time
+import uuid
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+import pytest
+
+if TYPE_CHECKING:
+    from questline.authoring.context import Context
+    from questline.authoring.quarantine import QuarantineLedger
+    from questline.core.config import Settings
+    from questline.core.events import EventBus
+    from questline.core.store import RunStore
+    from questline.drivers.handle import DriverHandle
+
+_STASH_RUN_ID = pytest.StashKey[str]()
+_STASH_RUN_T0 = pytest.StashKey[float]()
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    group = parser.getgroup("questline", "questline authoring")
+    group.addoption(
+        "--questline-profile",
+        action="store",
+        default=None,
+        help="Profile name from questline.toml (overrides QUESTLINE_PROFILE)",
+    )
+    group.addoption(
+        "--questline-config",
+        action="store",
+        default=None,
+        help="Path to questline.toml",
+    )
+    group.addoption(
+        "--include-quarantined",
+        action="store_true",
+        default=False,
+        help="Run tests marked quest_quarantined (excluded by default)",
+    )
+    group.addoption(
+        "--feature",
+        action="store",
+        default=None,
+        dest="questline_feature",
+        help="Only collect tests tagged with feature=<id>",
+    )
+    group.addoption(
+        "--questline-quarantine",
+        action="store",
+        default=None,
+        help="Path to quarantine.yaml (default: <root>/quarantine.yaml)",
+    )
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line("markers", "quest_smoke: smoke-suite marker (alias: quest.smoke)")
+    config.addinivalue_line(
+        "markers", "quest_regression: regression-suite marker (alias: quest.regression)"
+    )
+    config.addinivalue_line(
+        "markers",
+        "quest_quarantined: excluded by default; run with --include-quarantined",
+    )
+    config.addinivalue_line(
+        "markers",
+        "feature(id): optional feature-pipeline id stored on the test result",
+    )
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config,
+    items: list[pytest.Item],
+) -> None:
+    include_q = bool(config.getoption("--include-quarantined"))
+    feature_filter = config.getoption("questline_feature")
+
+    kept: list[pytest.Item] = []
+    deselected: list[pytest.Item] = []
+    for item in items:
+        if not include_q and item.get_closest_marker("quest_quarantined") is not None:
+            deselected.append(item)
+            continue
+        if feature_filter:
+            feat = feature_id_for_item(item)
+            if feat != feature_filter:
+                deselected.append(item)
+                continue
+        kept.append(item)
+
+    if deselected:
+        config.hook.pytest_deselected(items=deselected)
+        items[:] = kept
+
+
+def feature_id_for_item(item: pytest.Item) -> str | None:
+    mark = item.get_closest_marker("feature")
+    if mark is None:
+        return None
+    if mark.args:
+        return str(mark.args[0])
+    for key in ("id", "value", "name"):
+        if key in mark.kwargs:
+            return str(mark.kwargs[key])
+    return None
+
+
+def questline_active(config: pytest.Config) -> bool:
+    if config.getoption("--questline-profile"):
+        return True
+    if config.getoption("--questline-config"):
+        return True
+    if os.environ.get("QUESTLINE_PROFILE"):
+        return True
+    return False
+
+
+def quarantine_path_from_config(config: pytest.Config) -> Path:
+    opt = config.getoption("--questline-quarantine")
+    if opt:
+        return Path(opt)
+    return Path(config.rootpath) / "quarantine.yaml"
+
+
+def load_session_ledger(config: pytest.Config) -> QuarantineLedger:
+    from questline.authoring.quarantine import QuarantineLedger
+
+    return QuarantineLedger.load(quarantine_path_from_config(config))
+
+
+@pytest.fixture(scope="session")
+def questline_settings(pytestconfig: pytest.Config) -> Settings:
+    from questline.core.config import load_settings
+    from questline.core.errors import AuthoringError
+
+    profile = pytestconfig.getoption("--questline-profile")
+    config_opt = pytestconfig.getoption("--questline-config")
+    config_path = Path(config_opt) if config_opt else None
+    root = Path(pytestconfig.rootpath)
+    try:
+        settings = load_settings(
+            config_path=config_path,
+            profile=profile,
+            project_root=root,
+        )
+    except AuthoringError:
+        if not questline_active(pytestconfig):
+            return load_settings(project_root=root, profile="default")
+        raise
+
+    for name, desc in _profile_custom_markers(root, settings.profile, config_path):
+        pytestconfig.addinivalue_line("markers", f"{name}: {desc}")
+    return settings
+
+
+def _profile_custom_markers(
+    root: Path,
+    profile: str,
+    config_path: Path | None,
+) -> list[tuple[str, str]]:
+    import tomllib
+
+    path = config_path if config_path is not None else root / "questline.toml"
+    if not path.is_file():
+        return []
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
+    table = (data.get("profile") or {}).get(profile) or {}
+    raw = table.get("markers") or []
+    out: list[tuple[str, str]] = []
+    if isinstance(raw, list):
+        for item in raw:
+            if isinstance(item, str):
+                out.append((item, f"custom marker from profile '{profile}'"))
+            elif isinstance(item, dict) and "name" in item:
+                out.append(
+                    (str(item["name"]), str(item.get("description", "custom marker")))
+                )
+    return out
+
+
+@pytest.fixture(scope="session")
+def questline_bus() -> EventBus:
+    from questline.core.events import EventBus
+
+    return EventBus()
+
+
+@pytest.fixture(scope="session")
+def questline_store(
+    questline_settings: Settings,
+    questline_bus: EventBus,
+) -> Any:
+    from questline.core.store import RunStore
+
+    store = RunStore(
+        questline_settings.store_db,
+        artifacts_dir=questline_settings.artifacts_dir,
+        ledger_path=questline_settings.ledger_path,
+    )
+    store.attach(questline_bus)
+    yield store
+    store.close()
+
+
+@pytest.fixture(scope="session")
+def questline_run_id(
+    questline_settings: Settings,
+    questline_bus: EventBus,
+    questline_store: RunStore,
+    pytestconfig: pytest.Config,
+) -> Any:
+    from questline.core.events import RunFinished, RunStarted
+
+    _ = questline_store
+    run_id = str(uuid.uuid4())
+    pytestconfig.stash[_STASH_RUN_ID] = run_id
+    t0 = time.perf_counter()
+    pytestconfig.stash[_STASH_RUN_T0] = t0
+    questline_bus.publish(RunStarted(run_id=run_id, profile=questline_settings.profile))
+    yield run_id
+    status = "passed"
+    tr = pytestconfig.pluginmanager.get_plugin("terminalreporter")
+    if tr is not None and (tr.stats.get("failed") or tr.stats.get("error")):
+        status = "failed"
+    questline_bus.publish(
+        RunFinished(
+            run_id=run_id,
+            status=status,
+            duration_s=time.perf_counter() - t0,
+        )
+    )
+
+
+@pytest.fixture(scope="session")
+def driver_handle(questline_settings: Settings, questline_run_id: str) -> Any:
+    from questline.core.errors import AuthoringError
+    from questline.drivers.handle import DriverHandle
+    from questline.drivers.mock import MockDriver
+    from questline.drivers.port import ConnectionTarget
+
+    _ = questline_run_id
+    driver_name = (questline_settings.driver or "mock").lower()
+
+    def _provider() -> MockDriver:
+        if driver_name != "mock":
+            raise AuthoringError(
+                f"Driver '{driver_name}' is not available yet. "
+                'Use profile driver = "mock" (phase 03) or a later adapter phase.'
+            )
+        return MockDriver()
+
+    handle = DriverHandle(provider=_provider)
+    if driver_name == "mock":
+        handle.connect(ConnectionTarget(host="mock", port=0))
+    yield handle
+    try:
+        if handle.is_alive():
+            handle.disconnect()
+    except Exception:  # pragma: no cover - disposal must not fail the session
+        pass
+
+
+@pytest.fixture
+def questline_ctx(
+    driver_handle: DriverHandle,
+    questline_bus: EventBus,
+    questline_run_id: str,
+    questline_settings: Settings,
+    request: pytest.FixtureRequest,
+) -> Context:
+    from questline.authoring.context import Context
+
+    return Context(
+        driver=driver_handle,
+        bus=questline_bus,
+        run_id=questline_run_id,
+        test_id=request.node.nodeid,
+        wait_policy=questline_settings.wait_policy(),
+    )
+
+
+def _uses_questline(item: pytest.Item) -> bool:
+    names = set(getattr(item, "fixturenames", ()))
+    return bool(
+        names
+        & {
+            "questline_ctx",
+            "driver_handle",
+            "questline_run_id",
+            "questline_store",
+            "questline_bus",
+        }
+    )
+
+
+def _fixture_value(item: pytest.Item, name: str) -> Any:
+    funcargs = getattr(item, "funcargs", None)
+    if isinstance(funcargs, dict) and name in funcargs:
+        return funcargs[name]
+    try:  # pragma: no cover - cache walk is a best-effort fallback
+        defs = item.session._fixturemanager.getfixturedefs(name, item.nodeid)  # noqa: SLF001
+    except Exception:  # pragma: no cover
+        return None
+    if not defs:  # pragma: no cover
+        return None
+    for fixturedef in defs:  # pragma: no cover
+        cached = getattr(fixturedef, "cached_result", None)
+        if cached is not None:
+            return cached[0]
+    return None  # pragma: no cover
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_setup(item: pytest.Item) -> Any:
+    yield
+    if not _uses_questline(item):
+        return
+    bus = _fixture_value(item, "questline_bus")
+    run_id = _fixture_value(item, "questline_run_id")
+    if bus is None or run_id is None:
+        return
+    if getattr(item, "_questline_started_emitted", False):
+        return
+    from questline.core.events import TestStarted
+
+    feature_id = feature_id_for_item(item)
+    bus.publish(
+        TestStarted(
+            run_id=run_id,
+            test_id=item.nodeid,
+            nodeid=item.nodeid,
+            feature_id=feature_id,
+        )
+    )
+    item._questline_started_emitted = True  # type: ignore[attr-defined]
+    item._questline_t0 = time.perf_counter()  # type: ignore[attr-defined]
+    item._questline_feature_id = feature_id  # type: ignore[attr-defined]
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> Any:
+    outcome = yield
+    report: pytest.TestReport = outcome.get_result()
+    if report.when != "call" or not _uses_questline(item):
+        return
+    bus = _fixture_value(item, "questline_bus")
+    run_id = _fixture_value(item, "questline_run_id")
+    handle = _fixture_value(item, "driver_handle")
+    if bus is None or run_id is None:
+        return
+
+    from questline.core.errors import classify
+    from questline.core.events import TestFinished, TestStarted
+
+    feature_id = getattr(item, "_questline_feature_id", None) or feature_id_for_item(item)
+    if not getattr(item, "_questline_started_emitted", False):
+        bus.publish(
+            TestStarted(
+                run_id=run_id,
+                test_id=item.nodeid,
+                nodeid=item.nodeid,
+                feature_id=feature_id,
+            )
+        )
+        item._questline_started_emitted = True  # type: ignore[attr-defined]
+
+    status = "passed"
+    verdict = None
+    error_type = None
+    error_message = None
+    tags: dict[str, str] = {}
+    if feature_id:
+        tags["feature_id"] = feature_id
+
+    if report.failed:
+        status = "failed"
+        if call.excinfo is not None:
+            err = call.excinfo.value
+            verdict = classify(err).value
+            error_type = type(err).__name__
+            error_message = str(err)
+        else:  # pragma: no cover - pytest always provides excinfo on failed call
+            verdict = "unknown"
+            error_message = str(report.longrepr)
+    elif report.skipped:
+        status = "skipped"
+
+    if status == "failed" and handle is not None:
+        try:
+            tags["driver_alive"] = "true" if handle.is_alive() else "false"
+            state = handle.app_state()
+            tags["app_scene"] = state.scene or ""
+            tags["app_foreground"] = "true" if state.foreground else "false"
+            tags["app_paused"] = "true" if state.paused else "false"
+        except Exception as health_exc:  # pragma: no cover - health probe is best-effort
+            tags["driver_health_error"] = f"{type(health_exc).__name__}: {health_exc}"
+
+    t0 = getattr(item, "_questline_t0", time.perf_counter())
+    bus.publish(
+        TestFinished(
+            run_id=run_id,
+            test_id=item.nodeid,
+            nodeid=item.nodeid,
+            status=status,
+            verdict=verdict,
+            error_type=error_type,
+            error_message=error_message,
+            duration_s=time.perf_counter() - float(t0),
+            tags=tags,
+        )
+    )

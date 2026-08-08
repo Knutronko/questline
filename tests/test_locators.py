@@ -24,9 +24,10 @@ def test_load_sample_locators_yaml() -> None:
     assert "Shop" in registry.pages()
     loc = registry.get("Shop", "open_button")
     assert loc.by is LocatorStrategy.ID
-    assert loc.value == "shop.open"
+    assert loc.value == "hud.shop"
     scoped = registry.get("Shop", "root")
-    assert scoped.scope == "Canvas"
+    assert scoped.scope is None
+    assert scoped.value == "shop.root"
 
 
 def test_codegen_roundtrip_and_generated_module_used(tmp_path: Path) -> None:
@@ -46,13 +47,13 @@ def test_codegen_roundtrip_and_generated_module_used(tmp_path: Path) -> None:
         sys.path.pop(0)
 
     scene = MockScene()
-    scene.add(MockNode(id="shop.open", name="ShopPanel", path="/Canvas/ShopPanel"))
+    scene.add(MockNode(id="hud.shop", name="ShopButton", path="/Hud/Shop"))
     driver = MockDriver(scene)
     driver.connect(ConnectionTarget())
     el = driver.find(gen.Shop.open_button)
-    assert el.id == "shop.open"
+    assert el.id == "hud.shop"
     compiled = driver.compile(gen.Shop.root)
-    assert compiled.scope == "Canvas"
+    assert compiled.value == "shop.root"
     driver.disconnect()
 
 

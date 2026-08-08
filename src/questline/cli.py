@@ -18,6 +18,13 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+quarantine_app = typer.Typer(
+    name="quarantine",
+    help="Manage the versioned quarantine ledger (quarantine.yaml).",
+    no_args_is_help=True,
+)
+app.add_typer(quarantine_app, name="quarantine")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -71,6 +78,112 @@ def doctor(
         f"ledger:      {settings.ledger_path}",
     ]
     typer.echo("\n".join(lines))
+
+
+def _ledger_path(path: Path | None) -> Path:
+    return path if path is not None else Path.cwd() / "quarantine.yaml"
+
+
+@quarantine_app.command("add")
+def quarantine_add(
+    test_id: Annotated[str, typer.Argument(help="Pytest nodeid to quarantine")],
+    reason: Annotated[str, typer.Option("--reason", "-r", help="Why it is quarantined")],
+    owner: Annotated[str, typer.Option("--owner", "-o", help="Owner responsible for exit")],
+    exit_criteria: Annotated[
+        str,
+        typer.Option("--exit-criteria", "-e", help="When it may leave quarantine"),
+    ],
+    issue: Annotated[
+        str | None,
+        typer.Option("--issue", "-i", help="Linked issue URL or id"),
+    ] = None,
+    feature: Annotated[
+        str | None,
+        typer.Option("--feature", "-f", help="Optional feature id"),
+    ] = None,
+    path: Annotated[
+        Path | None,
+        typer.Option("--path", help="Path to quarantine.yaml"),
+    ] = None,
+) -> None:
+    """Add or update a quarantine ledger entry."""
+    from questline.authoring.quarantine import QuarantineLedger
+
+    ledger_file = _ledger_path(path)
+    try:
+        ledger = QuarantineLedger.load(ledger_file)
+        ledger.add(
+            test_id,
+            reason=reason,
+            owner=owner,
+            exit_criteria=exit_criteria,
+            issue=issue,
+            feature=feature,
+        )
+        ledger.save()
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(f"quarantine: added {test_id} → {ledger_file}")
+
+
+@quarantine_app.command("remove")
+def quarantine_remove(
+    test_id: Annotated[str, typer.Argument(help="Pytest nodeid to remove")],
+    path: Annotated[
+        Path | None,
+        typer.Option("--path", help="Path to quarantine.yaml"),
+    ] = None,
+) -> None:
+    """Remove a quarantine ledger entry."""
+    from questline.authoring.quarantine import QuarantineLedger
+
+    ledger_file = _ledger_path(path)
+    try:
+        ledger = QuarantineLedger.load(ledger_file)
+        if not ledger.remove(test_id):
+            typer.secho(f"quarantine: no entry for {test_id}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1)
+        ledger.save()
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(f"quarantine: removed {test_id} from {ledger_file}")
+
+
+@quarantine_app.command("audit")
+def quarantine_audit(
+    path: Annotated[
+        Path | None,
+        typer.Option("--path", help="Path to quarantine.yaml"),
+    ] = None,
+    tests: Annotated[
+        list[str] | None,
+        typer.Option("--tests", help="Test path(s) to collect markers from"),
+    ] = None,
+    rootdir: Annotated[
+        Path | None,
+        typer.Option("--rootdir", help="Pytest rootdir for collection"),
+    ] = None,
+) -> None:
+    """Fail (exit 1) on limbo: marker↔ledger mismatch."""
+    from questline.authoring.quarantine import QuarantineLedger, collect_quarantined_nodeids
+
+    ledger_file = _ledger_path(path)
+    try:
+        ledger = QuarantineLedger.load(ledger_file)
+        marked = collect_quarantined_nodeids(
+            tests,
+            rootdir=rootdir or Path.cwd(),
+        )
+        report = ledger.audit(marked)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+
+    typer.echo(report.summary())
+    if not report.ok:
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

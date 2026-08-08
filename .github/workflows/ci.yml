@@ -28,7 +28,29 @@ jobs:
           uv pip install -e ".[dev]"
 
       - name: Lint
-        run: uv run ruff check src/ tests/
+        run: uv run ruff check src/ tests/ examples/demo-tests/
 
       - name: Test
         run: uv run pytest
+
+      - name: Authoring coverage gate
+        run: >
+          uv run coverage report
+          --include="src/questline/authoring/*"
+          --omit="src/questline/authoring/__init__.py"
+          --fail-under=85
+
+      - name: Demo suite (authoring e2e)
+        run: |
+          uv run pytest examples/demo-tests \
+            --questline-profile mock \
+            --questline-config examples/questline.toml \
+            --questline-quarantine examples/demo-tests/quarantine.yaml \
+            -q -o addopts=
+
+      - name: Quarantine audit (demo ledger)
+        run: |
+          uv run questline quarantine audit \
+            --path examples/demo-tests/quarantine.yaml \
+            --tests examples/demo-tests \
+            --rootdir .
