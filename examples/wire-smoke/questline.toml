@@ -1,0 +1,37 @@
+# QuestlineWire smoke profiles (no AltTester Desktop / no [alttester] extra).
+
+[profile.editor]
+driver = "questline"
+target_host = "127.0.0.1"
+target_port = 13000
+target_platform = "editor"
+device = "local"
+reporters = ["console"]
+wait.probe = 2.0
+wait.deadline = 20.0
+wait.interval = 0.5
+
+[profile.standalone]
+driver = "questline"
+target_host = "127.0.0.1"
+target_port = 13000
+target_platform = "standalone_exe"
+device = "local"
+reporters = ["console"]
+wait.probe = 2.0
+wait.deadline = 30.0
+wait.interval = 0.5
+
+# Android via LocalAdbProvider + adb reverse (same plumbing as phase-05).
+# Requires QUESTLINE_DEV APK with QuestlineWireServer compiled in (game QL-2b).
+[profile.android_local]
+driver = "questline"
+device = "adb"
+target_host = "127.0.0.1"
+target_port = 13000
+target_platform = "android"
+install_apk = true
+reporters = ["console"]
+wait.probe = 2.0
+wait.deadline = 45.0
+wait.interval = 0.5

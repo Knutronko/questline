@@ -4,9 +4,9 @@ Run Questline against an instrumented Unity APK on a USB phone or emulator using
 `LocalAdbProvider` + a game driver (`QuestlineDriver` / Wire preferred — phase-05b;
 `AltTesterDriver` optional/legacy) with `ConnectionTarget(platform="android")`.
 
-> **Live status:** AltTester Desktop is **not** the €0 happy path (ADR-0005). Prefer
-> `driver = "questline"` once phase-05b Gate B lands. Device plumbing (`adb reverse`,
-> install, launch, lock) is unchanged.
+> **Live status:** Prefer `driver = "questline"` (QuestlineWire). AltTester Desktop is
+> **not** the €0 happy path (ADR-0005). Device plumbing (`adb reverse`, install, launch,
+> lock) is unchanged. Live Android still needs game **QL-2b** (Wire compiled into Dev APK).
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ adb devices -l
 
 ```toml
 [profile.android_local]
-driver = "alttester"
+driver = "questline"   # or legacy "alttester"
 device = "adb"
 target_host = "127.0.0.1"
 target_port = 13000

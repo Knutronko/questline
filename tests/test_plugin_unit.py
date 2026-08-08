@@ -164,6 +164,33 @@ def test_wire_driver_handle_unknown() -> None:
         pl.wire_driver_handle(Settings(driver="poco"))
 
 
+def test_wire_driver_handle_questline(monkeypatch: pytest.MonkeyPatch) -> None:
+    import questline.drivers.wire as wiremod
+    from questline.core.config import Settings
+    from questline.drivers.wire import QuestlineDriver
+    from questline.drivers.wire.fake import fake_transport_factory
+
+    monkeypatch.setattr(
+        wiremod,
+        "QuestlineDriver",
+        lambda: QuestlineDriver(
+            transport_factory=fake_transport_factory(state={}),
+            rehandshake_delay_s=0.0,
+            sleeper=lambda _s: None,
+        ),
+    )
+    settings = Settings(
+        driver="questline",
+        target_host="127.0.0.1",
+        target_port=13000,
+        target_platform="editor",
+    )
+    handle = pl.wire_driver_handle(settings)
+    assert handle.is_alive()
+    assert handle.app_state().foreground is True
+    handle.disconnect()
+
+
 def test_wire_driver_handle_alttester_android(monkeypatch: pytest.MonkeyPatch) -> None:
     from questline.core.config import Settings
     from questline.devices.port import Device

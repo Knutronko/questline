@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-08** (QuestlineWire Gate A).
+> Última revisión: **2026-08-08** (QuestlineWire Gate B).
 
 ---
 
@@ -12,8 +12,8 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 fases 0–15 + **05b Wire** | **0–5 mergeadas**; AltTester live Desktop **no viable €0** | **05b Gate A → Gate B** QuestlineWire (Editor smoke sin Desktop) | Live e2e bloqueado hasta Wire; no reintentar Desktop |
-| **ElJuegaso P1** | Proto D (feel) | **D1–D9.5** + **QL-1** + **QL-2** código (Dev APK / Verify); docs §8 blocker | **QL-2b** tras Wire en companion · D10 en paralelo · `automation/` tras smoke live verde | AltTester Desktop desinstalado; smoke live aplazado a Wire |
+| **questline** | v0.1 fases 0–15 + **05b Wire** | **05b Gate B** — `QuestlineDriver` + companion listener + CI/fake green | Maintainer Editor `wire-smoke` · **06** Resilience | Live Editor smoke pending maintainer; Android live tras QL-2b |
+| **ElJuegaso P1** | Proto D (feel) | **D1–D9.5** + **QL-1** + **QL-2** código; Desktop live descartado | **QL-2b** (Wire bootstrap + refresh companion) · D10 · `automation/` tras smoke Wire verde | Smoke live aplazado a Wire + QL-2b |
 
 **Repos locales canónicos**
 
@@ -34,7 +34,7 @@
 | 3 | Authoring layer | ✅ | |
 | 4 | AltTester + companion | ✅ | Código + QL-1; **Desktop live descartado** para happy path €0 |
 | 5 | Android local | ✅ código/CI | Live acceptance **aplazado** → Wire (05b) |
-| **05b** | **QuestlineWire** | 🔄 Gate A (docs/ADR) | ADR-0005 · desbloquea Editor/Android smoke sin Desktop |
+| **05b** | **QuestlineWire** | ✅ código/CI (Gate B) | Editor live + Android live = maintainer / QL-2b; ADR-0005 |
 | 6 | Resilience | ⬜ after 05b | Mock + opcional live reusando Wire |
 | 7 | Reporters | ⬜ | Consume suite `automation/` cuando exista |
 | 8 | HUD I viewer | ⬜ | |
@@ -122,17 +122,16 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | **05b Gate A** (ADR + brief) → maintainer go | questline | Este PR |
-| 2 | **05b Gate B** — QuestlineWire listener + `QuestlineDriver` + Editor smoke | questline | Desbloquea live €0 sin Desktop |
-| 3 | **QL-2b** — bootstrap Wire + refresh companion embed | ElJuegaso | Tras Gate B companion |
-| 4 | **Acceptance live** Editor (+ Android si cabe) vía Wire | ambos | Cierra pending de 05; `automation/` exit |
-| 5 | **Exit task `automation/`** | ElJuegaso | Suite real; alimenta reporters/HUD/AI |
-| 6 | **D10 skills/balance** (en paralelo) | ElJuegaso | No bloquea fw; gana con hooks/testabilidad |
-| 7 | **phase-06 Resilience** | questline | Tras Wire usable; live opcional |
-| 8 | **phase-07 / 08** | questline | Mejor **después** de `automation/` |
-| 9 | **D11 ↔ QL-5 / phase-09 ↔ QL-3** | ambos | Emparejar economía/GameLens y perf |
-| 10 | **D12 ↔ QL-6** | ambos | Infinito + telemetría |
-| 11 | **phase-14 ↔ QL-4** | ambos | UTF + Poco cuando el loop esté estable |
+| 1 | **05b Gate B** QuestlineWire (este PR) | questline | Código + CI; Editor smoke maintainer-checked |
+| 2 | **QL-2b** — bootstrap Wire + refresh companion embed | ElJuegaso | Ver `docs/wire-setup.md` file list |
+| 3 | **Acceptance live** Editor (+ Android) vía Wire | ambos | Cierra pending de 05; desbloquea `automation/` |
+| 4 | **Exit task `automation/`** | ElJuegaso | Suite real; alimenta reporters/HUD/AI |
+| 5 | **D10 skills/balance** (en paralelo) | ElJuegaso | No bloquea fw; gana con hooks/testabilidad |
+| 6 | **phase-06 Resilience** | questline | Tras Wire usable; live opcional |
+| 7 | **phase-07 / 08** | questline | Mejor **después** de `automation/` |
+| 8 | **D11 ↔ QL-5 / phase-09 ↔ QL-3** | ambos | Emparejar economía/GameLens y perf |
+| 9 | **D12 ↔ QL-6** | ambos | Infinito + telemetría |
+| 10 | **phase-14 ↔ QL-4** | ambos | UTF + Poco cuando el loop esté estable |
 
 **Beneficio cruzado (resumen):** fases D del juego que tocan UI/flujo **después** de
 QL-1+Wire+`automation/` se benefician (regresión smoke). D11/D12 se benefician si
@@ -170,6 +169,7 @@ Formalizado en: questline `GAME-INTEGRATION.md` + `00-MASTER-PLAN.md` §6 · ElJ
 |---------|------|
 | Questline master plan | [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) |
 | Game integration contract | [`GAME-INTEGRATION.md`](GAME-INTEGRATION.md) |
+| QuestlineWire setup | [`wire-setup.md`](wire-setup.md) |
 | QuestlineWire ADR | [`ADR-0005`](adr/ADR-0005-questline-wire.md) |
 | Phase 05b brief | [`phase-05b-questline-wire.md`](phases/phase-05b-questline-wire.md) |
 | Android / adb | [`android.md`](android.md) |

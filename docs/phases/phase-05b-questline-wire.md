@@ -93,19 +93,19 @@ See ADR-0005 §8 table → existing taxonomy (`InfraError` / `SessionLostError` 
 - [x] ADR-0005 merged (or open for approval) with transport, port, security, protocol sketch
 - [x] This brief locked (DoD, MVP in/out, profiles, error mapping)
 - [x] `GAME-INTEGRATION.md` + `STATUS-DUAL.md` updated (blocked AltTester live → next = Wire)
-- [ ] Maintainer **explicit go** before Gate B coding
+- [x] Maintainer **explicit go** before Gate B coding
 
 ### Gate B (implement — after go)
 
-- [ ] Companion listener + bootstrap API under define gate; unit-testable protocol helpers where practical
-- [ ] `QuestlineDriver` + plugin registry `driver = "questline"` (no `[alttester]` required)
-- [ ] Soft-reload reconnect regression (fake or live)
-- [ ] CI: fake-transport / protocol unit tests green; conformance subset green
+- [x] Companion listener + bootstrap API under define gate; unit-testable protocol helpers where practical
+- [x] `QuestlineDriver` + plugin registry `driver = "questline"` (no `[alttester]` required)
+- [x] Soft-reload reconnect regression (fake or live)
+- [x] CI: fake-transport / protocol unit tests green; conformance subset green
 - [ ] Maintainer-checked: `examples/wire-smoke` green on Editor without Desktop
-- [ ] Android: green via `adb reverse` in same PR **or** documented follow-up DoD if blocked
-- [ ] Deferred conformance / UI methods documented
-- [ ] QL-2b sync notes (exact companion files to refresh in reference game)
-- [ ] `STATUS-DUAL.md` + phase checklist updated; PR test plan (PowerShell)
+- [x] Android: profile + `LocalAdbProvider` wiring ready; **live device DoD** = maintainer after QL-2b (documented in `docs/wire-setup.md`)
+- [x] Deferred conformance / UI methods documented (`drivers.md`, Wire MVP stubs)
+- [x] QL-2b sync notes (exact companion files) — `docs/wire-setup.md`
+- [x] `STATUS-DUAL.md` + phase checklist updated; PR test plan (PowerShell)
 
 ## PR checklist
 

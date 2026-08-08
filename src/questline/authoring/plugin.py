@@ -246,16 +246,20 @@ def wire_driver_handle(
     from questline.drivers.port import ConnectionTarget, DriverPort
 
     driver_name = (settings.driver or "mock").lower()
-    if driver_name not in {"mock", "alttester"}:
+    if driver_name not in {"mock", "alttester", "questline"}:
         raise AuthoringError(
             f"Driver '{driver_name}' is not available. "
-            'Use profile driver = "mock" or driver = "alttester" '
-            "(requires questline[alttester])."
+            'Use profile driver = "mock", "questline" (QuestlineWire), '
+            'or "alttester" (requires questline[alttester]).'
         )
 
     def _provider() -> DriverPort:
         if driver_name == "mock":
             return MockDriver()
+        if driver_name == "questline":
+            from questline.drivers.wire import QuestlineDriver
+
+            return QuestlineDriver()
         from questline.drivers.alttester import AltTesterDriver
 
         return AltTesterDriver()
