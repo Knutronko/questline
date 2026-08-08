@@ -146,7 +146,8 @@ start out of order if blocked elsewhere.
 ## 6. Operating model (how phases are executed)
 
 1. Maintainer opens a **fresh Cursor session** and pastes the phase brief (or points it at
-   `docs/phases/phase-NN-*.md` in the checked-out repo).
+   `docs/phases/phase-NN-*.md` in the checked-out repo). Read `docs/STATUS-DUAL.md` for
+   cross-project status (questline ↔ reference game).
 2. The session works **only within the brief's scope**; anything discovered out-of-scope goes
    to `docs/phases/BACKLOG.md`, never into the PR.
 3. **Mandatory self-review before finishing:** the session audits its own implementation —
@@ -154,16 +155,20 @@ start out of order if blocked elsewhere.
    unhandled edge cases, weak tests — and writes a **Self-review** section in the PR
    description: findings (fixed vs accepted-risk) + improvement proposals (→ BACKLOG.md).
    A PR without this section is not ready for review.
-4. The session ends with: branch pushed, PR description filled from the brief's checklist +
+4. **Update `docs/STATUS-DUAL.md`** when the phase changes done/next/blocked state (semáforo
+   + roadmap row + date). Include the update in the phase PR. Cross-links:
+   `docs/GAME-INTEGRATION.md`.
+5. The session ends with: branch pushed, PR description filled from the brief's checklist +
    self-review, CI green. **The maintainer reviews and merges — the session never merges.**
-5. **Revision round (on the branch, before merge):** the maintainer checks out the PR branch,
+6. **Revision round (on the branch, before merge):** the maintainer checks out the PR branch,
    tests the phase hands-on, and leaves requested changes (PR comments or a list). The same
    session — or a fresh one given the brief + the change list — applies them on the same
    branch until CI is green and the maintainer is satisfied. One phase = one PR, and nothing
    reaches `main` untested by a human.
-6. A phase is *done* when its acceptance criteria are demonstrably met (CI + manual check
+7. A phase is *done* when its acceptance criteria are demonstrably met (CI + manual check
    where hardware is involved). "It should work" is not done.
-7. Briefs are immutable once merged; scope changes create a revision commit with reasoning.
+8. Briefs are immutable once merged; scope changes create a revision commit with reasoning.
+   (`STATUS-DUAL.md` is a **living** doc — not a phase brief.)
 
 ## 7. Beyond v0.1
 
