@@ -236,7 +236,89 @@ def questline_run_id(
 
 
 @pytest.fixture(scope="session")
-def driver_handle(questline_settings: Settings, questline_run_id: str) -> Any:
+def questline_device(
+    questline_settings: Settings,
+    questline_run_id: str,
+) -> Any:
+    """Acquire a local adb device when profile ``device`` is adb/android; else None."""
+    from questline.core.errors import DeviceError
+    from questline.devices.adb import LocalAdbProvider
+    from questline.devices.adb.client import RealAdb
+    from questline.devices.adb.emulator import ensure_emulator
+    from questline.devices.port import Device, DeviceSpec, PortMapping
+
+    _ = questline_run_id
+    device_name = (questline_settings.device or "").lower()
+    platform = (questline_settings.target_platform or "").lower()
+    needs_adb = device_name in {"adb", "android", "android_local"} or platform == "android"
+    if not needs_adb:
+        yield None
+        return
+
+    adb = RealAdb(questline_settings.adb_path)
+    provider = LocalAdbProvider(
+        adb=adb,
+        lock_dir=questline_settings.questline_dir / "device-locks",
+    )
+    if questline_settings.emulator_avd and not provider.list_devices():
+        ensure_emulator(
+            questline_settings.emulator_avd,
+            adb,
+            emulator_path=questline_settings.emulator_path,
+        )
+
+    caps: dict[str, str] = {}
+    if questline_settings.expected_app_version:
+        caps["expected_version"] = questline_settings.expected_app_version
+    spec = DeviceSpec(
+        platform="android",
+        id=questline_settings.device_serial or None,
+        caps=caps,
+    )
+    device: Device = provider.acquire(spec)
+
+    reverse_port = questline_settings.reverse_port or questline_settings.target_port
+    try:
+        provider.reverse_ports(
+            device,
+            [PortMapping(local_port=reverse_port, remote_port=reverse_port, direction="reverse")],
+        )
+        apk = questline_settings.apk_path
+        if questline_settings.install_apk and apk:
+            provider.install(
+                device,
+                Path(apk),
+                package=questline_settings.app_package,
+            )
+        if questline_settings.app_package:
+            provider.launch(
+                device,
+                package=questline_settings.app_package,
+                activity=questline_settings.app_activity,
+            )
+    except DeviceError:
+        provider.release(device)
+        raise
+
+    yield {"provider": provider, "device": device}
+
+    try:
+        if questline_settings.app_package:
+            provider.stop(device, package=questline_settings.app_package)
+    except Exception:  # pragma: no cover - teardown must not fail the session
+        pass
+    try:
+        provider.release(device)
+    except Exception:  # pragma: no cover
+        pass
+
+
+@pytest.fixture(scope="session")
+def driver_handle(
+    questline_settings: Settings,
+    questline_run_id: str,
+    questline_device: Any,
+) -> Any:
     from questline.core.errors import AuthoringError
     from questline.drivers.handle import DriverHandle
     from questline.drivers.mock import MockDriver
@@ -255,7 +337,7 @@ def driver_handle(questline_settings: Settings, questline_run_id: str) -> Any:
         raise AuthoringError(
             f"Driver '{driver_name}' is not available. "
             'Use profile driver = "mock" or driver = "alttester" '
-            '(requires questline[alttester]).'
+            "(requires questline[alttester])."
         )
 
     handle = DriverHandle(provider=_provider)
@@ -265,6 +347,8 @@ def driver_handle(questline_settings: Settings, questline_run_id: str) -> Any:
         extras: dict[str, str] = {}
         if questline_settings.target_app_name:
             extras["app_name"] = questline_settings.target_app_name
+        if questline_device is not None:
+            extras["device_serial"] = questline_device["device"].id
         handle.connect(
             ConnectionTarget(
                 host=questline_settings.target_host,
@@ -310,8 +394,51 @@ def _uses_questline(item: pytest.Item) -> bool:
             "questline_run_id",
             "questline_store",
             "questline_bus",
+            "questline_device",
         }
     )
+
+
+def _save_failure_artifacts(
+    *,
+    store: Any,
+    handle: Any,
+    device_bundle: Any,
+    run_id: str,
+    test_id: str,
+    tags: dict[str, str],
+) -> None:
+    """Best-effort screenshot + logcat into the run store on failure."""
+    safe_test = test_id.replace("/", "_").replace("\\", "_").replace(":", "_")
+    if store is not None and handle is not None:
+        try:
+            png = handle.screenshot()
+            if png:
+                path = store.save_artifact(
+                    png,
+                    run_id=run_id,
+                    name=f"{safe_test}-screenshot.png",
+                    kind="screenshot",
+                    test_id=test_id,
+                )
+                tags["artifact_screenshot"] = str(path)
+        except Exception as exc:  # pragma: no cover - artifact capture is best-effort
+            tags["artifact_screenshot_error"] = f"{type(exc).__name__}: {exc}"
+    if store is not None and device_bundle is not None:
+        try:
+            provider = device_bundle["provider"]
+            device = device_bundle["device"]
+            log_text = provider.logs(device)
+            path = store.save_artifact(
+                log_text.encode("utf-8", errors="replace"),
+                run_id=run_id,
+                name=f"{safe_test}-logcat.txt",
+                kind="logcat",
+                test_id=test_id,
+            )
+            tags["artifact_logcat"] = str(path)
+        except Exception as exc:  # pragma: no cover
+            tags["artifact_logcat_error"] = f"{type(exc).__name__}: {exc}"
 
 
 def _fixture_value(item: pytest.Item, name: str) -> Any:
@@ -415,6 +542,17 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
             tags["app_paused"] = "true" if state.paused else "false"
         except Exception as health_exc:  # pragma: no cover - health probe is best-effort
             tags["driver_health_error"] = f"{type(health_exc).__name__}: {health_exc}"
+
+        store = _fixture_value(item, "questline_store")
+        device_bundle = _fixture_value(item, "questline_device")
+        _save_failure_artifacts(
+            store=store,
+            handle=handle,
+            device_bundle=device_bundle,
+            run_id=run_id,
+            test_id=item.nodeid,
+            tags=tags,
+        )
 
     t0 = getattr(item, "_questline_t0", time.perf_counter())
     bus.publish(
