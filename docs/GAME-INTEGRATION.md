@@ -51,10 +51,17 @@ relative paths that escape the folder except the configured game-repo/APK paths 
 = feature + its tests) and split-repo tests (industry teams) are the SAME layout —
 this convention is documented for framework users, not just the reference game.
 
-## 3. ⚠️ Phase 05 exit task — create the real suite (do not skip)
+## 3. ⚠️ First green live smoke → then create the real suite (do not skip)
 
-When **phase 05** (Android local) reaches acceptance, the maintainer runs one extra
-session (game-side, not a numbered framework phase) with this scope:
+**Blocker (2026-08-08):** AltTester Desktop is not a €0-viable live hub for this duo
+(see [ADR-0005](adr/ADR-0005-questline-wire.md) and reference-game `integracion-questline.md`
+§8). Phase-05 **code** (`LocalAdbProvider`, `android_local`) is merged; **live** acceptance
+and the game `automation/` exit task wait on **QuestlineWire** (phase-05b) — not on
+reinstalling Desktop.
+
+When the **first live smoke is green** (Editor or Android) via `driver = "questline"`
+(Wire), the maintainer runs one extra session (game-side, not a numbered framework phase)
+with this scope:
 
 1. Scaffold `automation/` in the game repo per §2.
 2. Write the **coverage-demo suite**: real tests against the game exercising EVERY
@@ -82,9 +89,10 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | Fw phase | Needs from the game | Trigger to game side |
 |---|---|---|
 | 00–03 | Nothing (mock driver) | — |
-| **04** | Editor-runnable scene + AltTester SDK + companion package + first hooks (wrapping existing cheats) | **QL-1** starts when fw 04 starts |
-| **05** | Instrumented **dev APK** (AltTester in dev builds only) | **QL-2**; fallback if the game can't build for Android yet: validate 05 with a minimal sample-project APK, re-validate against the game later |
-| 06 | Nothing new (fault injection is mock-based; optional live check reuses 05 setup) | — |
+| **04** | Editor-runnable scene + companion package + first hooks (wrapping existing cheats). AltTester SDK was the first transport; **Wire supersedes Desktop for live**. | **QL-1** (done for reference game) |
+| **05** | Instrumented **dev APK** (`QUESTLINE_DEV`; originally AltTester — keep until Wire green) | **QL-2** (Dev APK pipeline; live smoke deferred to Wire) |
+| **05b** | Bootstrap enables **QuestlineWire** listener under `UNITY_EDITOR \|\| QUESTLINE_DEV`; refresh embedded companion when Wire ships; **do not** delete AltTester UPM until Wire green on device | **QL-2b** after Gate B companion lands |
+| 06 | Nothing new (fault injection is mock-based; optional live check reuses Wire / 05 setup) | — |
 | 07–08 | Nothing new (consume the suite of §3) | — |
 | **09** | Companion perf counters compiled in dev builds | **QL-3** (tiny) |
 | 10–13 | Nothing new; agents/eval run against the §3 suite and the mock game | — |

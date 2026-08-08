@@ -16,9 +16,11 @@
      (no silent session death).
   4. **Hooks manifest (addendum):** `QuestlineHooks.GetManifestJson()` returns one
      serializable dump `{hooks:[{name,args[{name,type}],causesSoftReload,feature?}]}`.
-     Python retrieves it with a single call: `AltTesterDriver.hooks_manifest()`.
-     Not added to `DriverPort` — only the AltTester/companion stack needs it today.
+     Python retrieves it with a single call: `AltTesterDriver.hooks_manifest()` /
+     (phase-05b) `QuestlineDriver.hooks_manifest()` over QuestlineWire (ADR-0005).
+     Promote onto `DriverPort` when Wire lands so both adapters share the contract.
 - **Consequences:** Games own hook handlers (including performing a soft reload when
   flagged). Feature-scan can diff manifests without reading game source. Soft-reload
   re-handshake delay is configurable on the driver; live validation is maintainer-checked
-  (Editor) and pending game QL-1 until the reference game installs the packages.
+  (Editor). AltTester Desktop is **not** required once Wire is the transport; hooks stay
+  the game API either way.

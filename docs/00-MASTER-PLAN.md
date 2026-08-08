@@ -127,6 +127,7 @@ Merge gate: GitHub Actions (lint + type check + unit tests + phase acceptance te
 | 3 | Authoring layer | pytest plugin, pages, step pipeline, assertions, markers + quarantine ledger | Unit + mock e2e |
 | 4 | AltTester adapter + Unity package | First real green test (Editor + Windows build) | Author's Unity game |
 | 5 | Android local | DevicePort + adb provider, APK flows | Author's phone/emulator |
+| 5b | QuestlineWire | First-party live driver (TCP+NDJSON); Editor/Android smoke without AltTester Desktop | Author's Unity game + Dev APK |
 | 6 | Resilience | Health monitor, session-loss recovery, watchdog, infra-vs-test verdicts | Fault-injection tests |
 | 7 | Reporters | Slack + GitHub Issues adapters over event bus | Real Slack ws + repo |
 | 8 | HUD I (viewer) | Run history/detail/artifacts + live view | Local runs |
@@ -138,8 +139,10 @@ Merge gate: GitHub Actions (lint + type check + unit tests + phase acceptance te
 | 14 | Second driver + UTF | Poco adapter (conformance suite), Unity Test Framework ingestion | Example game via Poco |
 | 15 | Integrations & release | CIPort + TeamCity adapter, farm stubs, iOS design doc, docs site, v0.1.0 | Tagged release |
 
-Dependency notes: 8→10 (HUD), 11→12→13 (AI), 2→4→5, 4→9, 3→12/13. Phases 7, 9, 11 can
-start out of order if blocked elsewhere.
+Dependency notes: 8→10 (HUD), 11→12→13 (AI), 2→4→5→**5b**, 4→9, 3→12/13.
+Phase **5b** (QuestlineWire) unblocks live acceptance after AltTester Desktop proved
+non-viable for the €0 path (ADR-0005). Phases 7, 9, 11 can start out of order if blocked
+elsewhere. Inserted lettered phases do not renumber later briefs.
 
 ---
 
