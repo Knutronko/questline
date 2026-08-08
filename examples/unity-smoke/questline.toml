@@ -1,0 +1,25 @@
+# Sample questline.toml for the unity-smoke suite (live AltTester target).
+
+[profile.editor]
+driver = "alttester"
+target_host = "127.0.0.1"
+target_port = 13000
+target_platform = "editor"
+target_app_name = "__default__"
+device = "local"
+reporters = ["console"]
+wait.probe = 2.0
+wait.deadline = 20.0
+wait.interval = 0.5
+
+[profile.standalone]
+driver = "alttester"
+target_host = "127.0.0.1"
+target_port = 13000
+target_platform = "standalone_exe"
+target_app_name = "__default__"
+device = "local"
+reporters = ["console"]
+wait.probe = 2.0
+wait.deadline = 30.0
+wait.interval = 0.5

@@ -47,19 +47,22 @@ Against MockDriver (CI):
 uv run pytest tests/test_driver_conformance.py -q
 ```
 
-For a new adapter, parametrize the same cases with your factory:
+Against AltTesterDriver with a **fake transport** (CI, no Unity):
 
-```python
-from questline.drivers.conformance import CONFORMANCE_CASES
-
-@pytest.mark.parametrize("case", CONFORMANCE_CASES, ids=lambda c: c.__name__)
-def test_my_adapter_conformance(case):
-    case(MyDriver)  # zero-arg factory → fresh disconnected DriverPort
+```bash
+uv run pytest tests/test_alttester_conformance_fake.py -q
 ```
 
-Cases that need mock-only hooks (`schedule_appear`, `drop_after_commands`) will
-`pytest.skip` on adapters that omit them — still implement forced disconnect coverage
-via your own transport-kill test if those hooks are absent.
+Against a **live** Unity AltTester session (skipped unless `QUESTLINE_LIVE_TARGET=1`):
+
+```bash
+# PowerShell
+$env:QUESTLINE_LIVE_TARGET = "1"
+uv run pytest tests/test_alttester_conformance_live.py -q -o addopts=
+```
+
+See [unity-setup.md](unity-setup.md) for Editor / standalone setup and the companion package.
+
 
 ## DriverHandle (session reset)
 

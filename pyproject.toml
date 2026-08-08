@@ -22,7 +22,9 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.5",
 ]
-alttester = []
+alttester = [
+    "AltTester-Driver>=2.2,<3",
+]
 poco = []
 appium = []
 slack = []
@@ -53,6 +55,9 @@ omit = [
     # Lazy package re-exports — exercised via attribute access, not line hits.
     "*/questline/authoring/__init__.py",
     "*/questline/__init__.py",
+    # Live AltDriver wrapper — covered via FakeAltTransport in unit tests; real
+    # websocket path needs Unity (maintainer-checked / QL-1).
+    "*/questline/drivers/alttester/transport.py",
 ]
 
 [tool.coverage.report]
