@@ -240,6 +240,26 @@ def test_cli_profile_override_and_wait_policy_obj(tmp_path: Path) -> None:
     assert settings.wait.deadline == 9.0
 
 
+def test_android_local_settings_from_env(tmp_path: Path) -> None:
+    settings = load_settings(
+        project_root=tmp_path,
+        environ={
+            "QUESTLINE_DEVICE_SERIAL": "emulator-5554",
+            "QUESTLINE_APK_PATH": "C:/game.apk",
+            "QUESTLINE_APP_PACKAGE": "com.example",
+            "QUESTLINE_INSTALL_APK": "false",
+            "QUESTLINE_REVERSE_PORT": "13000",
+            "QUESTLINE_EMULATOR_AVD": "Pixel_6",
+        },
+    )
+    assert settings.device_serial == "emulator-5554"
+    assert settings.apk_path == "C:/game.apk"
+    assert settings.app_package == "com.example"
+    assert settings.install_apk is False
+    assert settings.reverse_port == 13000
+    assert settings.emulator_avd == "Pixel_6"
+
+
 def test_conventional_profile_preference(tmp_path: Path) -> None:
     cfg = _write_toml(
         tmp_path / "questline.toml",

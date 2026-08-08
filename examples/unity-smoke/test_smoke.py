@@ -1,13 +1,24 @@
 """Unity smoke suite — requires a live AltTester target + companion package.
 
-Skipped unless ``QUESTLINE_LIVE_TARGET=1``. Pending game QL-1 for the reference game.
+Skipped unless ``QUESTLINE_LIVE_TARGET=1``. Editor/standalone: game QL-1. Android:
+``--questline-profile android_local`` (needs instrumented APK — **pending game QL-2**
+or a sample-project APK; see ``docs/android.md``).
 
 Run (Editor play mode with AltTester listening on :13000)::
 
     set QUESTLINE_LIVE_TARGET=1
     uv pip install -e ".[dev,alttester]"
-    uv run pytest examples/unity-smoke -q -o addopts= \\
-      --questline-profile editor \\
+    uv run pytest examples/unity-smoke -q -o addopts= \
+      --questline-profile editor \
+      --questline-config examples/unity-smoke/questline.toml
+
+Android (device/emulator + adb reverse)::
+
+    set QUESTLINE_LIVE_TARGET=1
+    set QUESTLINE_APK_PATH=path\to\dev.apk
+    set QUESTLINE_APP_PACKAGE=com.example.game
+    uv run pytest examples/unity-smoke -q -o addopts= \
+      --questline-profile android_local \
       --questline-config examples/unity-smoke/questline.toml
 """
 

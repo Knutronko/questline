@@ -50,6 +50,18 @@ class Settings(BaseModel):
     target_platform: str | None = None  # editor | standalone_exe | android
     target_app_name: str | None = None
 
+    # Local adb / android_local (phase-05).
+    device_serial: str | None = None
+    apk_path: str | None = None
+    app_package: str | None = None
+    app_activity: str | None = None
+    adb_path: str | None = None
+    emulator_avd: str | None = None
+    emulator_path: str | None = None
+    install_apk: bool = True
+    reverse_port: int | None = None  # defaults to target_port when android
+    expected_app_version: str | None = None
+
     # Optional secret values — populated only from env, never toml.
     api_key: str | None = None
     slack_token: str | None = None
@@ -147,6 +159,16 @@ def _defaults() -> dict[str, Any]:
         "target_port": 13000,
         "target_platform": None,
         "target_app_name": None,
+        "device_serial": None,
+        "apk_path": None,
+        "app_package": None,
+        "app_activity": None,
+        "adb_path": None,
+        "emulator_avd": None,
+        "emulator_path": None,
+        "install_apk": True,
+        "reverse_port": None,
+        "expected_app_version": None,
     }
 
 
@@ -262,6 +284,14 @@ def _env_overrides(env: dict[str, str]) -> dict[str, Any]:
         f"{_ENV_PREFIX}LIVE_PLATFORM": "target_platform",
         f"{_ENV_PREFIX}TARGET_APP_NAME": "target_app_name",
         f"{_ENV_PREFIX}ALT_APP_NAME": "target_app_name",
+        f"{_ENV_PREFIX}DEVICE_SERIAL": "device_serial",
+        f"{_ENV_PREFIX}APK_PATH": "apk_path",
+        f"{_ENV_PREFIX}APP_PACKAGE": "app_package",
+        f"{_ENV_PREFIX}APP_ACTIVITY": "app_activity",
+        f"{_ENV_PREFIX}ADB_PATH": "adb_path",
+        f"{_ENV_PREFIX}EMULATOR_AVD": "emulator_avd",
+        f"{_ENV_PREFIX}EMULATOR_PATH": "emulator_path",
+        f"{_ENV_PREFIX}EXPECTED_APP_VERSION": "expected_app_version",
     }
     for env_key, field_name in simple.items():
         if env_key in env and env[env_key] != "":
@@ -283,6 +313,22 @@ def _env_overrides(env: dict[str, str]) -> dict[str, Any]:
 
     if f"{_ENV_PREFIX}LOG_JSON" in env:
         mapping["log_json"] = _parse_bool(env[f"{_ENV_PREFIX}LOG_JSON"], f"{_ENV_PREFIX}LOG_JSON")
+
+    if f"{_ENV_PREFIX}INSTALL_APK" in env:
+        mapping["install_apk"] = _parse_bool(
+            env[f"{_ENV_PREFIX}INSTALL_APK"], f"{_ENV_PREFIX}INSTALL_APK"
+        )
+
+    for env_key, field_name in (
+        (f"{_ENV_PREFIX}REVERSE_PORT", "reverse_port"),
+    ):
+        if env_key in env and env[env_key] != "":
+            try:
+                mapping[field_name] = int(env[env_key])
+            except ValueError as exc:
+                raise AuthoringError(
+                    f"Environment variable {env_key}={env[env_key]!r} is not an int port."
+                ) from exc
 
     wait: dict[str, float] = {}
     for suffix, key in (

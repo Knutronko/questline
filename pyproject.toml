@@ -52,12 +52,15 @@ source = ["questline"]
 sigterm = true
 omit = [
     "*/questline/drivers/port.py",
+    "*/questline/devices/port.py",
     # Lazy package re-exports — exercised via attribute access, not line hits.
     "*/questline/authoring/__init__.py",
     "*/questline/__init__.py",
     # Live AltDriver wrapper — covered via FakeAltTransport in unit tests; real
     # websocket path needs Unity (maintainer-checked / QL-1).
     "*/questline/drivers/alttester/transport.py",
+    # Real adb/emulator binaries — covered via FakeAdb; live paths need a device.
+    "*/questline/devices/adb/client.py",
 ]
 
 [tool.coverage.report]

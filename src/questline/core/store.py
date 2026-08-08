@@ -111,7 +111,10 @@ class RunStore:
         safe_name = name.replace("\\", "/").split("/")[-1]
         dest_dir = self.artifacts_dir / run_id
         if test_id:
-            dest_dir = dest_dir / test_id
+            safe_test = (
+                test_id.replace("\\", "_").replace("/", "_").replace(":", "_")
+            )
+            dest_dir = dest_dir / safe_test
         dest_dir.mkdir(parents=True, exist_ok=True)
         path = dest_dir / safe_name
         path.write_bytes(data)

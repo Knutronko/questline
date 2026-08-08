@@ -235,44 +235,81 @@ def questline_run_id(
     )
 
 
-@pytest.fixture(scope="session")
-def driver_handle(questline_settings: Settings, questline_run_id: str) -> Any:
+def wire_driver_handle(
+    settings: Settings,
+    questline_device: Any = None,
+) -> Any:
+    """Build and connect a DriverHandle for *settings* (used by the session fixture)."""
     from questline.core.errors import AuthoringError
     from questline.drivers.handle import DriverHandle
     from questline.drivers.mock import MockDriver
     from questline.drivers.port import ConnectionTarget, DriverPort
 
-    _ = questline_run_id
-    driver_name = (questline_settings.driver or "mock").lower()
+    driver_name = (settings.driver or "mock").lower()
+    if driver_name not in {"mock", "alttester"}:
+        raise AuthoringError(
+            f"Driver '{driver_name}' is not available. "
+            'Use profile driver = "mock" or driver = "alttester" '
+            "(requires questline[alttester])."
+        )
 
     def _provider() -> DriverPort:
         if driver_name == "mock":
             return MockDriver()
-        if driver_name == "alttester":
-            from questline.drivers.alttester import AltTesterDriver
+        from questline.drivers.alttester import AltTesterDriver
 
-            return AltTesterDriver()
-        raise AuthoringError(
-            f"Driver '{driver_name}' is not available. "
-            'Use profile driver = "mock" or driver = "alttester" '
-            '(requires questline[alttester]).'
-        )
+        return AltTesterDriver()
 
     handle = DriverHandle(provider=_provider)
     if driver_name == "mock":
         handle.connect(ConnectionTarget(host="mock", port=0))
-    elif driver_name == "alttester":
+    else:
         extras: dict[str, str] = {}
-        if questline_settings.target_app_name:
-            extras["app_name"] = questline_settings.target_app_name
+        if settings.target_app_name:
+            extras["app_name"] = settings.target_app_name
+        if questline_device is not None:
+            extras["device_serial"] = questline_device["device"].id
         handle.connect(
             ConnectionTarget(
-                host=questline_settings.target_host,
-                port=questline_settings.target_port,
-                platform=questline_settings.target_platform or "editor",
+                host=settings.target_host,
+                port=settings.target_port,
+                platform=settings.target_platform or "editor",
                 extras=extras,
             )
         )
+    return handle
+
+
+@pytest.fixture(scope="session")
+def questline_device(
+    questline_settings: Settings,
+    questline_run_id: str,
+) -> Any:
+    """Acquire a local adb device when profile ``device`` is adb/android; else None."""
+    from questline.devices.session import (
+        needs_adb_device,
+        setup_android_session,
+        teardown_android_session,
+    )
+
+    _ = questline_run_id
+    if not needs_adb_device(questline_settings):
+        yield None
+        return
+
+    bundle = setup_android_session(questline_settings)
+    yield bundle
+    teardown_android_session(bundle, app_package=questline_settings.app_package)
+
+
+@pytest.fixture(scope="session")
+def driver_handle(
+    questline_settings: Settings,
+    questline_run_id: str,
+    questline_device: Any,
+) -> Any:
+    _ = questline_run_id
+    handle = wire_driver_handle(questline_settings, questline_device)
     yield handle
     try:
         if handle.is_alive():
@@ -310,8 +347,51 @@ def _uses_questline(item: pytest.Item) -> bool:
             "questline_run_id",
             "questline_store",
             "questline_bus",
+            "questline_device",
         }
     )
+
+
+def _save_failure_artifacts(
+    *,
+    store: Any,
+    handle: Any,
+    device_bundle: Any,
+    run_id: str,
+    test_id: str,
+    tags: dict[str, str],
+) -> None:
+    """Best-effort screenshot + logcat into the run store on failure."""
+    safe_test = test_id.replace("/", "_").replace("\\", "_").replace(":", "_")
+    if store is not None and handle is not None:
+        try:
+            png = handle.screenshot()
+            if png:
+                path = store.save_artifact(
+                    png,
+                    run_id=run_id,
+                    name=f"{safe_test}-screenshot.png",
+                    kind="screenshot",
+                    test_id=test_id,
+                )
+                tags["artifact_screenshot"] = str(path)
+        except Exception as exc:  # pragma: no cover - artifact capture is best-effort
+            tags["artifact_screenshot_error"] = f"{type(exc).__name__}: {exc}"
+    if store is not None and device_bundle is not None:
+        try:
+            provider = device_bundle["provider"]
+            device = device_bundle["device"]
+            log_text = provider.logs(device)
+            path = store.save_artifact(
+                log_text.encode("utf-8", errors="replace"),
+                run_id=run_id,
+                name=f"{safe_test}-logcat.txt",
+                kind="logcat",
+                test_id=test_id,
+            )
+            tags["artifact_logcat"] = str(path)
+        except Exception as exc:  # pragma: no cover
+            tags["artifact_logcat_error"] = f"{type(exc).__name__}: {exc}"
 
 
 def _fixture_value(item: pytest.Item, name: str) -> Any:
@@ -415,6 +495,17 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
             tags["app_paused"] = "true" if state.paused else "false"
         except Exception as health_exc:  # pragma: no cover - health probe is best-effort
             tags["driver_health_error"] = f"{type(health_exc).__name__}: {health_exc}"
+
+        store = _fixture_value(item, "questline_store")
+        device_bundle = _fixture_value(item, "questline_device")
+        _save_failure_artifacts(
+            store=store,
+            handle=handle,
+            device_bundle=device_bundle,
+            run_id=run_id,
+            test_id=item.nodeid,
+            tags=tags,
+        )
 
     t0 = getattr(item, "_questline_t0", time.perf_counter())
     bus.publish(

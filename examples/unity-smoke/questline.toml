@@ -23,3 +23,23 @@ reporters = ["console"]
 wait.probe = 2.0
 wait.deadline = 30.0
 wait.interval = 0.5
+
+# Phase-05 Android via local adb. Requires instrumented APK (game QL-2) or sample APK.
+# Set apk_path / app_package / device_serial via toml or QUESTLINE_* env vars.
+[profile.android_local]
+driver = "alttester"
+device = "adb"
+target_host = "127.0.0.1"
+target_port = 13000
+target_platform = "android"
+target_app_name = "__default__"
+# device_serial = "emulator-5554"   # optional pin; omit to auto-pick first online
+# apk_path = "path/to/dev.apk"
+# app_package = "com.example.game"
+# app_activity = "com.unity3d.player.UnityPlayerActivity"
+# emulator_avd = "Pixel_6_API_34"   # optional; started if no device online
+install_apk = true
+reporters = ["console"]
+wait.probe = 2.0
+wait.deadline = 45.0
+wait.interval = 0.5

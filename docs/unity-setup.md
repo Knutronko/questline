@@ -3,9 +3,9 @@
 Step-by-step for adding Questline UI automation to a Unity game (Editor play mode and
 Windows standalone). Written for someone who has never used AltTester.
 
-**Reference game note:** the maintainer's dogfood game installs these packages in game
-session **QL-1** (see [GAME-INTEGRATION.md](GAME-INTEGRATION.md)). Until QL-1 is done,
-live acceptance below is **pending game QL-1**.
+**Reference game note:** the maintainer's dogfood game completed **QL-1** (AltTester SDK
++ companion + first hooks). Live Editor acceptance is available; optional
+`QUESTLINE_LIVE_TARGET=1` + AltTester Desktop remains manual.
 
 ## Prerequisites
 
@@ -144,11 +144,14 @@ driver.call_game_method(GameHook("ReloadActiveScene", causes_soft_reload=True))
 | Profile field | Meaning |
 |---------------|---------|
 | `driver = "alttester"` | Use `AltTesterDriver` |
-| `target_platform` | `editor` \| `standalone_exe` \| `android` (android = Phase 05) |
+| `target_platform` | `editor` \| `standalone_exe` \| `android` |
 | `target_host` / `target_port` | AltTester server |
 | `target_app_name` | AltTester `app_name` / tag (`__default__` usual) |
 
 Env overrides: `QUESTLINE_ALT_HOST`, `QUESTLINE_ALT_PORT`, `QUESTLINE_TARGET_PLATFORM`, …
+
+For **Android** (`android_local` profile, adb reverse, APK install/launch), see
+[android.md](android.md).
 
 ## Troubleshooting
 
@@ -162,8 +165,8 @@ Env overrides: `QUESTLINE_ALT_HOST`, `QUESTLINE_ALT_PORT`, `QUESTLINE_TARGET_PLA
 
 ## Maintainer acceptance checklist (phase-04)
 
-- [ ] CI: unit + fake-transport conformance green (no live Unity)
-- [ ] **pending game QL-1:** conformance green in Editor play mode
-- [ ] **pending game QL-1:** smoke green in Editor + Windows standalone
-- [ ] **pending game QL-1:** `causesSoftReload` hook → auto re-handshake → next step OK
-- [ ] This doc followed once end-to-end on a real project (validate while doing QL-1)
+- [x] CI: unit + fake-transport conformance green (no live Unity)
+- [x] Conformance green in Editor play mode (**game QL-1**)
+- [x] Smoke green in Editor (+ Windows standalone as available) (**game QL-1**)
+- [x] `causesSoftReload` hook → auto re-handshake → next step OK (**game QL-1**)
+- [x] This doc followed once end-to-end on a real project (QL-1)

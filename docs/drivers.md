@@ -62,6 +62,7 @@ uv run pytest tests/test_alttester_conformance_live.py -q -o addopts=
 ```
 
 See [unity-setup.md](unity-setup.md) for Editor / standalone setup and the companion package.
+See [android.md](android.md) for `android_local` (adb reverse + LocalAdbProvider).
 
 
 ## DriverHandle (session reset)
