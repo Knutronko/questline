@@ -7,6 +7,10 @@
 > AI-phased process). This document is the contract between the two projects: what each
 > framework phase needs from the game, what the game guarantees, and where the game's
 > real test suite lives. Phase briefs defer to this doc for anything game-related.
+>
+> **Dual status board:** [`STATUS-DUAL.md`](STATUS-DUAL.md) — one-pass view of both
+> roadmaps, mutual dependencies, and suggested implementation order. **Every phase PR
+> that changes status must update it** (see that file §5).
 
 ---
 
@@ -94,6 +98,10 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 yet done, do NOT block or improvise game changes — mark the acceptance item
 `pending game QL-n`, finish everything mock-checkable, and flag it in the PR. The
 maintainer sequences the game side.
+
+**Status board rule:** when a framework phase (or game QL-n) lands or its acceptance
+state changes, update [`STATUS-DUAL.md`](STATUS-DUAL.md) in the same PR (or a follow-up
+docs PR before the next phase starts). Do not leave the dual semáforo stale.
 
 ## 5. Balance intelligence alignment (design-tool synergy)
 

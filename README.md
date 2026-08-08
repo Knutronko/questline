@@ -26,6 +26,18 @@ questline/
 └── pyproject.toml      # Project config
 ```
 
+## Documentation
+
+- Index: [`docs/README.md`](docs/README.md)
+- **Dual status (questline ↔ reference game):** [`docs/STATUS-DUAL.md`](docs/STATUS-DUAL.md)
+- Master plan: [`docs/00-MASTER-PLAN.md`](docs/00-MASTER-PLAN.md)
+
+## Documentation
+
+- Index: [`docs/README.md`](docs/README.md)
+- **Dual status (questline ↔ reference game):** [`docs/STATUS-DUAL.md`](docs/STATUS-DUAL.md)
+- Master plan: [`docs/00-MASTER-PLAN.md`](docs/00-MASTER-PLAN.md)
+
 ## License
 
 MIT

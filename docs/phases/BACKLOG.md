@@ -23,3 +23,4 @@ Format: `- [ ] (phase-NN) description`
 - [ ] (phase-05) Add Unity `.meta` files under `unity-package/` so git UPM (`questline.git?path=unity-package`) is importable — today Unity ignores the immutable package without `.meta`, forcing games to embed/copy the companion (ElJuegaso workaround). Cheap follow-up; deferred to avoid diluting Android scope.
 - [ ] (phase-05) `questline devices list|lock` CLI surface (architecture CLI mentions `devices`; provider is enough for android_local pytest wiring).
 - [ ] (phase-05) Sample-project minimal Android APK in-repo for CI-less live dogfood when game QL-2 is pending (optional; maintainer may use a local sample instead).
+- [ ] (docs) Optional GitHub Project board (proposal B) or Notion cockpit (proposal C) mirroring `STATUS-DUAL.md` — only if maintainer wants a second visual layer.
