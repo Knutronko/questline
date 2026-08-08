@@ -100,7 +100,7 @@ def test_profile_custom_markers(tmp_path: Path) -> None:
     cfg.write_text(
         "[profile.mock]\n"
         'driver = "mock"\n'
-        "markers = [\"quest_demo\"]\n",
+        'markers = ["quest_demo"]\n',
         encoding="utf-8",
     )
     marks = pl._profile_custom_markers(tmp_path, "mock", cfg)
@@ -110,7 +110,7 @@ def test_profile_custom_markers(tmp_path: Path) -> None:
     cfg2 = tmp_path / "questline2.toml"
     cfg2.write_text(
         "[profile.mock]\n"
-        "markers = [{name = \"quest_nightly\", description = \"night\"}]\n",
+        'markers = [{name = "quest_nightly", description = "night"}]\n',
         encoding="utf-8",
     )
     marks2 = pl._profile_custom_markers(tmp_path, "mock", cfg2)
@@ -146,6 +146,49 @@ def test_load_session_ledger(tmp_path: Path) -> None:
     config.rootpath = tmp_path
     ledger = pl.load_session_ledger(config)
     assert ledger.entries() == []
+
+
+def test_wire_driver_handle_mock() -> None:
+    from questline.core.config import Settings
+
+    handle = pl.wire_driver_handle(Settings(driver="mock"))
+    assert handle.is_alive()
+    handle.disconnect()
+
+
+def test_wire_driver_handle_unknown() -> None:
+    from questline.core.config import Settings
+    from questline.core.errors import AuthoringError
+
+    with pytest.raises(AuthoringError, match="not available"):
+        pl.wire_driver_handle(Settings(driver="poco"))
+
+
+def test_wire_driver_handle_alttester_android(monkeypatch: pytest.MonkeyPatch) -> None:
+    from questline.core.config import Settings
+    from questline.devices.port import Device
+    from questline.drivers.alttester import AltTesterDriver
+    from questline.drivers.alttester.fake import fake_transport_factory
+
+    factory = fake_transport_factory()
+
+    import questline.drivers.alttester as altmod
+
+    monkeypatch.setattr(
+        altmod, "AltTesterDriver", lambda: AltTesterDriver(transport_factory=factory)
+    )
+
+    settings = Settings(
+        driver="alttester",
+        target_host="127.0.0.1",
+        target_port=13000,
+        target_platform="android",
+        target_app_name="__default__",
+    )
+    bundle = {"device": Device(id="emulator-5554", platform="android"), "provider": None}
+    handle = pl.wire_driver_handle(settings, bundle)
+    assert handle.is_alive()
+    handle.disconnect()
 
 
 def test_handle_optional_then_steps() -> None:

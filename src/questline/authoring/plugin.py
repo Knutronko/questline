@@ -235,82 +235,71 @@ def questline_run_id(
     )
 
 
+def wire_driver_handle(
+    settings: Settings,
+    questline_device: Any = None,
+) -> Any:
+    """Build and connect a DriverHandle for *settings* (used by the session fixture)."""
+    from questline.core.errors import AuthoringError
+    from questline.drivers.handle import DriverHandle
+    from questline.drivers.mock import MockDriver
+    from questline.drivers.port import ConnectionTarget, DriverPort
+
+    driver_name = (settings.driver or "mock").lower()
+    if driver_name not in {"mock", "alttester"}:
+        raise AuthoringError(
+            f"Driver '{driver_name}' is not available. "
+            'Use profile driver = "mock" or driver = "alttester" '
+            "(requires questline[alttester])."
+        )
+
+    def _provider() -> DriverPort:
+        if driver_name == "mock":
+            return MockDriver()
+        from questline.drivers.alttester import AltTesterDriver
+
+        return AltTesterDriver()
+
+    handle = DriverHandle(provider=_provider)
+    if driver_name == "mock":
+        handle.connect(ConnectionTarget(host="mock", port=0))
+    else:
+        extras: dict[str, str] = {}
+        if settings.target_app_name:
+            extras["app_name"] = settings.target_app_name
+        if questline_device is not None:
+            extras["device_serial"] = questline_device["device"].id
+        handle.connect(
+            ConnectionTarget(
+                host=settings.target_host,
+                port=settings.target_port,
+                platform=settings.target_platform or "editor",
+                extras=extras,
+            )
+        )
+    return handle
+
+
 @pytest.fixture(scope="session")
 def questline_device(
     questline_settings: Settings,
     questline_run_id: str,
 ) -> Any:
     """Acquire a local adb device when profile ``device`` is adb/android; else None."""
-    from questline.core.errors import DeviceError
-    from questline.devices.adb import LocalAdbProvider
-    from questline.devices.adb.client import RealAdb
-    from questline.devices.adb.emulator import ensure_emulator
-    from questline.devices.port import Device, DeviceSpec, PortMapping
+    from questline.devices.session import (
+        needs_adb_device,
+        setup_android_session,
+        teardown_android_session,
+    )
 
     _ = questline_run_id
-    device_name = (questline_settings.device or "").lower()
-    platform = (questline_settings.target_platform or "").lower()
-    needs_adb = device_name in {"adb", "android", "android_local"} or platform == "android"
-    if not needs_adb:
+    if not needs_adb_device(questline_settings):
         yield None
         return
 
-    adb = RealAdb(questline_settings.adb_path)
-    provider = LocalAdbProvider(
-        adb=adb,
-        lock_dir=questline_settings.questline_dir / "device-locks",
-    )
-    if questline_settings.emulator_avd and not provider.list_devices():
-        ensure_emulator(
-            questline_settings.emulator_avd,
-            adb,
-            emulator_path=questline_settings.emulator_path,
-        )
-
-    caps: dict[str, str] = {}
-    if questline_settings.expected_app_version:
-        caps["expected_version"] = questline_settings.expected_app_version
-    spec = DeviceSpec(
-        platform="android",
-        id=questline_settings.device_serial or None,
-        caps=caps,
-    )
-    device: Device = provider.acquire(spec)
-
-    reverse_port = questline_settings.reverse_port or questline_settings.target_port
-    try:
-        provider.reverse_ports(
-            device,
-            [PortMapping(local_port=reverse_port, remote_port=reverse_port, direction="reverse")],
-        )
-        apk = questline_settings.apk_path
-        if questline_settings.install_apk and apk:
-            provider.install(
-                device,
-                Path(apk),
-                package=questline_settings.app_package,
-            )
-        if questline_settings.app_package:
-            provider.launch(
-                device,
-                package=questline_settings.app_package,
-                activity=questline_settings.app_activity,
-            )
-    except DeviceError:
-        provider.release(device)
-        raise
-
-    yield {"provider": provider, "device": device}
-
-    try:
-        if questline_settings.app_package:
-            provider.stop(device, package=questline_settings.app_package)
-    except Exception:  # pragma: no cover - teardown must not fail the session
-        pass
-    try:
-        provider.release(device)
-    except Exception:  # pragma: no cover
-        pass
+    bundle = setup_android_session(questline_settings)
+    yield bundle
+    teardown_android_session(bundle, app_package=questline_settings.app_package)
 
 
 @pytest.fixture(scope="session")
@@ -319,44 +308,8 @@ def driver_handle(
     questline_run_id: str,
     questline_device: Any,
 ) -> Any:
-    from questline.core.errors import AuthoringError
-    from questline.drivers.handle import DriverHandle
-    from questline.drivers.mock import MockDriver
-    from questline.drivers.port import ConnectionTarget, DriverPort
-
     _ = questline_run_id
-    driver_name = (questline_settings.driver or "mock").lower()
-
-    def _provider() -> DriverPort:
-        if driver_name == "mock":
-            return MockDriver()
-        if driver_name == "alttester":
-            from questline.drivers.alttester import AltTesterDriver
-
-            return AltTesterDriver()
-        raise AuthoringError(
-            f"Driver '{driver_name}' is not available. "
-            'Use profile driver = "mock" or driver = "alttester" '
-            "(requires questline[alttester])."
-        )
-
-    handle = DriverHandle(provider=_provider)
-    if driver_name == "mock":
-        handle.connect(ConnectionTarget(host="mock", port=0))
-    elif driver_name == "alttester":
-        extras: dict[str, str] = {}
-        if questline_settings.target_app_name:
-            extras["app_name"] = questline_settings.target_app_name
-        if questline_device is not None:
-            extras["device_serial"] = questline_device["device"].id
-        handle.connect(
-            ConnectionTarget(
-                host=questline_settings.target_host,
-                port=questline_settings.target_port,
-                platform=questline_settings.target_platform or "editor",
-                extras=extras,
-            )
-        )
+    handle = wire_driver_handle(questline_settings, questline_device)
     yield handle
     try:
         if handle.is_alive():
