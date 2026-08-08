@@ -240,22 +240,39 @@ def driver_handle(questline_settings: Settings, questline_run_id: str) -> Any:
     from questline.core.errors import AuthoringError
     from questline.drivers.handle import DriverHandle
     from questline.drivers.mock import MockDriver
-    from questline.drivers.port import ConnectionTarget
+    from questline.drivers.port import ConnectionTarget, DriverPort
 
     _ = questline_run_id
     driver_name = (questline_settings.driver or "mock").lower()
 
-    def _provider() -> MockDriver:
-        if driver_name != "mock":
-            raise AuthoringError(
-                f"Driver '{driver_name}' is not available yet. "
-                'Use profile driver = "mock" (phase 03) or a later adapter phase.'
-            )
-        return MockDriver()
+    def _provider() -> DriverPort:
+        if driver_name == "mock":
+            return MockDriver()
+        if driver_name == "alttester":
+            from questline.drivers.alttester import AltTesterDriver
+
+            return AltTesterDriver()
+        raise AuthoringError(
+            f"Driver '{driver_name}' is not available. "
+            'Use profile driver = "mock" or driver = "alttester" '
+            '(requires questline[alttester]).'
+        )
 
     handle = DriverHandle(provider=_provider)
     if driver_name == "mock":
         handle.connect(ConnectionTarget(host="mock", port=0))
+    elif driver_name == "alttester":
+        extras: dict[str, str] = {}
+        if questline_settings.target_app_name:
+            extras["app_name"] = questline_settings.target_app_name
+        handle.connect(
+            ConnectionTarget(
+                host=questline_settings.target_host,
+                port=questline_settings.target_port,
+                platform=questline_settings.target_platform or "editor",
+                extras=extras,
+            )
+        )
     yield handle
     try:
         if handle.is_alive():

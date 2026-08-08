@@ -25,10 +25,10 @@ jobs:
       - name: Create venv and install dependencies
         run: |
           uv venv --python ${{ matrix.python-version }}
-          uv pip install -e ".[dev]"
+          uv pip install -e ".[dev,alttester]"
 
       - name: Lint
-        run: uv run ruff check src/ tests/ examples/demo-tests/
+        run: uv run ruff check src/ tests/ examples/demo-tests/ examples/unity-smoke/
 
       - name: Test
         run: uv run pytest

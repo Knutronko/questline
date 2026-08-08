@@ -1,0 +1,14 @@
+{
+  "name": "com.questline.companion",
+  "version": "0.1.0",
+  "displayName": "Questline Companion",
+  "description": "Debug hooks registry for Questline UI automation (typed hooks, soft-reload flags, machine-readable manifest).",
+  "unity": "2021.3",
+  "documentationUrl": "https://github.com/Knutronko/questline/blob/main/docs/unity-setup.md",
+  "licensesUrl": "https://github.com/Knutronko/questline/blob/main/LICENSE",
+  "keywords": ["questline", "testing", "automation", "hooks"],
+  "author": {
+    "name": "Questline",
+    "url": "https://github.com/Knutronko/questline"
+  }
+}

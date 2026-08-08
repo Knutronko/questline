@@ -7,8 +7,10 @@ assertions, and the quarantine ledger. Drivers are consumed via `DriverHandle`
 ## Quick start (demo suite)
 
 Phases 00–03 dogfood against **MockDriver** only (see
-[GAME-INTEGRATION.md](GAME-INTEGRATION.md) §4). Real game suites live in the game
-repo under `automation/` (same layout; created as a phase-05 exit task).
+[GAME-INTEGRATION.md](GAME-INTEGRATION.md) §4). Phase 04 adds AltTester + companion;
+generic live smoke lives in `examples/unity-smoke/` (needs `QUESTLINE_LIVE_TARGET=1`,
+see [unity-setup.md](unity-setup.md)). Real game suites live in the game repo under
+`automation/` (same layout; created as a phase-05 exit task).
 
 ```bash
 # From the repo root — MockDriver fake game under examples/demo-tests/

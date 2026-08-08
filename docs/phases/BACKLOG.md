@@ -17,3 +17,6 @@ Format: `- [ ] (phase-NN) description`
 - [ ] (phase-03) Plugin auto-discovery of project `questline.toml` at repo root without `--questline-config` when running nested example suites.
 - [ ] (phase-03) Quarantine audit nodeid normalization helper (Windows `\` vs `/`) shared by CLI and CI.
 - [ ] (phase-05 exit) Scaffold game-repo `automation/` + coverage-demo suite exercising everything through phase 05 — see `docs/GAME-INTEGRATION.md` §3 (maintainer game-side session, not a numbered fw phase).
+- [ ] (phase-04) Live Editor / standalone / soft-reload acceptance — **pending game QL-1** (AltTester SDK + companion + first hooks in the reference game). Framework side is ready; see `docs/unity-setup.md`.
+- [ ] (phase-04) Shared wait helper for adapters still deferred from phase-02; AltTesterDriver reimplements probe/deadline budgeting (same pattern as MockDriver).
+- [ ] (phase-04) Consider promoting `hooks_manifest()` onto `DriverPort` if a second driver grows a companion-equivalent registry.

@@ -1,0 +1,11 @@
+# Generic locators for any game that ships a Questline smoke button.
+# Rename GameObject "QuestlineSmokeButton" in your scene (or regenerate).
+
+pages:
+  smoke:
+    root:
+      by: name
+      value: QuestlineSmokeRoot
+    button:
+      by: name
+      value: QuestlineSmokeButton

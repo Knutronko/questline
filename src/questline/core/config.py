@@ -44,6 +44,11 @@ class Settings(BaseModel):
     log_json: bool = False
     project_root: Path = Field(default_factory=Path.cwd)
     store_dir: Path | None = None
+    # ConnectionTarget fields for real drivers (phase-04 AltTester+).
+    target_host: str = "127.0.0.1"
+    target_port: int = 13000
+    target_platform: str | None = None  # editor | standalone_exe | android
+    target_app_name: str | None = None
 
     # Optional secret values — populated only from env, never toml.
     api_key: str | None = None
@@ -138,6 +143,10 @@ def _defaults() -> dict[str, Any]:
         "reporters": [],
         "wait": {"probe": 2.0, "deadline": 15.0, "interval": 0.5},
         "log_json": False,
+        "target_host": "127.0.0.1",
+        "target_port": 13000,
+        "target_platform": None,
+        "target_app_name": None,
     }
 
 
@@ -247,10 +256,26 @@ def _env_overrides(env: dict[str, str]) -> dict[str, Any]:
     simple = {
         f"{_ENV_PREFIX}DRIVER": "driver",
         f"{_ENV_PREFIX}DEVICE": "device",
+        f"{_ENV_PREFIX}TARGET_HOST": "target_host",
+        f"{_ENV_PREFIX}ALT_HOST": "target_host",
+        f"{_ENV_PREFIX}TARGET_PLATFORM": "target_platform",
+        f"{_ENV_PREFIX}LIVE_PLATFORM": "target_platform",
+        f"{_ENV_PREFIX}TARGET_APP_NAME": "target_app_name",
+        f"{_ENV_PREFIX}ALT_APP_NAME": "target_app_name",
     }
     for env_key, field_name in simple.items():
         if env_key in env and env[env_key] != "":
             mapping[field_name] = env[env_key]
+
+    for env_key in (f"{_ENV_PREFIX}TARGET_PORT", f"{_ENV_PREFIX}ALT_PORT"):
+        if env_key in env and env[env_key] != "":
+            try:
+                mapping["target_port"] = int(env[env_key])
+            except ValueError as exc:
+                raise AuthoringError(
+                    f"Environment variable {env_key}={env[env_key]!r} is not an int port."
+                ) from exc
+            break
 
     if f"{_ENV_PREFIX}REPORTERS" in env:
         raw = env[f"{_ENV_PREFIX}REPORTERS"].strip()
