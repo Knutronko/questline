@@ -1,6 +1,6 @@
 # ADR-0005: QuestlineWire — first-party live driver (no AltTester Desktop)
 
-- **Status:** proposed (phase-05b Gate A — design only; implement after maintainer go)
+- **Status:** accepted (phase-05b Gate B)
 - **Context:** AltTester Community/Desktop is unusable for this duo’s €0 live path
   (Desktop 2.3.x needs license/account; Desktop 2.0.1 does not speak Unity SDK 2.3.2 /
   Python 2.3.3). Architecture already isolates transport behind `DriverPort` +

@@ -204,6 +204,16 @@ class MockDriver:
             raise AuthoringError(f"unknown game hook: {hook.name}")
         return fn(*args)
 
+    def hooks_manifest(self) -> list[Any]:
+        """Synthesize a manifest from MockScene.hooks (no soft-reload metadata)."""
+        from questline.drivers.hooks import HookManifestEntry
+
+        self._touch()
+        return [
+            HookManifestEntry(name=name, args=(), causes_soft_reload=False, feature=None)
+            for name in sorted(self.scene.hooks)
+        ]
+
     def app_state(self) -> AppState:
         self._touch()
         return AppState(

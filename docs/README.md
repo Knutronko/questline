@@ -15,7 +15,8 @@
 |-----|-------------|
 | [drivers.md](drivers.md) | How to write a DriverPort adapter + conformance |
 | [writing-tests.md](writing-tests.md) | Authoring layer: plugin, pages, steps, quarantine |
-| [unity-setup.md](unity-setup.md) | AltTester + companion package setup (phase-04) |
+| [unity-setup.md](unity-setup.md) | AltTester + companion package setup (phase-04, legacy transport) |
+| [wire-setup.md](wire-setup.md) | QuestlineWire companion listener + profiles (phase-05b) |
 | [android.md](android.md) | Local adb phone/emulator setup (phase-05) |
 | [GAME-INTEGRATION.md](GAME-INTEGRATION.md) | Reference-game dogfood contract (phase ↔ game triggers) |
 | [STATUS-DUAL.md](STATUS-DUAL.md) | **Vista de una pasada:** estado + roadmaps questline ↔ P1 + orden propuesto |

@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from questline.core.waits import WaitPolicy
 from questline.drivers.locators import Locator
 
 # Circular import avoided: locators does not import port.
+
+if TYPE_CHECKING:
+    from questline.drivers.hooks import HookManifestEntry
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,6 +113,10 @@ class DriverPort(Protocol):
     def call_game_method(self, hook: GameHook, *args: Any) -> Any: ...
 
     def app_state(self) -> AppState: ...
+
+    def hooks_manifest(self) -> list[HookManifestEntry]:
+        """Companion hooks registry dump (QuestlineHooks / feature-scan)."""
+        ...
 
     def compile(self, locator: Locator) -> Any:
         """Compile a driver-agnostic Locator into this adapter's native query."""

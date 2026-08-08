@@ -121,5 +121,8 @@ class DriverHandle:
     def app_state(self) -> AppState:
         return self.resolve().app_state()
 
+    def hooks_manifest(self) -> Any:
+        return self.resolve().hooks_manifest()
+
     def compile(self, locator: Locator) -> Any:
         return self.resolve().compile(locator)

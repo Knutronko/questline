@@ -23,10 +23,10 @@ Format: `- [ ] (phase-NN) description`
       (companion + hooks; Editor Verify QL-1 passed). Desktop live path **abandoned** for
       €0 happy path — superseded by phase-05b QuestlineWire (ADR-0005).
 - [ ] (phase-04) Shared wait helper for adapters still deferred from phase-02; AltTesterDriver reimplements probe/deadline budgeting (same pattern as MockDriver).
-- [ ] (phase-04 → **05b**) Promote `hooks_manifest()` onto `DriverPort` when Wire lands
+- [x] (phase-04 → **05b**) Promote `hooks_manifest()` onto `DriverPort` when Wire lands
       (both AltTester and Wire need the companion registry dump).
-- [ ] (phase-05b Gate B) Implement QuestlineWire — see `phase-05b-questline-wire.md` /
-      ADR-0005 (Gate A = docs only until maintainer go).
+- [x] (phase-05b Gate B) Implement QuestlineWire — see `phase-05b-questline-wire.md` /
+      ADR-0005. Remaining: maintainer Editor `wire-smoke` + game QL-2b Android live.
 - [ ] (phase-05) Add Unity `.meta` files under `unity-package/` so git UPM (`questline.git?path=unity-package`) is importable — today Unity ignores the immutable package without `.meta`, forcing games to embed/copy the companion (ElJuegaso workaround). Cheap follow-up; deferred to avoid diluting Android scope.
 - [ ] (phase-05) `questline devices list|lock` CLI surface (architecture CLI mentions `devices`; provider is enough for android_local pytest wiring).
 - [ ] (phase-05) Sample-project minimal Android APK in-repo for CI-less live dogfood when game QL-2 is pending (optional; maintainer may use a local sample instead).

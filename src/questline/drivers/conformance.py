@@ -20,7 +20,7 @@ import pytest
 from questline.core.errors import ElementNotFoundError, SessionLostError, Verdict, classify
 from questline.core.waits import WaitPolicy
 from questline.drivers.locators import Locator, LocatorStrategy
-from questline.drivers.port import ConnectionTarget, DriverPort, Element, Point
+from questline.drivers.port import ConnectionTarget, DriverPort, Element, GameHook, Point
 
 DriverFactory = Callable[[], DriverPort]
 
@@ -189,6 +189,81 @@ def case_forced_disconnect_session_lost(factory: DriverFactory) -> None:
     d.disconnect()
 
 
+def case_app_state_foreground(factory: DriverFactory) -> None:
+    d = factory()
+    d.connect(ConnectionTarget(host="127.0.0.1", port=13000))
+    state = d.app_state()
+    assert state.foreground is True
+    assert state.scene is not None
+    d.disconnect()
+
+
+def case_hooks_manifest_and_call(factory: DriverFactory) -> None:
+    d = factory()
+    d.connect(ConnectionTarget(host="127.0.0.1", port=13000))
+    manifest_fn = getattr(d, "hooks_manifest", None)
+    if manifest_fn is None:
+        pytest.skip("driver has no hooks_manifest")
+    entries = manifest_fn()
+    assert isinstance(entries, list)
+    assert len(entries) >= 1
+    # Prefer Ping when present (Wire + AltTester fakes).
+    names = {e.name for e in entries}
+    if "Ping" in names:
+        result = d.call_game_method(GameHook(name="Ping"))
+        assert result == "pong"
+    else:
+        entry = next(e for e in entries if len(e.args) == 0)
+        d.call_game_method(GameHook(name=entry.name, causes_soft_reload=entry.causes_soft_reload))
+    d.disconnect()
+
+
+def case_wire_ui_not_implemented(factory: DriverFactory) -> None:
+    """Wire MVP: UI methods raise AuthoringError (skipped for full UI drivers)."""
+    from questline.core.errors import AuthoringError
+
+    d = factory()
+    d.connect(ConnectionTarget(host="127.0.0.1", port=13000))
+    marker = getattr(d, "find", None)
+    if marker is None:
+        pytest.skip("no find")
+    # Detect Wire-style stub: find raises AuthoringError mentioning Wire/MVP/Poco.
+    try:
+        d.find(Locator(by=LocatorStrategy.ID, value="x"))
+    except AuthoringError as exc:
+        assert "Wire" in str(exc) or "MVP" in str(exc) or "Poco" in str(exc)
+        d.disconnect()
+        return
+    except Exception:
+        d.disconnect()
+        pytest.skip("driver implements find (not Wire MVP stub)")
+    d.disconnect()
+    pytest.skip("find did not raise")
+
+
+def case_forced_disconnect_session_lost_hooks(factory: DriverFactory) -> None:
+    """Session-loss via fault injection without requiring screenshot/UI."""
+    d = factory()
+    force = getattr(d, "force_disconnect", None)
+    drop = getattr(d, "drop_after_commands", None)
+    if force is None and drop is None:
+        pytest.skip("driver has no fault-injection hooks")
+    d.connect(ConnectionTarget(host="127.0.0.1", port=13000))
+    if drop is not None:
+        drop(1)
+        with pytest.raises(SessionLostError) as excinfo:
+            d.app_state()
+        assert classify(excinfo.value) is Verdict.INFRA
+        assert d.is_alive() is False
+    else:
+        force()
+        assert d.is_alive() is False
+        with pytest.raises(SessionLostError) as excinfo:
+            d.app_state()
+        assert classify(excinfo.value) is Verdict.INFRA
+    d.disconnect()
+
+
 CONFORMANCE_CASES: list[Callable[[DriverFactory], Any]] = [
     case_connect_alive,
     case_find_immediate_miss,
@@ -201,4 +276,13 @@ CONFORMANCE_CASES: list[Callable[[DriverFactory], Any]] = [
     case_screenshot_bytes,
     case_interactions,
     case_forced_disconnect_session_lost,
+]
+
+# Hooks-first subset for QuestlineWire MVP (ADR-0005 / phase-05b).
+WIRE_CONFORMANCE_CASES: list[Callable[[DriverFactory], Any]] = [
+    case_connect_alive,
+    case_app_state_foreground,
+    case_hooks_manifest_and_call,
+    case_wire_ui_not_implemented,
+    case_forced_disconnect_session_lost_hooks,
 ]
