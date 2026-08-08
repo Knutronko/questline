@@ -31,6 +31,28 @@ class WaitSettings(BaseModel):
         return WaitPolicy(probe=self.probe, deadline=self.deadline, interval=self.interval)
 
 
+class ResilienceSettings(BaseModel):
+    """Health / recovery / watchdog knobs (phase-06)."""
+
+    watchdog_timeout_s: float = 120.0
+    circuit_breaker_losses: int = 3
+    recovery_enabled: bool = True
+
+    @field_validator("watchdog_timeout_s")
+    @classmethod
+    def _positive_timeout(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("watchdog_timeout_s must be > 0")
+        return v
+
+    @field_validator("circuit_breaker_losses")
+    @classmethod
+    def _positive_losses(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("circuit_breaker_losses must be >= 1")
+        return v
+
+
 class Settings(BaseModel):
     """Resolved runtime settings for one invocation."""
 
@@ -41,6 +63,7 @@ class Settings(BaseModel):
     device: str | None = None
     reporters: list[str] = Field(default_factory=list)
     wait: WaitSettings = Field(default_factory=WaitSettings)
+    resilience: ResilienceSettings = Field(default_factory=ResilienceSettings)
     log_json: bool = False
     project_root: Path = Field(default_factory=Path.cwd)
     store_dir: Path | None = None
@@ -154,6 +177,11 @@ def _defaults() -> dict[str, Any]:
         "device": None,
         "reporters": [],
         "wait": {"probe": 2.0, "deadline": 15.0, "interval": 0.5},
+        "resilience": {
+            "watchdog_timeout_s": 120.0,
+            "circuit_breaker_losses": 3,
+            "recovery_enabled": True,
+        },
         "log_json": False,
         "target_host": "127.0.0.1",
         "target_port": 13000,
@@ -263,12 +291,18 @@ def _profile_table(
             f"Fix the name or add a [profile.{name}] table."
         )
     table = dict(profiles[name])
-    # Normalize wait sub-table
+    # Normalize wait / resilience sub-tables
     wait = table.get("wait")
     if wait is not None and not isinstance(wait, dict):
         raise AuthoringError(
             f"[profile.{name}].wait must be a table "
             f"(e.g. wait.probe = 2.0), got {type(wait).__name__}."
+        )
+    resilience = table.get("resilience")
+    if resilience is not None and not isinstance(resilience, dict):
+        raise AuthoringError(
+            f"[profile.{name}].resilience must be a table "
+            f"(e.g. resilience.watchdog_timeout_s = 120), got {type(resilience).__name__}."
         )
     return table
 
@@ -347,6 +381,31 @@ def _env_overrides(env: dict[str, str]) -> dict[str, Any]:
                 ) from exc
     if wait:
         mapping["wait"] = wait
+
+    resilience: dict[str, Any] = {}
+    wto = f"{_ENV_PREFIX}WATCHDOG_TIMEOUT_S"
+    if wto in env and env[wto] != "":
+        try:
+            resilience["watchdog_timeout_s"] = float(env[wto])
+        except ValueError as exc:
+            raise AuthoringError(
+                f"Environment variable {wto}={env[wto]!r} is not a number."
+            ) from exc
+    cbl = f"{_ENV_PREFIX}CIRCUIT_BREAKER_LOSSES"
+    if cbl in env and env[cbl] != "":
+        try:
+            resilience["circuit_breaker_losses"] = int(env[cbl])
+        except ValueError as exc:
+            raise AuthoringError(
+                f"Environment variable {cbl}={env[cbl]!r} is not an int."
+            ) from exc
+    if f"{_ENV_PREFIX}RECOVERY_ENABLED" in env:
+        resilience["recovery_enabled"] = _parse_bool(
+            env[f"{_ENV_PREFIX}RECOVERY_ENABLED"],
+            f"{_ENV_PREFIX}RECOVERY_ENABLED",
+        )
+    if resilience:
+        mapping["resilience"] = resilience
     return mapping
 
 

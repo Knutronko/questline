@@ -13,6 +13,7 @@ from questline.core.errors import (
     TimeoutExceededError,
     Verdict,
     classify,
+    normalize_exception,
 )
 
 
@@ -28,6 +29,25 @@ def test_classify_matrix() -> None:
     assert classify(AuthoringError("bad marker")) == Verdict.AUTHORING
     assert classify(QuestlineError("other")) == Verdict.UNKNOWN
     assert classify(ValueError("stdlib")) == Verdict.UNKNOWN
+    assert classify(AssertionError("plain assert")) == Verdict.TEST
+
+
+def test_normalize_transport_signatures() -> None:
+    wrapped = normalize_exception(ConnectionResetError("peer reset"))
+    assert isinstance(wrapped, SessionLostError)
+    assert wrapped.kind == "disconnect"
+    assert classify(ConnectionResetError("peer reset")) == Verdict.INFRA
+
+    no_app = normalize_exception(RuntimeError("No app connected to server"))
+    assert isinstance(no_app, SessionLostError)
+    assert no_app.kind == "no_app"
+
+    empty = normalize_exception(RuntimeError("empty hierarchy at teardown"))
+    assert isinstance(empty, SessionLostError)
+    assert empty.kind == "empty_hierarchy"
+
+    orig = SessionLostError("x", kind="fault_inject", close_code=1006)
+    assert normalize_exception(orig) is orig
 
 
 def test_session_lost_fields() -> None:

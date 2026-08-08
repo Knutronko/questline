@@ -13,7 +13,7 @@ Format: `- [ ] (phase-NN) description`
 - [ ] (phase-02) CI check that `examples/generated_locators.py` matches codegen output (drift gate).
 - [ ] (phase-02) Shared `find` wait helper extracted for adapters (today each adapter must reimplement probe/deadline budgeting around `wait_for`).
 - [ ] (phase-02) `Locator.scope` semantics beyond path-substring filter — document per-adapter or normalize in port helpers.
-- [ ] (phase-03) Richer death-point API (close_code, structured HealthSnapshot) once Phase 06 HealthMonitor exists — today plugin stores `is_alive` + `app_state` in TestFinished.tags.
+- [x] (phase-03) Richer death-point API (close_code, structured HealthSnapshot) once Phase 06 HealthMonitor exists — plugin now stores `HealthSnapshot.as_tags()` (+ app_state) on failure; `close_code` still on `SessionLost` events / `SessionLostError`.
 - [ ] (phase-03) Plugin auto-discovery of project `questline.toml` at repo root without `--questline-config` when running nested example suites.
 - [ ] (phase-03) Quarantine audit nodeid normalization helper (Windows `\` vs `/`) shared by CLI and CI.
 - [x] (phase-05 exit) Scaffold game-repo `automation/` — **unblocked** (Editor Wire green).

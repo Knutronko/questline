@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-08** (Wire Editor live verde; docs post-merge).
+> Última revisión: **2026-08-08** (phase-06 Resilience implemented).
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 fases 0–15 + **05b Wire** | **05b** mergeado; Editor `wire-smoke` **verde** (`driver=questline`) | **06** Resilience · (opcional) Android Wire live | Ninguno crítico; AltTester Desktop **fuera** del happy path |
+| **questline** | v0.1 fases 0–15 + **05b Wire** | **06** Resilience (health/recovery/watchdog; mock fault-injection) | **07** Reporters · (opcional) Android Wire live | Ninguno crítico; AltTester Desktop **fuera** del happy path |
 | **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Editor live Wire verde | **`automation/`** exit · rebuild Dev APK Wire (Android) · D10 feel | AltTester UPM **remoto/legacy** (no borrar aún); Poco = UI hierarchy (fw 14 / QL-4) |
 
 **Drivers (prioridad):**
@@ -44,8 +44,8 @@
 | 4 | AltTester + companion | ✅ | Histórico; live Desktop **abandonado**; adapter **legacy remoto** |
 | 5 | Android local | ✅ código/CI | Device plumbing; live = Wire |
 | **05b** | **QuestlineWire** | ✅ | Editor live verde; Android live = rebuild APK + smoke |
-| 6 | Resilience | ⬜ **next (fw)** | Mock + opcional live Wire |
-| 7 | Reporters | ⬜ | Mejor tras `automation/` |
+| 6 | Resilience | ✅ | Health/recovery/watchdog; `tests/resilience/`; ADR-0006 |
+| 7 | Reporters | ⬜ **next (fw)** | Mejor tras `automation/` |
 | 8 | HUD I viewer | ⬜ | |
 | 9 | PerfProbe | ⬜ | Trigger juego **QL-3** |
 | 10 | HUD II control | ⬜ | |
@@ -99,8 +99,8 @@ flowchart TB
     Q0[00-03 mock ✅] --> Q4[04 AltTester+companion ✅ legacy]
     Q4 --> Q5[05 Android local ✅]
     Q5 --> Q5b[05b QuestlineWire ✅ Editor live]
-    Q5b --> Q6[06 Resilience ⬜ next fw]
-    Q5b --> Q7[07 Reporters]
+    Q5b --> Q6[06 Resilience ✅]
+    Q6 --> Q7[07 Reporters ⬜ next fw]
     Q5b --> Q8[08 HUD I]
     Q4 --> Q9[09 PerfProbe]
     Q8 --> Q10[10 HUD II]
@@ -141,10 +141,10 @@ flowchart TB
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
 | 1 | **Exit `automation/`** (coverage-demo suite) | ElJuegaso | Editor Wire verde desbloquea GAME-INTEGRATION §3 |
-| 2 | **phase-06 Resilience** | questline | Siguiente fase fw numerada; mock-first |
-| 3 | **Android Wire smoke** (rebuild Dev APK + `android_local`) | ambos | Cierra live device; opcional en paralelo a 1–2 |
+| 2 | **phase-07 Reporters** | questline | Next fw phase after resilience |
+| 3 | **Android Wire smoke** (rebuild Dev APK + `android_local`) | ambos | Cierra live device; opcional en paralelo |
 | 4 | **D10 playtest / feel** | ElJuegaso | Paralelo; no bloquea fw |
-| 5 | **phase-07 / 08** | questline | Mejor **después** de `automation/` |
+| 5 | **phase-08 HUD** | questline | Mejor **después** de `automation/` |
 | 6 | **D11 ↔ QL-5 / phase-09 ↔ QL-3** | ambos | Economía/GameLens y perf |
 | 7 | **D12 ↔ QL-6** | ambos | Infinito + telemetría |
 | 8 | **phase-14 Poco + QL-4** | ambos | **UI hierarchy** (Poco > AltTester legacy) |
@@ -185,6 +185,7 @@ Formalizado en: questline `GAME-INTEGRATION.md` + `00-MASTER-PLAN.md` §6 · ElJ
 | Game integration contract | [`GAME-INTEGRATION.md`](GAME-INTEGRATION.md) |
 | QuestlineWire setup (happy path) | [`wire-setup.md`](wire-setup.md) |
 | QuestlineWire ADR | [`ADR-0005`](adr/ADR-0005-questline-wire.md) |
+| Resilience | [`resilience.md`](resilience.md) · [`ADR-0006`](adr/ADR-0006-recovery-ladder.md) |
 | Phase 05b brief | [`phase-05b-questline-wire.md`](phases/phase-05b-questline-wire.md) |
 | Android / adb | [`android.md`](android.md) |
 | Legacy AltTester setup | [`unity-setup.md`](unity-setup.md) |

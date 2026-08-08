@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -54,6 +55,9 @@ class MockDriver:
         self._connected_target: ConnectionTarget | None = None
         self._commands = 0
         self._drop_after: int | None = None
+        self._hang_after: int | None = None
+        self._hang_block: Callable[[], None] | None = None
+        self._hang_on_connect_block: Callable[[], None] | None = None
         self._screenshot_bytes = b"\x89PNG\r\n\x1a\nmock-screenshot"
         self._disposed = False
 
@@ -74,6 +78,34 @@ class MockDriver:
         self._drop_after = n
         self._commands = 0
 
+    def hang_after_commands(self, n: int, block: Callable[[], None] | None = None) -> None:
+        """Block forever (or via *block*) on the Nth subsequent port command."""
+        if n < 1:
+            raise AuthoringError("hang_after_commands requires n >= 1")
+        self._hang_after = n
+        self._commands = 0
+        if block is not None:
+            self._hang_block = block
+        else:
+            never = threading.Event()
+
+            def _block_forever() -> None:
+                never.wait()
+
+            self._hang_block = _block_forever
+
+    def hang_on_connect(self, block: Callable[[], None] | None = None) -> None:
+        """Block inside ``connect`` (for hung-recovery watchdog tests)."""
+        if block is not None:
+            self._hang_on_connect_block = block
+        else:
+            never = threading.Event()
+
+            def _block_forever() -> None:
+                never.wait()
+
+            self._hang_on_connect_block = _block_forever
+
     def force_disconnect(self) -> None:
         """Simulate an abrupt session drop."""
         self._alive = False
@@ -86,6 +118,10 @@ class MockDriver:
 
     def connect(self, target: ConnectionTarget) -> None:
         self._ensure_not_disposed()
+        if self._hang_on_connect_block is not None:
+            blocker = self._hang_on_connect_block
+            self._hang_on_connect_block = None
+            blocker()
         self._connected_target = target
         self._alive = True
         self._commands = 0
@@ -232,20 +268,31 @@ class MockDriver:
             raise SessionLostError("mock driver disposed", kind="disposed", close_code=None)
 
     def _touch(self) -> None:
-        """Count a port command; raise SessionLostError if dropped or dead."""
+        """Count a port command; raise SessionLostError if dropped or dead; hang if scripted."""
         self._ensure_not_disposed()
         if not self._alive:
             raise SessionLostError("mock session lost", kind="disconnect", close_code=1006)
-        if self._drop_after is not None:
+
+        counting = self._hang_after is not None or self._drop_after is not None
+        if counting:
             self._commands += 1
-            if self._commands >= self._drop_after:
-                self._alive = False
-                self._drop_after = None
-                raise SessionLostError(
-                    "mock session dropped by fault injection",
-                    kind="fault_inject",
-                    close_code=1006,
-                )
+
+        if self._hang_after is not None and self._commands >= self._hang_after:
+            self._hang_after = None
+            blocker = self._hang_block
+            self._hang_block = None
+            if blocker is not None:
+                blocker()
+            return
+
+        if self._drop_after is not None and self._commands >= self._drop_after:
+            self._alive = False
+            self._drop_after = None
+            raise SessionLostError(
+                "mock session dropped by fault injection",
+                kind="fault_inject",
+                close_code=1006,
+            )
 
     def _query(self, locator: Locator) -> list[MockNode]:
         compiled = self.compile(locator)

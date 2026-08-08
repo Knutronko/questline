@@ -38,14 +38,15 @@ possible, and never produce false test verdicts or silent hangs.
 AI triage (Phase 12), reporters (Phase 07) — but events emitted here are their input.
 
 ## Acceptance criteria
-- [ ] All fault-injection tests green in CI (no real device needed).
-- [ ] Infra-classified failure shows `verdict=infra` in store; a plain assertion failure
+- [x] All fault-injection tests green in CI (no real device needed).
+- [x] Infra-classified failure shows `verdict=infra` in store; a plain assertion failure
       shows `verdict=test` — asserted by meta-tests.
-- [ ] Watchdog fires during a scripted hung recovery (the gap case) and the run store
+- [x] Watchdog fires during a scripted hung recovery (the gap case) and the run store
       contains everything up to that point.
-- [ ] Circuit breaker aborts after N consecutive losses; exit code distinct; store sealed.
+- [x] Circuit breaker aborts after N consecutive losses; exit code distinct; store sealed.
 - [ ] Maintainer-checked (optional): pull the USB cable mid-run on a real device →
       clean infra classification + recovery attempt.
 
 ## PR checklist
-Title `phase-06: resilience`. ADR-0005 (recovery ladder + why outcomes stay failed).
+Title `phase-06: resilience`. ADR-0006 (recovery ladder + why outcomes stay failed;
+brief’s ADR-0005 was already QuestlineWire).

@@ -98,6 +98,26 @@ class SessionLost(Event):
 
 
 @dataclass(frozen=True, slots=True)
+class RecoveryAttempted(Event):
+    strategy: str = ""
+    success: bool = False
+    duration_s: float | None = None
+    error_message: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class WatchdogFired(Event):
+    timeout_s: float = 0.0
+    last_progress_age_s: float | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class CircuitBreakerTripped(Event):
+    consecutive_losses: int = 0
+    threshold: int = 0
+
+
+@dataclass(frozen=True, slots=True)
 class ArtifactSaved(Event):
     test_id: str | None = None
     path: str = ""
