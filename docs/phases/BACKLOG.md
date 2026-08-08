@@ -16,17 +16,12 @@ Format: `- [ ] (phase-NN) description`
 - [ ] (phase-03) Richer death-point API (close_code, structured HealthSnapshot) once Phase 06 HealthMonitor exists — today plugin stores `is_alive` + `app_state` in TestFinished.tags.
 - [ ] (phase-03) Plugin auto-discovery of project `questline.toml` at repo root without `--questline-config` when running nested example suites.
 - [ ] (phase-03) Quarantine audit nodeid normalization helper (Windows `\` vs `/`) shared by CLI and CI.
-- [ ] (phase-05 exit) Scaffold game-repo `automation/` + coverage-demo suite — see
-      `docs/GAME-INTEGRATION.md` §3. **Gated on first green live smoke via QuestlineWire
-      (phase-05b), not AltTester Desktop.** Do not scaffold from questline phase PRs.
-- [x] (phase-04) Live Editor / standalone / soft-reload acceptance — **done via game QL-1**
-      (companion + hooks; Editor Verify QL-1 passed). Desktop live path **abandoned** for
-      €0 happy path — superseded by phase-05b QuestlineWire (ADR-0005).
-- [ ] (phase-04) Shared wait helper for adapters still deferred from phase-02; AltTesterDriver reimplements probe/deadline budgeting (same pattern as MockDriver).
-- [x] (phase-04 → **05b**) Promote `hooks_manifest()` onto `DriverPort` when Wire lands
-      (both AltTester and Wire need the companion registry dump).
-- [x] (phase-05b Gate B) Implement QuestlineWire — see `phase-05b-questline-wire.md` /
-      ADR-0005. Remaining: maintainer Editor `wire-smoke` + game QL-2b Android live.
+- [x] (phase-05 exit) Scaffold game-repo `automation/` — **unblocked** (Editor Wire green).
+      See `docs/GAME-INTEGRATION.md` §3. Still a game-side session, not a fw phase PR.
+- [x] (phase-04) Live path superseded by Wire; Desktop abandoned.
+- [x] (phase-05b) Editor `wire-smoke` green; Wire MVP done. Android live + Poco UI remain.
+- [ ] (phase-05b follow-up) Android Wire smoke after Dev APK rebuild.
+- [ ] (phase-14) Poco as primary UI hierarchy adapter (prefer over AltTester).
 - [ ] (phase-05) Add Unity `.meta` files under `unity-package/` so git UPM (`questline.git?path=unity-package`) is importable — today Unity ignores the immutable package without `.meta`, forcing games to embed/copy the companion (ElJuegaso workaround). Cheap follow-up; deferred to avoid diluting Android scope.
 - [ ] (phase-05) `questline devices list|lock` CLI surface (architecture CLI mentions `devices`; provider is enough for android_local pytest wiring).
 - [ ] (phase-05) Sample-project minimal Android APK in-repo for CI-less live dogfood when game QL-2 is pending (optional; maintainer may use a local sample instead).

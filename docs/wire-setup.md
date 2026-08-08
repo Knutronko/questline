@@ -1,13 +1,25 @@
-# QuestlineWire — Unity setup (phase-05b)
+# QuestlineWire — Unity setup (happy-path live)
 
 First-party live driver: TCP + NDJSON on **127.0.0.1:13000** (ADR-0005).
-No AltTester Desktop. Dev/Editor only (`UNITY_EDITOR || QUESTLINE_DEV`).
+**No AltTester Desktop.** Dev/Editor only (`UNITY_EDITOR || QUESTLINE_DEV`).
+
+This is the **default** live path. For legacy AltTester (Desktop hub), see
+[unity-setup.md](unity-setup.md) — remote option only, not €0 happy path.
+
+## Driver priority
+
+| Priority | Profile `driver` | Use for |
+|----------|------------------|---------|
+| 1 | `"questline"` | Live Editor / Android smoke, hooks, soft-reload |
+| 2 | `"poco"` (phase-14) | UI hierarchy / find / tap (preferred over AltTester) |
+| 3 | `"alttester"` | Legacy only — needs Desktop |
+| — | `"mock"` | CI / unit |
 
 ## Game bootstrap (any Unity project)
 
 1. Install / refresh `com.questline.companion` (git UPM or embedded copy).
 2. Register hooks as today (`QuestlineHooks.Register…`).
-3. Start Wire **instead of** (or without) AltTester Prefab on port 13000:
+3. Start Wire (**do not** also bind AltTester on the same port):
 
 ```csharp
 #if UNITY_EDITOR || QUESTLINE_DEV
@@ -23,11 +35,12 @@ void Awake()
 #endif
 ```
 
-4. Do **not** run AltTester Prefab on the same port while Wire is listening.
+4. Console should log: `[QuestlineWire] listening on 127.0.0.1:13000 (v1)`.
 
-## Python smoke
+## Python smoke (Editor)
 
 ```powershell
+cd D:\dev\questline   # repo root — not $HOME
 $env:QUESTLINE_LIVE_TARGET = "1"
 uv pip install -e ".[dev]"
 uv run pytest examples/wire-smoke -q -o addopts= `
@@ -35,7 +48,7 @@ uv run pytest examples/wire-smoke -q -o addopts= `
   --questline-config examples/wire-smoke/questline.toml
 ```
 
-Profile key: `driver = "questline"` (no `[alttester]` extra).
+No `[alttester]` extra. Profile key: `driver = "questline"`.
 
 ## Android
 
@@ -43,18 +56,39 @@ Same `LocalAdbProvider` + `adb reverse tcp:13000 tcp:13000` as phase-05.
 APK must be built with `QUESTLINE_DEV` so `QuestlineWireServer` is compiled in.
 See [android.md](android.md) and [examples/wire-smoke/questline.toml](../examples/wire-smoke/questline.toml).
 
-## Reference game (ElJuegaso) — QL-2b later
+```powershell
+$env:QUESTLINE_LIVE_TARGET = "1"
+$env:QUESTLINE_APK_PATH = "path\to\dev.apk"
+$env:QUESTLINE_APP_PACKAGE = "com.example.game"
+uv run pytest examples/wire-smoke -q -o addopts= `
+  --questline-profile android_local `
+  --questline-config examples/wire-smoke/questline.toml
+```
 
-Exact companion files to refresh after this phase merges:
+## Wire roadmap (formal)
+
+| Stage | Scope | Status |
+|-------|--------|--------|
+| **MVP (05b)** | connect / alive / app_state / hooks_manifest / call_hook / soft-reload | ✅ |
+| **Editor live** | `examples/wire-smoke` + reference game QL-2b | ✅ |
+| **Android live** | Rebuild Dev APK with Wire; `android_local` smoke | ⬜ follow-up |
+| **Wire v2 UI** | find / hierarchy / tap / screenshot | ❌ **Deferred** — implement via **Poco** (phase-14), not Wire |
+
+Wire stays the **hooks / session** transport. Poco (not AltTester) is the planned
+**UI hierarchy** adapter.
+
+## Reference game (ElJuegaso) — QL-2b ✅
+
+Bootstrap already calls `QuestlineWireServer.EnsureStarted(13000)` and skips AltTester
+host when `UseQuestlineWire = true`. Companion embed includes `QuestlineWireServer.cs`.
 
 | Path in questline | Action in game |
 |---|---|
-| `unity-package/Runtime/QuestlineHooks.cs` | Refresh embed if changed |
-| `unity-package/Runtime/QuestlineWireServer.cs` | **Add** (new) |
-| `unity-package/Runtime/Questline.Companion.asmdef` | Refresh if needed |
-| `unity-package/package.json` | Bump / sync version note |
+| `unity-package/Runtime/QuestlineHooks.cs` | Keep in sync on API changes |
+| `unity-package/Runtime/QuestlineWireServer.cs` | Embedded (QL-2b) |
+| `unity-package/Runtime/Questline.Companion.asmdef` | `UNITY_EDITOR \|\| QUESTLINE_DEV` |
+| `unity-package/package.json` | Sync version notes |
 
-Game-side bootstrap: call `QuestlineWireServer.EnsureStarted()` from existing
-`P1QuestlineBootstrap` (or equivalent) under the same define gate; disable AltTester
-Prefab when using Wire profiles. **Do not** delete AltTester UPM until Wire is green
-on device. Do **not** scaffold `automation/` until first live smoke is green.
+Do **not** scaffold `automation/` until first green live smoke — **Editor Wire is green**;
+game exit task `automation/` is now unblocked (GAME-INTEGRATION §3).
+AltTester UPM may remain installed dormant; do not treat it as primary live.

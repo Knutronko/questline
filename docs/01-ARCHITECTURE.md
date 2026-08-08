@@ -14,7 +14,7 @@ questline/
 ├── src/questline/
 │   ├── core/                 # kernel: config, events, store, errors, waits, health
 │   ├── authoring/            # pytest plugin, pages, steps, assertions, markers, quarantine
-│   ├── drivers/              # DriverPort + adapters (alttester/, poco/, appium/, mock/)
+│   ├── drivers/              # DriverPort + adapters (wire/, alttester/, poco/, appium/, mock/)
 │   ├── devices/              # DevicePort + providers (adb/, farms/ stubs)
 │   ├── reporters/            # ReporterPort + adapters (slack/, github_issues/, notion/, console/)
 │   ├── ci/                   # CIPort + adapters (github_actions/, teamcity/)
@@ -113,11 +113,10 @@ class DriverPort(Protocol):
 - `Locator` is an abstract model: `by=id|name|path|text|component`, `value`, `scope`.
   Each adapter compiles it to its native query (AltTester query language, Poco selector,
   Appium locator). Registry: `locators.yaml` → generated typed accessors (codegen, committed).
-- **Adapters:** `MockDriver` (in-memory scene graph, full contract), `AltTesterDriver`
-  (optional/legacy live path), **`QuestlineDriver` / QuestlineWire** (phase-05b —
-  happy-path live without AltTester Desktop; ADR-0005), `PocoDriver` (phase 14),
-  `AppiumDriver` (device-level: OS popups, keyboard, permissions — composable
-  *alongside* a game driver in the same test).
+- **Adapters:** `MockDriver` (CI), **`QuestlineDriver` / QuestlineWire** (happy-path live,
+  ADR-0005), **`PocoDriver`** (phase-14 — primary UI hierarchy), `AltTesterDriver`
+  (legacy remoto; Desktop), `AppiumDriver` (device-level OS popups — composable alongside
+  a game driver).
 - **Conformance suite:** one parametrized pytest suite that any adapter must pass
   (connect/find/wait/tap/hierarchy/screenshot semantics, error mapping to the taxonomy).
   This is what makes "easy to switch drivers" a tested claim instead of a slogan.
@@ -208,9 +207,8 @@ class LLMProvider(Protocol):
   Hooks declare whether they cause a **soft reload** so the framework knows to re-handshake
   the driver automatically (no silent session death).
 - Perf counters: FPS, memory, draw calls exposed for Editor/standalone runs.
-- Works alongside an optional AltTester Unity SDK **or** the first-party
-  **QuestlineWire** listener (phase-05b / ADR-0005) — same hooks API; Wire is the
-  €0 happy-path transport (no Desktop hub).
+- Works with **QuestlineWire** (happy-path live, ADR-0005) and optionally legacy AltTester
+  or future **Poco** — same hooks API. Never ship instrumentation in release builds.
 
 ### 5.2 Unity Test Framework orchestration
 `questline unity-test run` launches Unity in batchmode (`-runTests -testResults results.xml`),

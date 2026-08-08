@@ -15,9 +15,9 @@
 |-----|-------------|
 | [drivers.md](drivers.md) | How to write a DriverPort adapter + conformance |
 | [writing-tests.md](writing-tests.md) | Authoring layer: plugin, pages, steps, quarantine |
-| [unity-setup.md](unity-setup.md) | AltTester + companion package setup (phase-04, legacy transport) |
-| [wire-setup.md](wire-setup.md) | QuestlineWire companion listener + profiles (phase-05b) |
-| [android.md](android.md) | Local adb phone/emulator setup (phase-05) |
+| [wire-setup.md](wire-setup.md) | **Happy-path live** — QuestlineWire (phase-05b) |
+| [unity-setup.md](unity-setup.md) | Legacy AltTester only (Desktop; not €0) |
+| [android.md](android.md) | Local adb + Wire `android_local` |
 | [GAME-INTEGRATION.md](GAME-INTEGRATION.md) | Reference-game dogfood contract (phase ↔ game triggers) |
 | [STATUS-DUAL.md](STATUS-DUAL.md) | **Vista de una pasada:** estado + roadmaps questline ↔ P1 + orden propuesto |
 | [FEATURE-PIPELINE-PLAN.md](FEATURE-PIPELINE-PLAN.md) | Feature→tests pipeline plan + phase addendums |
@@ -31,9 +31,9 @@
 | 1 | Core kernel | [phase-01-core-kernel.md](phases/phase-01-core-kernel.md) |
 | 2 | Driver abstraction | [phase-02-driver-abstraction.md](phases/phase-02-driver-abstraction.md) |
 | 3 | Authoring layer | [phase-03-authoring-layer.md](phases/phase-03-authoring-layer.md) |
-| 4 | AltTester Unity driver | [phase-04-alttester-unity.md](phases/phase-04-alttester-unity.md) |
+| 4 | AltTester Unity driver (legacy) | [phase-04-alttester-unity.md](phases/phase-04-alttester-unity.md) |
 | 5 | Android local | [phase-05-android-local.md](phases/phase-05-android-local.md) |
-| 5b | QuestlineWire (no Desktop) | [phase-05b-questline-wire.md](phases/phase-05b-questline-wire.md) |
+| 5b | QuestlineWire (happy-path live) | [phase-05b-questline-wire.md](phases/phase-05b-questline-wire.md) |
 | 6 | Resilience | [phase-06-resilience.md](phases/phase-06-resilience.md) |
 | 7 | Reporters | [phase-07-reporters.md](phases/phase-07-reporters.md) |
 | 8 | HUD viewer | [phase-08-hud-viewer.md](phases/phase-08-hud-viewer.md) |
@@ -42,5 +42,5 @@
 | 11 | AI foundation | [phase-11-ai-foundation.md](phases/phase-11-ai-foundation.md) |
 | 12 | AI agents | [phase-12-ai-agents.md](phases/phase-12-ai-agents.md) |
 | 13 | AI generation & eval | [phase-13-ai-generation-eval.md](phases/phase-13-ai-generation-eval.md) |
-| 14 | Poco / UTF | [phase-14-poco-utf.md](phases/phase-14-poco-utf.md) |
+| 14 | **Poco** / UTF (UI hierarchy) | [phase-14-poco-utf.md](phases/phase-14-poco-utf.md) |
 | 15 | Integrations & release | [phase-15-integrations-release.md](phases/phase-15-integrations-release.md) |

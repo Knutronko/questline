@@ -1,11 +1,14 @@
-# Unity setup — AltTester + Questline companion
+# Unity setup — legacy AltTester (optional)
 
-Step-by-step for adding Questline UI automation to a Unity game (Editor play mode and
-Windows standalone). Written for someone who has never used AltTester.
+> **Happy-path live is QuestlineWire** — see [wire-setup.md](wire-setup.md) first.
+> This document is for the **legacy remoto** AltTester path only (needs Desktop hub;
+> not €0). Prefer **Poco** (phase-14) when you need UI hierarchy instead of AltTester.
 
-**Reference game note:** the maintainer's dogfood game completed **QL-1** (AltTester SDK
-+ companion + first hooks). Live Editor acceptance is available; optional
-`QUESTLINE_LIVE_TARGET=1` + AltTester Desktop remains manual.
+Step-by-step for adding **legacy** AltTester UI automation to a Unity game (Editor play
+mode and Windows standalone).
+
+**Reference game note:** QL-1 installed AltTester; **QL-2b** switched live to Wire.
+Do **not** treat Desktop reconnect as DoD.
 
 ## Prerequisites
 

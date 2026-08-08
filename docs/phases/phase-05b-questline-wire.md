@@ -101,10 +101,10 @@ See ADR-0005 §8 table → existing taxonomy (`InfraError` / `SessionLostError` 
 - [x] `QuestlineDriver` + plugin registry `driver = "questline"` (no `[alttester]` required)
 - [x] Soft-reload reconnect regression (fake or live)
 - [x] CI: fake-transport / protocol unit tests green; conformance subset green
-- [ ] Maintainer-checked: `examples/wire-smoke` green on Editor without Desktop
-- [x] Android: profile + `LocalAdbProvider` wiring ready; **live device DoD** = maintainer after QL-2b (documented in `docs/wire-setup.md`)
-- [x] Deferred conformance / UI methods documented (`drivers.md`, Wire MVP stubs)
-- [x] QL-2b sync notes (exact companion files) — `docs/wire-setup.md`
+- [x] Maintainer-checked: `examples/wire-smoke` green on Editor without Desktop
+- [x] Android: profile + `LocalAdbProvider` wiring ready; **live device DoD** = rebuild Dev APK + smoke (follow-up)
+- [x] Deferred UI methods → **Poco** (phase-14), not Wire v2 / not AltTester
+- [x] QL-2b sync notes — done in reference game
 - [x] `STATUS-DUAL.md` + phase checklist updated; PR test plan (PowerShell)
 
 ## PR checklist
