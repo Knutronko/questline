@@ -12,8 +12,8 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 fases 0–15 + **05b Wire** | **05b Gate B** — `QuestlineDriver` + companion listener + CI/fake green | Maintainer Editor `wire-smoke` · **06** Resilience | Live Editor smoke pending maintainer; Android live tras QL-2b |
-| **ElJuegaso P1** | Proto D (feel) | **D1–D9.5** + **QL-1** + **QL-2** código; Desktop live descartado | **QL-2b** (Wire bootstrap + refresh companion) · D10 · `automation/` tras smoke Wire verde | Smoke live aplazado a Wire + QL-2b |
+| **questline** | v0.1 fases 0–15 + **05b Wire** | **05b Gate B** (PR #9) — Wire driver + listener | Maintainer merge PR #9 + Editor `wire-smoke` · **06** Resilience | Editor smoke: Unity debe mostrar `[QuestlineWire] listening` (QL-2b) |
+| **ElJuegaso P1** | Proto D (feel) | **QL-2b** Wire bootstrap + companion embed | Editor wire-smoke verde · rebuild Dev APK Wire · D10 · `automation/` tras smoke | AltTester UPM dormido; no Desktop |
 
 **Repos locales canónicos**
 
@@ -63,7 +63,7 @@ Wire: [`phase-05b-questline-wire.md`](phases/phase-05b-questline-wire.md) ·
 | D13+ | FTUE, visual, save debt… | ⬜ | [`roadmap-post-d6.md`](https://github.com/Knutronko/ElJuegaso/blob/main/docs/prototipos/P1/roadmap-post-d6.md) |
 | **QL-1** | Companion + hooks + smoke GOs | ✅ | `integracion-questline.md` |
 | **QL-2** | APK DEV `QUESTLINE_DEV` | ✅ código (smoke live no con Desktop) | `integracion-questline.md` §7–8 |
-| **QL-2b** | Bootstrap Wire + refresh companion | ⬜ trigger tras fw **05b Gate B** | §8 |
+| **QL-2b** | Bootstrap Wire + refresh companion | ✅ código (este PR juego) | Editor smoke pending Play + pytest |
 | **QL-3** | Perf counters companion | ⬜ | Trigger fw **09** |
 | **QL-4** | UTF C# tests | ⬜ | Trigger fw **14** |
 | **QL-5** | Manifest SOs (GameLens) | ⬜ | Trigger FP-G1 · encaja **D11** |
