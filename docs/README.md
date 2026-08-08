@@ -32,6 +32,7 @@
 | 3 | Authoring layer | [phase-03-authoring-layer.md](phases/phase-03-authoring-layer.md) |
 | 4 | AltTester Unity driver | [phase-04-alttester-unity.md](phases/phase-04-alttester-unity.md) |
 | 5 | Android local | [phase-05-android-local.md](phases/phase-05-android-local.md) |
+| 5b | QuestlineWire (no Desktop) | [phase-05b-questline-wire.md](phases/phase-05b-questline-wire.md) |
 | 6 | Resilience | [phase-06-resilience.md](phases/phase-06-resilience.md) |
 | 7 | Reporters | [phase-07-reporters.md](phases/phase-07-reporters.md) |
 | 8 | HUD viewer | [phase-08-hud-viewer.md](phases/phase-08-hud-viewer.md) |

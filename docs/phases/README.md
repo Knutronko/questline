@@ -3,6 +3,9 @@
 Immutable briefs live as `phase-NN-*.md` (see `docs/00-MASTER-PLAN.md` §6: briefs do not
 change after merge; scope changes get a revision commit with reasoning).
 
+Inserted bridge phases use a letter suffix (e.g. `phase-05b-questline-wire.md`) so
+06–15 stay stable.
+
 ## Every phase session — living checklist
 
 Before coding: read `docs/STATUS-DUAL.md` (cross-project semáforo) and the phase brief.

@@ -1,6 +1,6 @@
 # Writing a DriverPort adapter
 
-This guide is for Phase 04+ adapters (AltTester, Poco, Appium, …). Phase 02 ships the
+This guide is for Phase 04+ adapters (AltTester, QuestlineWire, Poco, Appium, …). Phase 02 ships the
 port, locator model, `DriverHandle`, in-memory `MockDriver`, and the **conformance suite**
 every adapter must pass.
 
@@ -9,6 +9,8 @@ every adapter must pass.
 1. **Implement `DriverPort`** (`questline.drivers.port`) — `connect` / `disconnect` /
    `is_alive`, `find` / `find_all`, `hierarchy`, `screenshot`, interactions
    (`tap` / `press` / `swipe` / `text_input`), `call_game_method`, `app_state`.
+   **QuestlineWire MVP (phase-05b):** implement session + hooks + `app_state`; UI methods
+   may raise a documented `NotImplementedError` / `AuthoringError` until Wire v2 or Poco.
 2. **Implement `compile(Locator) -> native query`** — map
    `by ∈ {id,name,path,text,component}` (+ optional `scope`) to the backend’s selector
    language. Do not leak native types through `Element` / `HierarchySnapshot`.
@@ -53,16 +55,20 @@ Against AltTesterDriver with a **fake transport** (CI, no Unity):
 uv run pytest tests/test_alttester_conformance_fake.py -q
 ```
 
-Against a **live** Unity AltTester session (skipped unless `QUESTLINE_LIVE_TARGET=1`):
+Against a **live** Unity session (skipped unless `QUESTLINE_LIVE_TARGET=1`):
 
 ```bash
-# PowerShell
+# PowerShell — QuestlineWire (phase-05b; no AltTester Desktop)
 $env:QUESTLINE_LIVE_TARGET = "1"
+uv run pytest examples/wire-smoke -q -o addopts=
+
+# Legacy AltTester path (optional; requires Desktop hub — not €0 happy path)
 uv run pytest tests/test_alttester_conformance_live.py -q -o addopts=
 ```
 
 See [unity-setup.md](unity-setup.md) for Editor / standalone setup and the companion package.
 See [android.md](android.md) for `android_local` (adb reverse + LocalAdbProvider).
+See [ADR-0005](adr/ADR-0005-questline-wire.md) for QuestlineWire protocol and security.
 
 
 ## DriverHandle (session reset)

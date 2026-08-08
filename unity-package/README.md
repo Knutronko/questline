@@ -1,9 +1,12 @@
 # Questline Companion (`com.questline.companion`)
 
-UPM package that exposes typed debug hooks to the Questline Python driver via AltTester
-`CallStaticMethod`.
+UPM package that exposes typed debug hooks to the Questline Python driver.
 
-See [docs/unity-setup.md](../docs/unity-setup.md) and [ADR-0004](../docs/adr/ADR-0004-companion-hooks.md).
+**Transports:** QuestlineWire (phase-05b / ADR-0005 — happy path, no Desktop) or optional
+AltTester `CallStaticMethod` (legacy).
+
+See [docs/unity-setup.md](../docs/unity-setup.md), [ADR-0004](../docs/adr/ADR-0004-companion-hooks.md),
+and [ADR-0005](../docs/adr/ADR-0005-questline-wire.md).
 
 ## Quick register (game code)
 

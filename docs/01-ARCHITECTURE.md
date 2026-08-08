@@ -113,8 +113,10 @@ class DriverPort(Protocol):
 - `Locator` is an abstract model: `by=id|name|path|text|component`, `value`, `scope`.
   Each adapter compiles it to its native query (AltTester query language, Poco selector,
   Appium locator). Registry: `locators.yaml` → generated typed accessors (codegen, committed).
-- **Adapters:** `MockDriver` (in-memory scene graph, full contract), `AltTesterDriver`,
-  `PocoDriver`, `AppiumDriver` (device-level: OS popups, keyboard, permissions — composable
+- **Adapters:** `MockDriver` (in-memory scene graph, full contract), `AltTesterDriver`
+  (optional/legacy live path), **`QuestlineDriver` / QuestlineWire** (phase-05b —
+  happy-path live without AltTester Desktop; ADR-0005), `PocoDriver` (phase 14),
+  `AppiumDriver` (device-level: OS popups, keyboard, permissions — composable
   *alongside* a game driver in the same test).
 - **Conformance suite:** one parametrized pytest suite that any adapter must pass
   (connect/find/wait/tap/hierarchy/screenshot semantics, error mapping to the taxonomy).
@@ -206,7 +208,9 @@ class LLMProvider(Protocol):
   Hooks declare whether they cause a **soft reload** so the framework knows to re-handshake
   the driver automatically (no silent session death).
 - Perf counters: FPS, memory, draw calls exposed for Editor/standalone runs.
-- Works alongside the AltTester Unity SDK (which provides the transport in v0).
+- Works alongside an optional AltTester Unity SDK **or** the first-party
+  **QuestlineWire** listener (phase-05b / ADR-0005) — same hooks API; Wire is the
+  €0 happy-path transport (no Desktop hub).
 
 ### 5.2 Unity Test Framework orchestration
 `questline unity-test run` launches Unity in batchmode (`-runTests -testResults results.xml`),
