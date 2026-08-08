@@ -13,13 +13,10 @@
      `com.questline.companion` plus a Python `QuestlineDriver` (`driver = "questline"`)
      implementing `DriverPort`. Exportable to any Unity project via companion + profile
      config (host/port/adb) — no ElJuegaso-only hacks.
-  2. **Prefer Wire over Poco-first.** Poco remains phase-14’s second UI adapter
-     (hierarchy/find/tap). Wire unblocks hooks-first smoke now and reuses the existing
-     companion contract. Poco does not replace Desktop as cheaply for our already-shipped
-     hooks path.
-  3. **Do not keep AltTester Desktop** in the happy path. Keep `AltTesterDriver` +
-     `[alttester]` extra in-tree as optional/legacy until Wire is green on device; do
-     not rip AltTester UPM from reference games in this phase.
+  2. **Prefer Wire for live hooks; Poco for UI hierarchy.** Poco (phase-14) is the planned
+     **primary UI** adapter (find/hierarchy/tap). Wire does not grow full UI parity.
+  3. **AltTester Desktop is out of the happy path.** Keep `AltTesterDriver` + `[alttester]`
+     as **legacy remoto** only. Do not rip game UPM overnight; do not recommend Desktop.
   4. **Transport:** TCP + **NDJSON** (one UTF-8 JSON object per line, `\n`-terminated).
      Unity side uses `System.Net.Sockets` under `#if UNITY_EDITOR || QUESTLINE_DEV` —
      zero third-party deps. WebSocket was rejected for MVP (needs a package or custom
@@ -58,9 +55,7 @@
      `hooks_manifest` / `call_game_method` (+ soft-reload re-handshake). **Out:** full
      hierarchy/find/tap/screenshot parity; Poco; Appium; removing AltTester from examples
      overnight.
-- **Consequences:** Phase-05 live acceptance and reference-game `automation/` stay gated
-  on Wire green (Editor first; Android via existing `LocalAdbProvider` + `adb reverse`).
-  Gate B implements listener + Python driver + profiles + hooks-first smoke. ADR-0004
-  remains the hook contract; Wire is an alternate *transport* to invoke the same hooks.
-  Promote `hooks_manifest()` onto `DriverPort` when Wire lands (closes phase-04 backlog
-  item). Update `STATUS-DUAL.md` / `GAME-INTEGRATION.md` when status changes.
+- **Consequences:** Editor live smoke is green via Wire. Game `automation/` exit is
+  unblocked. Android Wire live needs Dev APK rebuild. UI hierarchy → **Poco** (14), not
+  Wire v2 and not AltTester. ADR-0004 remains the hook contract; Wire is the happy-path
+  *transport*. Update `STATUS-DUAL.md` when status changes.

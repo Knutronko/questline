@@ -1,16 +1,17 @@
 # Writing a DriverPort adapter
 
-This guide is for Phase 04+ adapters (AltTester, QuestlineWire, Poco, Appium, …). Phase 02 ships the
-port, locator model, `DriverHandle`, in-memory `MockDriver`, and the **conformance suite**
-every adapter must pass.
+This guide is for Phase 04+ adapters (**QuestlineWire**, Poco, AltTester legacy, Appium, …).
+Phase 02 ships the port, locator model, `DriverHandle`, in-memory `MockDriver`, and the
+**conformance suite** every adapter must pass.
 
 ## Checklist
 
 1. **Implement `DriverPort`** (`questline.drivers.port`) — `connect` / `disconnect` /
    `is_alive`, `find` / `find_all`, `hierarchy`, `screenshot`, interactions
-   (`tap` / `press` / `swipe` / `text_input`), `call_game_method`, `app_state`.
-   **QuestlineWire MVP (phase-05b):** implement session + hooks + `app_state`; UI methods
-   may raise a documented `NotImplementedError` / `AuthoringError` until Wire v2 or Poco.
+   (`tap` / `press` / `swipe` / `text_input`), `call_game_method`, `app_state`,
+   `hooks_manifest`.
+   **QuestlineWire MVP:** session + hooks + `app_state` (UI methods stubbed). Prefer
+   **Poco** (phase-14) for hierarchy/find/tap — not AltTester.
 2. **Implement `compile(Locator) -> native query`** — map
    `by ∈ {id,name,path,text,component}` (+ optional `scope`) to the backend’s selector
    language. Do not leak native types through `Element` / `HierarchySnapshot`.
@@ -58,17 +59,20 @@ uv run pytest tests/test_alttester_conformance_fake.py -q
 Against a **live** Unity session (skipped unless `QUESTLINE_LIVE_TARGET=1`):
 
 ```bash
-# PowerShell — QuestlineWire (phase-05b; no AltTester Desktop)
+# PowerShell — QuestlineWire (happy path; no Desktop)
 $env:QUESTLINE_LIVE_TARGET = "1"
-uv run pytest examples/wire-smoke -q -o addopts=
+uv run pytest examples/wire-smoke -q -o addopts= `
+  --questline-profile editor `
+  --questline-config examples/wire-smoke/questline.toml
 
-# Legacy AltTester path (optional; requires Desktop hub — not €0 happy path)
+# Legacy AltTester (optional; requires Desktop hub — not €0 happy path)
 uv run pytest tests/test_alttester_conformance_live.py -q -o addopts=
 ```
 
-See [unity-setup.md](unity-setup.md) for Editor / standalone setup and the companion package.
+See [wire-setup.md](wire-setup.md) for the happy-path companion listener.
+See [unity-setup.md](unity-setup.md) for legacy AltTester only.
 See [android.md](android.md) for `android_local` (adb reverse + LocalAdbProvider).
-See [ADR-0005](adr/ADR-0005-questline-wire.md) for QuestlineWire protocol and security.
+See [ADR-0005](adr/ADR-0005-questline-wire.md) for protocol and security.
 
 
 ## DriverHandle (session reset)

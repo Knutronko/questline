@@ -7,11 +7,11 @@ assertions, and the quarantine ledger. Drivers are consumed via `DriverHandle`
 ## Quick start (demo suite)
 
 Phases 00–03 dogfood against **MockDriver** only (see
-[GAME-INTEGRATION.md](GAME-INTEGRATION.md) §4). Phase 04 adds AltTester + companion;
-generic live smoke lives in `examples/unity-smoke/` (needs `QUESTLINE_LIVE_TARGET=1`,
-see [unity-setup.md](unity-setup.md)). Phase 05 adds `android_local` via adb
-([android.md](android.md)). Real game suites live in the game repo under
-`automation/` (same layout; created as a phase-05 exit task — maintainer game-side).
+[GAME-INTEGRATION.md](GAME-INTEGRATION.md) §4). Live happy path is **QuestlineWire**
+(`driver = "questline"`) — see [wire-setup.md](wire-setup.md) and `examples/wire-smoke/`.
+Phase 04 AltTester is **legacy remoto**; phase 14 **Poco** is UI hierarchy.
+Android: [android.md](android.md). Real game suites live under game-repo `automation/`
+(GAME-INTEGRATION §2–3; exit task unblocked after Editor Wire green).
 
 ```bash
 # From the repo root — MockDriver fake game under examples/demo-tests/

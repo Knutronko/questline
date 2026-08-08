@@ -1,7 +1,8 @@
 # Questline — Master Plan
 
 > **Questline** is an open-source, AI-native test automation framework for games (Unity-first),
-> built from scratch in public. Python + pytest core, driver-agnostic (AltTester / Poco / Appium),
+> built from scratch in public. Python + pytest core, driver-agnostic (QuestlineWire / Poco / Appium;
+> AltTester legacy),
 > pluggable reporters (Slack, GitHub Issues, Notion…), CI adapters (GitHub Actions, TeamCity…),
 > device providers (local adb, cloud farms), a local-first web dashboard (**HUD**), and a
 > first-class AI layer (test generation, maintenance, triage, evaluation).
@@ -36,7 +37,7 @@
 |---|---|---|
 | Language / runner | Python 3.12 + pytest (framework = library + pytest plugin) | Ecosystem (fixtures, markers, xdist), market relevance |
 | Repo model | Public monorepo: `core/`, `drivers/`, `ai/`, `hud/`, `unity-package/`, `examples/`, `docs/` | Solo maintainer, phase-per-PR flow |
-| First driver | AltTester (open-source Unity SDK) → then Poco (Phase 14). Appium (device layer) is designed in the port, implemented post-v0.1 (backlog) | Fast first green; Poco proves the abstraction |
+| First live driver | **QuestlineWire** (`driver = "questline"`) — hooks-first, no Desktop. AltTester was an early experiment; kept as **legacy remoto**. **Poco** (Phase 14) is the planned **UI hierarchy** adapter (preferred over AltTester for find/tap). Appium = device layer post-v0.1. | €0 live; DriverPort stays swappable |
 | Game targets | Unity Editor play mode, Windows standalone, Android (adb) | What can be validated on a Windows PC |
 | Unit tests (C#) | Orchestrate Unity Test Framework in batchmode, ingest results into the same run store | One dashboard for Python + C# results |
 | CI dogfood | GitHub Actions (real merge gate) + TeamCity adapter vs REST API (designed, Docker-validatable) | Free, gates every phase PR |
@@ -99,13 +100,15 @@ Full detail in `01-ARCHITECTURE.md`.
    └───┬──────────────┬───────────────┬──────────────┬───────────┘
        ▼              ▼               ▼              ▼
   DriverPort    DevicePort      ReporterPort      LLMPort
-  ─ AltTester   ─ LocalAdb      ─ Slack           ─ OpenAI-compat (Mistral/Groq)
-  ─ Poco        ─ BrowserStack* ─ GitHubIssues    ─ Ollama
-  ─ Appium      ─ BitBar*       ─ Notion*         ─ CursorCLI (exp.)
-  ─ Mock        ─ Firebase*     ─ Jira*/TestRail* 
+  ─ Wire*       ─ LocalAdb      ─ Slack           ─ OpenAI-compat (Mistral/Groq)
+  ─ Poco (UI)   ─ BrowserStack* ─ GitHubIssues    ─ Ollama
+  ─ AltTester†  ─ BitBar*       ─ Notion*         ─ CursorCLI (exp.)
+  ─ Mock        ─ Firebase*     ─ Jira*/TestRail*
+  ─ Appium*
        ▼                                               ▼
   Unity companion package (C#)                   AI agents: triage ·
-  debug hooks · UTF orchestration                maintainer · generator ·
+  Wire listener · hooks · UTF                    maintainer · generator ·
+  (* happy path; † legacy remoto; * stub/optional)
   perf counters                                  self-healing · eval harness
 
   HUD (FastAPI + web UI): viewer + live run + control center + perf graphs
@@ -125,9 +128,9 @@ Merge gate: GitHub Actions (lint + type check + unit tests + phase acceptance te
 | 1 | Core kernel | Config/profiles, event bus, run store, error taxonomy, ledger | Unit tests |
 | 2 | Driver abstraction | DriverPort, locator model, wait policies, MockDriver + conformance suite | Contract tests vs mock |
 | 3 | Authoring layer | pytest plugin, pages, step pipeline, assertions, markers + quarantine ledger | Unit + mock e2e |
-| 4 | AltTester adapter + Unity package | First real green test (Editor + Windows build) | Author's Unity game |
+| 4 | AltTester adapter + Unity package | Early companion + legacy adapter (Desktop live abandoned) | Author's Unity game |
 | 5 | Android local | DevicePort + adb provider, APK flows | Author's phone/emulator |
-| 5b | QuestlineWire | First-party live driver (TCP+NDJSON); Editor/Android smoke without AltTester Desktop | Author's Unity game + Dev APK |
+| 5b | QuestlineWire | Happy-path live driver (TCP+NDJSON); Editor smoke green | Author's Unity game + Dev APK |
 | 6 | Resilience | Health monitor, session-loss recovery, watchdog, infra-vs-test verdicts | Fault-injection tests |
 | 7 | Reporters | Slack + GitHub Issues adapters over event bus | Real Slack ws + repo |
 | 8 | HUD I (viewer) | Run history/detail/artifacts + live view | Local runs |
@@ -136,12 +139,12 @@ Merge gate: GitHub Actions (lint + type check + unit tests + phase acceptance te
 | 11 | AI foundation | LLMPort + adapters (Mistral/Groq/Ollama/Cursor CLI), cost ledger, failover | Live free-tier calls |
 | 12 | AI agents | Triage agent, maintainer agent (diagnose/fix + gates), self-healing locators | Broken-on-purpose tests |
 | 13 | AI generation + eval | Spec→test generator, unit-test generator, eval harness + metrics | Golden set |
-| 14 | Second driver + UTF | Poco adapter (conformance suite), Unity Test Framework ingestion | Example game via Poco |
+| 14 | **Poco** + UTF | Primary **UI hierarchy** adapter (conformance); Unity Test Framework ingestion. Prefer Poco over AltTester for find/tap. | Example game via Poco |
 | 15 | Integrations & release | CIPort + TeamCity adapter, farm stubs, iOS design doc, docs site, v0.1.0 | Tagged release |
 
 Dependency notes: 8→10 (HUD), 11→12→13 (AI), 2→4→5→**5b**, 4→9, 3→12/13.
-Phase **5b** (QuestlineWire) unblocks live acceptance after AltTester Desktop proved
-non-viable for the €0 path (ADR-0005). Phases 7, 9, 11 can start out of order if blocked
+Phase **5b** (QuestlineWire) is the €0 live path (Editor green). **Poco** (14) is the
+UI hierarchy path — not AltTester. Phases 7, 9, 11 can start out of order if blocked
 elsewhere. Inserted lettered phases do not renumber later briefs.
 
 ---
