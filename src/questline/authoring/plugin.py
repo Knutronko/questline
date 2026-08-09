@@ -20,6 +20,8 @@ if TYPE_CHECKING:
 
 _STASH_RUN_ID = pytest.StashKey[str]()
 _STASH_RUN_T0 = pytest.StashKey[float]()
+_STASH_WATCHDOG = pytest.StashKey[Any]()
+_STASH_RECOVERY = pytest.StashKey[Any]()
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -214,6 +216,7 @@ def questline_run_id(
     pytestconfig: pytest.Config,
 ) -> Any:
     from questline.core.events import RunFinished, RunStarted
+    from questline.core.watchdog import Watchdog
 
     _ = questline_store
     run_id = str(uuid.uuid4())
@@ -221,7 +224,22 @@ def questline_run_id(
     t0 = time.perf_counter()
     pytestconfig.stash[_STASH_RUN_T0] = t0
     questline_bus.publish(RunStarted(run_id=run_id, profile=questline_settings.profile))
+
+    def _watchdog_exit(code: int) -> None:
+        pytest.exit(f"questline watchdog fired (exit {code})", returncode=code)
+
+    watchdog = Watchdog(
+        timeout_s=questline_settings.resilience.watchdog_timeout_s,
+        bus=questline_bus,
+        run_id=run_id,
+        exit_fn=_watchdog_exit,
+    )
+    pytestconfig.stash[_STASH_WATCHDOG] = watchdog
+    watchdog.start()
     yield run_id
+    watchdog.stop()
+    if watchdog.fired:
+        return
     status = "passed"
     tr = pytestconfig.pluginmanager.get_plugin("terminalreporter")
     if tr is not None and (tr.stats.get("failed") or tr.stats.get("error")):
@@ -306,14 +324,65 @@ def questline_device(
     teardown_android_session(bundle, app_package=questline_settings.app_package)
 
 
+def _connection_target_for(settings: Settings, questline_device: Any) -> Any:
+    from questline.drivers.port import ConnectionTarget
+
+    driver_name = (settings.driver or "mock").lower()
+    if driver_name == "mock":
+        return ConnectionTarget(host="mock", port=0)
+    extras: dict[str, str] = {}
+    if settings.target_app_name:
+        extras["app_name"] = settings.target_app_name
+    if questline_device is not None:
+        extras["device_serial"] = questline_device["device"].id
+    return ConnectionTarget(
+        host=settings.target_host,
+        port=settings.target_port,
+        platform=settings.target_platform or "editor",
+        extras=extras,
+    )
+
+
 @pytest.fixture(scope="session")
 def driver_handle(
     questline_settings: Settings,
     questline_run_id: str,
     questline_device: Any,
+    questline_bus: EventBus,
+    pytestconfig: pytest.Config,
 ) -> Any:
-    _ = questline_run_id
+    from questline.core.recovery import RecoveryPolicy
+
     handle = wire_driver_handle(questline_settings, questline_device)
+    target = _connection_target_for(questline_settings, questline_device)
+    device_provider = None
+    device = None
+    if questline_device is not None:
+        device_provider = questline_device.get("provider")
+        device = questline_device.get("device")
+
+    watchdog = pytestconfig.stash.get(_STASH_WATCHDOG, None)
+
+    def _breaker_exit(code: int) -> None:
+        pytest.exit(
+            f"questline circuit breaker tripped (exit {code})",
+            returncode=code,
+        )
+
+    recovery = RecoveryPolicy(
+        handle,
+        bus=questline_bus,
+        run_id=questline_run_id,
+        target=target,
+        device_provider=device_provider,
+        device=device,
+        app_package=questline_settings.app_package,
+        app_activity=questline_settings.app_activity,
+        max_consecutive_losses=questline_settings.resilience.circuit_breaker_losses,
+        on_progress=(watchdog.mark_progress if watchdog is not None else None),
+        abort_fn=_breaker_exit,
+    )
+    pytestconfig.stash[_STASH_RECOVERY] = recovery
     yield handle
     try:
         if handle.is_alive():
@@ -420,6 +489,9 @@ def pytest_runtest_setup(item: pytest.Item) -> Any:
     yield
     if not _uses_questline(item):
         return
+    watchdog = item.config.stash.get(_STASH_WATCHDOG, None)
+    if watchdog is not None:
+        watchdog.mark_progress()
     bus = _fixture_value(item, "questline_bus")
     run_id = _fixture_value(item, "questline_run_id")
     if bus is None or run_id is None:
@@ -454,8 +526,13 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
     if bus is None or run_id is None:
         return
 
-    from questline.core.errors import classify
+    watchdog = item.config.stash.get(_STASH_WATCHDOG, None)
+    if watchdog is not None:
+        watchdog.mark_progress()
+
+    from questline.core.errors import SessionLostError, classify, normalize_exception
     from questline.core.events import TestFinished, TestStarted
+    from questline.core.health import HealthMonitor
 
     feature_id = getattr(item, "_questline_feature_id", None) or feature_id_for_item(item)
     if not getattr(item, "_questline_started_emitted", False):
@@ -477,31 +554,47 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
     if feature_id:
         tags["feature_id"] = feature_id
 
+    normalized_exc: BaseException | None = None
     if report.failed:
         status = "failed"
         if call.excinfo is not None:
             err = call.excinfo.value
+            normalized_exc = normalize_exception(err)
             verdict = classify(err).value
-            error_type = type(err).__name__
-            error_message = str(err)
+            error_type = type(normalized_exc).__name__
+            error_message = str(normalized_exc)
         else:  # pragma: no cover - pytest always provides excinfo on failed call
             verdict = "unknown"
             error_message = str(report.longrepr)
     elif report.skipped:
         status = "skipped"
 
+    recovery = item.config.stash.get(_STASH_RECOVERY, None)
+    settings = _fixture_value(item, "questline_settings")
+
+    if status == "passed" and recovery is not None:
+        recovery.record_pass()
+
     if status == "failed" and handle is not None:
+        device_bundle = _fixture_value(item, "questline_device")
+        device_provider = device_bundle.get("provider") if device_bundle else None
+        device = device_bundle.get("device") if device_bundle else None
+        monitor = HealthMonitor(handle, device_provider=device_provider, device=device)
+        snap = None
         try:
-            tags["driver_alive"] = "true" if handle.is_alive() else "false"
-            state = handle.app_state()
-            tags["app_scene"] = state.scene or ""
-            tags["app_foreground"] = "true" if state.foreground else "false"
-            tags["app_paused"] = "true" if state.paused else "false"
+            snap = monitor.check()
+            tags.update(snap.as_tags())
+            try:
+                state = handle.app_state()
+                tags["app_scene"] = state.scene or ""
+                tags["app_foreground"] = "true" if state.foreground else "false"
+                tags["app_paused"] = "true" if state.paused else "false"
+            except Exception as state_exc:  # pragma: no cover
+                tags["app_state_error"] = f"{type(state_exc).__name__}: {state_exc}"
         except Exception as health_exc:  # pragma: no cover - health probe is best-effort
             tags["driver_health_error"] = f"{type(health_exc).__name__}: {health_exc}"
 
         store = _fixture_value(item, "questline_store")
-        device_bundle = _fixture_value(item, "questline_device")
         _save_failure_artifacts(
             store=store,
             handle=handle,
@@ -510,6 +603,21 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
             test_id=item.nodeid,
             tags=tags,
         )
+
+        session_lost = isinstance(normalized_exc, SessionLostError)
+        unhealthy = snap is not None and snap.suggests_session_loss
+        recovery_enabled = True
+        if settings is not None:
+            recovery_enabled = bool(settings.resilience.recovery_enabled)
+        if recovery is not None and recovery_enabled and (session_lost or unhealthy):
+            if watchdog is not None:
+                watchdog.mark_progress()
+            try:
+                recovery.recover(normalized_exc)
+            except Exception as recover_exc:  # pragma: no cover
+                tags["recovery_error"] = f"{type(recover_exc).__name__}: {recover_exc}"
+            if watchdog is not None:
+                watchdog.mark_progress()
 
     t0 = getattr(item, "_questline_t0", time.perf_counter())
     bus.publish(
