@@ -65,7 +65,8 @@
 | Wire v2 find/hierarchy/tap | ❌ **no planificado** — usar **Poco** (14) |
 
 Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-setup.md) ·
-[`ADR-0005`](adr/ADR-0005-questline-wire.md).
+[`ADR-0005`](adr/ADR-0005-questline-wire.md) · [`resilience.md`](resilience.md) ·
+[`ADR-0006`](adr/ADR-0006-recovery-ladder.md).
 
 ---
 
@@ -129,6 +130,7 @@ flowchart TB
   Q4 -.->|trigger| QL1
   Q5 -.->|trigger| QL2
   Q5b -.->|trigger| QL2b
+  Q5b -.-> LiveAnd
   Q9 -.->|trigger| QL3[QL-3 Perf]
   Q14 -.->|trigger| QL4[QL-4 UTF+Poco]
   Auto -->|feeds| Q7

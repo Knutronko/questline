@@ -150,8 +150,16 @@ Also mark the test `@pytest.mark.quest.quarantined`.
 ## Death-point
 
 On failure the store answers last-started / last-finished step plus driver health
-tags captured by the plugin (`driver_alive`, `app_scene`, …):
+tags captured by the plugin (`driver_alive`, `hierarchy_ok`, `app_scene`, …):
 
 ```python
 store.death_point(test_id)
 ```
+
+## Verdicts & resilience
+
+Pytest **outcome** (passed/failed) is separate from store **verdict**
+(`infra` | `test` | `authoring` | `unknown`). Session loss and transport failures
+classify as `infra` without rewriting the failed outcome. Recovery ladder, circuit
+breaker, and watchdog are documented in [`resilience.md`](resilience.md)
+(ADR-0006).
