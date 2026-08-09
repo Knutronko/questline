@@ -11,7 +11,7 @@ Phases 00–03 dogfood against **MockDriver** only (see
 (`driver = "questline"`) — see [wire-setup.md](wire-setup.md) and `examples/wire-smoke/`.
 Phase 04 AltTester is **legacy remoto**; phase 14 **Poco** is UI hierarchy.
 Android: [android.md](android.md). Real game suites live under game-repo `automation/`
-(GAME-INTEGRATION §2–3; exit task unblocked after Editor Wire green).
+(GAME-INTEGRATION §2–3; reference-game coverage-demo scaffolded — Editor Wire green).
 
 ```bash
 # From the repo root — MockDriver fake game under examples/demo-tests/

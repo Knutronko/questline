@@ -53,31 +53,31 @@ this convention is documented for framework users, not just the reference game.
 
 ## 3. ⚠️ First green live smoke → then create the real suite (do not skip)
 
-**Status (2026-08-08):** Editor live smoke via `driver = "questline"` (QuestlineWire) is
+**Status (2026-08-09):** Editor live smoke via `driver = "questline"` (QuestlineWire) is
 **green** against the reference game (QL-2b). AltTester Desktop remains **out** of the
 happy path (ADR-0005). Android Wire live still needs a Dev APK rebuild that includes
 the Wire listener.
 
-The maintainer should now run the **game-side exit session** (not a numbered framework
-phase) with this scope:
+**Game-side exit (`automation/`):** coverage-demo scaffold is **in** the reference game
+repo (ElJuegaso). Editor profile green (hooks-first). UI find/tap / `HandleOptional(Popup)`
+deferred to **Poco** (QL-4 / fw 14). `android_local` awaits Dev APK rebuild.
 
-1. Scaffold `automation/` in the game repo per §2.
-2. Write the **coverage-demo suite**: real tests against the game exercising EVERY
-   framework capability shipped through phase 05 —
-   - profiles: same test green on `editor`, `standalone`, `android_local`;
-   - pages + locator registry (real game HUD elements);
-   - scenario steps incl. `HandleOptional` (a tutorial popup is the natural target),
-     inline `.call()` steps and context data flow;
-   - assertions (equals/differs/is_true) + one deliberately-failing test to show the
-     death-point report;
-   - one quarantined test with ledger entry (exit criteria documented);
-   - wait policies (probe vs deadline) on a slow-appearing element;
-   - artifacts: screenshot + logcat on failure, visible in the store;
-   - device provider: discovery, install, launch, lock on the maintainer's phone.
-3. Each later framework phase then EXTENDS this suite in its maintainer-checked
-   acceptance (07 reporters → suite posts to Slack; 08/10 HUD → suite visible/launchable;
-   09 → perf samples from the game; 12–13 → agents run against this suite; 14 → game's
-   C# tests ingested).
+Later framework phases EXTEND that suite in maintainer-checked acceptance (07 reporters →
+Slack; 08/10 HUD; 09 perf; 12–13 agents; 14 Poco UI + UTF).
+
+Exit checklist (historical DoD — now mostly done on Editor):
+
+1. Scaffold `automation/` in the game repo per §2. ✅
+2. Coverage-demo exercising phase-05 capabilities:
+   - profiles: `editor` ✅ · `standalone` (same Wire contract) · `android_local` ⬜
+   - pages + locator registry (real HUD / smoke GO names) ✅
+   - scenario steps + Save / AssertThat / `.call()` ✅; `HandleOptional(Popup)` deferred to Poco
+   - assertions + deliberate death-point demo ✅ (marker-excluded by default)
+   - quarantined test + ledger ✅
+   - wait probe vs deadline (hooks) ✅
+   - artifacts on failure (best-effort; Wire screenshot stub) ✅
+   - device provider wiring documented for `android_local` ✅ (live ⬜ until APK rebuild)
+3. Each later framework phase then EXTENDS this suite.
 
 ## 4. Framework-phase ↔ game dependency table
 

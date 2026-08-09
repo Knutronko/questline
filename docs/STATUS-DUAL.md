@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-08** (phase-06 Resilience implemented).
+> Última revisión: **2026-08-09** (`automation/` coverage-demo Editor verde + phase-06 ✅).
 
 ---
 
@@ -12,8 +12,8 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 fases 0–15 + **05b Wire** | **06** Resilience (health/recovery/watchdog; mock fault-injection) | **07** Reporters · (opcional) Android Wire live | Ninguno crítico; AltTester Desktop **fuera** del happy path |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Editor live Wire verde | **`automation/`** exit · rebuild Dev APK Wire (Android) · D10 feel | AltTester UPM **remoto/legacy** (no borrar aún); Poco = UI hierarchy (fw 14 / QL-4) |
+| **questline** | v0.1 fases 0–15 + **05b Wire** + **06** | **06** Resilience; Editor Wire verde | **07** Reporters · (opcional) Android Wire live | Ninguno crítico; AltTester Desktop **fuera** del happy path |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Editor Wire verde + **`automation/`** coverage-demo (Editor 4✓) | Rebuild Dev APK Wire (Android) · D10 feel · (fw 07 consume suite) | AltTester UPM **remoto/legacy** (no borrar aún); Poco = UI hierarchy (fw 14 / QL-4) |
 
 **Drivers (prioridad):**
 
@@ -45,7 +45,7 @@
 | 5 | Android local | ✅ código/CI | Device plumbing; live = Wire |
 | **05b** | **QuestlineWire** | ✅ | Editor live verde; Android live = rebuild APK + smoke |
 | 6 | Resilience | ✅ | Health/recovery/watchdog; `tests/resilience/`; ADR-0006 |
-| 7 | Reporters | ⬜ **next (fw)** | Mejor tras `automation/` |
+| 7 | Reporters | ⬜ **next (fw)** | Consume `automation/` (scaffold ✅) |
 | 8 | HUD I viewer | ⬜ | |
 | 9 | PerfProbe | ⬜ | Trigger juego **QL-3** |
 | 10 | HUD II control | ⬜ | |
@@ -85,7 +85,7 @@ Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-
 | **QL-4** | UTF C# + Poco (UI) | ⬜ | Trigger fw **14** — Poco > AltTester |
 | **QL-5** | Manifest SOs (GameLens) | ⬜ | Trigger FP-G1 · encaja **D11** |
 | **QL-6** | Telemetría | ⬜ | Trigger FP-G2 · encaja **D12** |
-| exit | Scaffold `automation/` | ⬜ **next (game)** | Desbloqueado: Editor Wire verde |
+| exit | Scaffold `automation/` | ✅ coverage-demo | Hooks-first Wire Editor verde; UI find/tap → Poco (QL-4); Android Wire ⬜ |
 
 Contrato espejo: [`GAME-INTEGRATION.md`](GAME-INTEGRATION.md).
 
@@ -119,7 +119,7 @@ flowchart TB
     QL1[QL-1 ✅] --> QL2[QL-2 Dev APK ✅]
     QL2 --> QL2b[QL-2b Wire ✅]
     QL2b --> LiveEd[Editor Wire smoke ✅]
-    LiveEd --> Auto[automation/ exit ⬜ next game]
+    LiveEd --> Auto[automation/ exit ✅]
     LiveEd -.-> LiveAnd[Android Wire smoke ⬜]
     LiveAnd -.-> Auto
     D11 -.-> QL5[QL-5 SO manifest]
@@ -140,14 +140,13 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | **Exit `automation/`** (coverage-demo suite) | ElJuegaso | Editor Wire verde desbloquea GAME-INTEGRATION §3 |
-| 2 | **phase-07 Reporters** | questline | Next fw phase after resilience |
-| 3 | **Android Wire smoke** (rebuild Dev APK + `android_local`) | ambos | Cierra live device; opcional en paralelo |
-| 4 | **D10 playtest / feel** | ElJuegaso | Paralelo; no bloquea fw |
-| 5 | **phase-08 HUD** | questline | Mejor **después** de `automation/` |
-| 6 | **D11 ↔ QL-5 / phase-09 ↔ QL-3** | ambos | Economía/GameLens y perf |
-| 7 | **D12 ↔ QL-6** | ambos | Infinito + telemetría |
-| 8 | **phase-14 Poco + QL-4** | ambos | **UI hierarchy** (Poco > AltTester legacy) |
+| 1 | **phase-07 Reporters** | questline | Next fw phase; suite `automation/` lista para consumir |
+| 2 | **Android Wire smoke** (rebuild Dev APK + `android_local`) | ambos | Cierra live device; profiles ya en `automation/` |
+| 3 | **D10 playtest / feel** | ElJuegaso | Paralelo; no bloquea fw |
+| 4 | **phase-08 HUD** | questline | Tras reporters; suite alimenta viewer |
+| 5 | **D11 ↔ QL-5 / phase-09 ↔ QL-3** | ambos | Economía/GameLens y perf |
+| 6 | **D12 ↔ QL-6** | ambos | Infinito + telemetría |
+| 7 | **phase-14 Poco + QL-4** | ambos | **UI hierarchy** (Poco > AltTester legacy) |
 
 **Stack live:** Wire = hooks/e2e smoke. **Poco** = find/hierarchy/tap cuando haga falta UI rica.
 **AltTester** = opción remota legacy (Desktop), no primaria.
