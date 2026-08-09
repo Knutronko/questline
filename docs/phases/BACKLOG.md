@@ -16,8 +16,9 @@ Format: `- [ ] (phase-NN) description`
 - [x] (phase-03) Richer death-point API (close_code, structured HealthSnapshot) once Phase 06 HealthMonitor exists — plugin now stores `HealthSnapshot.as_tags()` (+ app_state) on failure; `close_code` still on `SessionLost` events / `SessionLostError`.
 - [ ] (phase-03) Plugin auto-discovery of project `questline.toml` at repo root without `--questline-config` when running nested example suites.
 - [ ] (phase-03) Quarantine audit nodeid normalization helper (Windows `\` vs `/`) shared by CLI and CI.
-- [x] (phase-05 exit) Scaffold game-repo `automation/` — **unblocked** (Editor Wire green).
-      See `docs/GAME-INTEGRATION.md` §3. Still a game-side session, not a fw phase PR.
+- [x] (phase-05 exit) Scaffold game-repo `automation/` — **done** (Editor coverage-demo
+      green 2026-08-09). Android Wire live + Poco UI assertions remain follow-ups.
+      See `docs/GAME-INTEGRATION.md` §3.
 - [x] (phase-04) Live path superseded by Wire; Desktop abandoned.
 - [x] (phase-05b) Editor `wire-smoke` green; Wire MVP done. Android live + Poco UI remain.
 - [ ] (phase-05b follow-up) Android Wire smoke after Dev APK rebuild.

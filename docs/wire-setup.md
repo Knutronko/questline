@@ -89,6 +89,6 @@ host when `UseQuestlineWire = true`. Companion embed includes `QuestlineWireServ
 | `unity-package/Runtime/Questline.Companion.asmdef` | `UNITY_EDITOR \|\| QUESTLINE_DEV` |
 | `unity-package/package.json` | Sync version notes |
 
-Do **not** scaffold `automation/` until first green live smoke — **Editor Wire is green**;
-game exit task `automation/` is now unblocked (GAME-INTEGRATION §3).
+**Editor Wire is green;** game exit task `automation/` coverage-demo is **scaffolded**
+(GAME-INTEGRATION §3). Android Wire live still needs Dev APK rebuild.
 AltTester UPM may remain installed dormant; do not treat it as primary live.
