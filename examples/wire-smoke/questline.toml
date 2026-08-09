@@ -22,7 +22,7 @@ wait.probe = 2.0
 wait.deadline = 30.0
 wait.interval = 0.5
 
-# Android via LocalAdbProvider + adb reverse (same plumbing as phase-05).
+# Android via LocalAdbProvider + adb forward (Wire listens on device; not reverse).
 # Requires QUESTLINE_DEV APK with QuestlineWireServer compiled in (game QL-2b).
 [profile.android_local]
 driver = "questline"

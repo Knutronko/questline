@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-09** (`automation/` coverage-demo Editor verde + phase-06 ✅).
+> Última revisión: **2026-08-09** (Android Wire smoke `android_local` ✅ + Editor + phase-06).
 
 ---
 
@@ -12,14 +12,14 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 fases 0–15 + **05b Wire** + **06** | **06** Resilience; Editor Wire verde | **07** Reporters · (opcional) Android Wire live | Ninguno crítico; AltTester Desktop **fuera** del happy path |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Editor Wire verde + **`automation/`** coverage-demo (Editor 4✓) | Rebuild Dev APK Wire (Android) · D10 feel · (fw 07 consume suite) | AltTester UPM **remoto/legacy** (no borrar aún); Poco = UI hierarchy (fw 14 / QL-4) |
+| **questline** | v0.1 fases 0–15 + **05b Wire** + **06** | Editor + **Android Wire** live verdes; session usa `adb forward` | **07** Reporters | Ninguno crítico; AltTester Desktop **fuera** del happy path |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Wire Editor/Android verdes + **`automation/`** Editor 4✓ | D10 feel · (fw 07 consume suite) · opcional `automation/` Android | AltTester UPM **remoto/legacy** (no borrar aún); Poco = UI hierarchy (fw 14 / QL-4); Dev APK Mono+ARMv7 → diálogo ABI en Android 14+ (infra, auto-dismiss) |
 
 **Drivers (prioridad):**
 
 | Rol | Driver | Notas |
 |-----|--------|-------|
-| **Happy path live** | `questline` (QuestlineWire) | Hooks-first; Editor verde; Android tras rebuild Dev APK |
+| **Happy path live** | `questline` (QuestlineWire) | Hooks-first; Editor ✅ · Android ✅ (`adb forward`) |
 | **UI hierarchy / find / tap** | **Poco** (phase-14) | Preferido frente a AltTester para UI completa |
 | **Legacy remoto** | `alttester` | Solo si hace falta; requiere Desktop — **no** €0 happy path |
 | CI / unit | `mock` | Siempre |
@@ -43,7 +43,7 @@
 | 3 | Authoring layer | ✅ | |
 | 4 | AltTester + companion | ✅ | Histórico; live Desktop **abandonado**; adapter **legacy remoto** |
 | 5 | Android local | ✅ código/CI | Device plumbing; live = Wire |
-| **05b** | **QuestlineWire** | ✅ | Editor live verde; Android live = rebuild APK + smoke |
+| **05b** | **QuestlineWire** | ✅ | Editor + Android live verdes (`wire-smoke`) |
 | 6 | Resilience | ✅ | Health/recovery/watchdog; `tests/resilience/`; ADR-0006 |
 | 7 | Reporters | ⬜ **next (fw)** | Consume `automation/` (scaffold ✅) |
 | 8 | HUD I viewer | ⬜ | |
@@ -61,7 +61,7 @@
 |------|--------|
 | Wire MVP hooks (`hello`/`ping`/`app_state`/`hooks_manifest`/`call_hook`) | ✅ |
 | Editor live smoke | ✅ |
-| Android live smoke (Dev APK con Wire) | ⬜ short follow-up |
+| Android live smoke (Dev APK con Wire) | ✅ 2026-08-09 |
 | Wire v2 find/hierarchy/tap | ❌ **no planificado** — usar **Poco** (14) |
 
 Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-setup.md) ·
@@ -80,13 +80,13 @@ Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-
 | D12 | Modo infinito | ⬜ | `diseno-modo-infinito.md` |
 | D13+ | FTUE, visual, save debt… | ⬜ | [`roadmap-post-d6.md`](https://github.com/Knutronko/ElJuegaso/blob/main/docs/prototipos/P1/roadmap-post-d6.md) |
 | **QL-1** | Companion + hooks + smoke GOs | ✅ | `integracion-questline.md` |
-| **QL-2** | APK DEV `QUESTLINE_DEV` | ✅ | Rebuild tras QL-2b para Wire en device |
-| **QL-2b** | Bootstrap Wire + companion | ✅ | Editor live Wire **verde** |
+| **QL-2** | APK DEV `QUESTLINE_DEV` | ✅ | Dev APK con Wire en device |
+| **QL-2b** | Bootstrap Wire + companion | ✅ | Editor + Android Wire **verde** |
 | **QL-3** | Perf counters companion | ⬜ | Trigger fw **09** |
 | **QL-4** | UTF C# + Poco (UI) | ⬜ | Trigger fw **14** — Poco > AltTester |
 | **QL-5** | Manifest SOs (GameLens) | ⬜ | Trigger FP-G1 · encaja **D11** |
 | **QL-6** | Telemetría | ⬜ | Trigger FP-G2 · encaja **D12** |
-| exit | Scaffold `automation/` | ✅ coverage-demo | Hooks-first Wire Editor verde; UI find/tap → Poco (QL-4); Android Wire ⬜ |
+| exit | Scaffold `automation/` | ✅ coverage-demo | Hooks-first Wire Editor verde; Android Wire fw smoke ✅; UI find/tap → Poco (QL-4) |
 
 Contrato espejo: [`GAME-INTEGRATION.md`](GAME-INTEGRATION.md).
 
@@ -121,7 +121,7 @@ flowchart TB
     QL2 --> QL2b[QL-2b Wire ✅]
     QL2b --> LiveEd[Editor Wire smoke ✅]
     LiveEd --> Auto[automation/ exit ✅]
-    LiveEd -.-> LiveAnd[Android Wire smoke ⬜]
+    LiveEd --> LiveAnd[Android Wire smoke ✅]
     LiveAnd -.-> Auto
     D11 -.-> QL5[QL-5 SO manifest]
     D12 -.-> QL6[QL-6 Telemetry]
@@ -143,12 +143,11 @@ flowchart TB
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
 | 1 | **phase-07 Reporters** | questline | Next fw phase; suite `automation/` lista para consumir |
-| 2 | **Android Wire smoke** (rebuild Dev APK + `android_local`) | ambos | Cierra live device; profiles ya en `automation/` |
-| 3 | **D10 playtest / feel** | ElJuegaso | Paralelo; no bloquea fw |
-| 4 | **phase-08 HUD** | questline | Tras reporters; suite alimenta viewer |
-| 5 | **D11 ↔ QL-5 / phase-09 ↔ QL-3** | ambos | Economía/GameLens y perf |
-| 6 | **D12 ↔ QL-6** | ambos | Infinito + telemetría |
-| 7 | **phase-14 Poco + QL-4** | ambos | **UI hierarchy** (Poco > AltTester legacy) |
+| 2 | **D10 playtest / feel** | ElJuegaso | Paralelo; no bloquea fw |
+| 3 | **phase-08 HUD** | questline | Tras reporters; suite alimenta viewer |
+| 4 | **D11 ↔ QL-5 / phase-09 ↔ QL-3** | ambos | Economía/GameLens y perf |
+| 5 | **D12 ↔ QL-6** | ambos | Infinito + telemetría |
+| 6 | **phase-14 Poco + QL-4** | ambos | **UI hierarchy** (Poco > AltTester legacy) |
 
 **Stack live:** Wire = hooks/e2e smoke. **Poco** = find/hierarchy/tap cuando haga falta UI rica.
 **AltTester** = opción remota legacy (Desktop), no primaria.
