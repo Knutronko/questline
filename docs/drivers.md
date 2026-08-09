@@ -71,7 +71,7 @@ uv run pytest tests/test_alttester_conformance_live.py -q -o addopts=
 
 See [wire-setup.md](wire-setup.md) for the happy-path companion listener.
 See [unity-setup.md](unity-setup.md) for legacy AltTester only.
-See [android.md](android.md) for `android_local` (adb reverse + LocalAdbProvider).
+See [android.md](android.md) for `android_local` (`adb forward` + LocalAdbProvider for Wire).
 See [ADR-0005](adr/ADR-0005-questline-wire.md) for protocol and security.
 
 

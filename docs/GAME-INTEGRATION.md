@@ -53,14 +53,15 @@ this convention is documented for framework users, not just the reference game.
 
 ## 3. ⚠️ First green live smoke → then create the real suite (do not skip)
 
-**Status (2026-08-09):** Editor live smoke via `driver = "questline"` (QuestlineWire) is
-**green** against the reference game (QL-2b). AltTester Desktop remains **out** of the
-happy path (ADR-0005). Android Wire live still needs a Dev APK rebuild that includes
-the Wire listener.
+**Status (2026-08-09):** Editor **and Android** live smoke via `driver = "questline"`
+(QuestlineWire) are **green** against the reference game (QL-2b / Dev APK). AltTester
+Desktop remains **out** of the happy path (ADR-0005). Android uses **`adb forward`**
+(not reverse).
 
 **Game-side exit (`automation/`):** coverage-demo scaffold is **in** the reference game
 repo (ElJuegaso). Editor profile green (hooks-first). UI find/tap / `HandleOptional(Popup)`
-deferred to **Poco** (QL-4 / fw 14). `android_local` awaits Dev APK rebuild.
+deferred to **Poco** (QL-4 / fw 14). Framework `android_local` wire-smoke ✅; optional
+game-suite Android run remains maintainer-checked.
 
 Later framework phases EXTEND that suite in maintainer-checked acceptance (07 reporters →
 Slack; 08/10 HUD; 09 perf; 12–13 agents; 14 Poco UI + UTF).
@@ -69,14 +70,14 @@ Exit checklist (historical DoD — now mostly done on Editor):
 
 1. Scaffold `automation/` in the game repo per §2. ✅
 2. Coverage-demo exercising phase-05 capabilities:
-   - profiles: `editor` ✅ · `standalone` (same Wire contract) · `android_local` ⬜
+   - profiles: `editor` ✅ · `standalone` (same Wire contract) · `android_local` ✅ (fw smoke)
    - pages + locator registry (real HUD / smoke GO names) ✅
    - scenario steps + Save / AssertThat / `.call()` ✅; `HandleOptional(Popup)` deferred to Poco
    - assertions + deliberate death-point demo ✅ (marker-excluded by default)
    - quarantined test + ledger ✅
    - wait probe vs deadline (hooks) ✅
    - artifacts on failure (best-effort; Wire screenshot stub) ✅
-   - device provider wiring documented for `android_local` ✅ (live ⬜ until APK rebuild)
+   - device provider wiring + live Wire for `android_local` ✅
 3. Each later framework phase then EXTENDS this suite.
 
 ## 4. Framework-phase ↔ game dependency table

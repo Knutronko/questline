@@ -20,8 +20,9 @@ Format: `- [ ] (phase-NN) description`
       green 2026-08-09). Android Wire live + Poco UI assertions remain follow-ups.
       See `docs/GAME-INTEGRATION.md` §3.
 - [x] (phase-04) Live path superseded by Wire; Desktop abandoned.
-- [x] (phase-05b) Editor `wire-smoke` green; Wire MVP done. Android live + Poco UI remain.
-- [ ] (phase-05b follow-up) Android Wire smoke after Dev APK rebuild.
+- [x] (phase-05b) Editor `wire-smoke` green; Wire MVP done. Poco UI remains (phase-14).
+- [x] (phase-05b follow-up) Android Wire smoke after Dev APK rebuild — green 2026-08-09
+      (`android_local` + `adb forward`; reverse steals device `:port`).
 - [ ] (phase-14) Poco as primary UI hierarchy adapter (prefer over AltTester).
 - [ ] (phase-05) Add Unity `.meta` files under `unity-package/` so git UPM (`questline.git?path=unity-package`) is importable — today Unity ignores the immutable package without `.meta`, forcing games to embed/copy the companion (ElJuegaso workaround). Cheap follow-up; deferred to avoid diluting Android scope.
 - [ ] (phase-05) `questline devices list|lock` CLI surface (architecture CLI mentions `devices`; provider is enough for android_local pytest wiring).

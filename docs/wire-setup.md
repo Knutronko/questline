@@ -52,18 +52,26 @@ No `[alttester]` extra. Profile key: `driver = "questline"`.
 
 ## Android
 
-Same `LocalAdbProvider` + `adb reverse tcp:13000 tcp:13000` as phase-05.
+`LocalAdbProvider` + **`adb forward tcp:13000 tcp:13000`** (host→device). Wire listens
+**on the device**; do **not** use `adb reverse` for `driver = "questline"` (reverse
+steals device `:13000` → `Address already in use`).
 APK must be built with `QUESTLINE_DEV` so `QuestlineWireServer` is compiled in.
 See [android.md](android.md) and [examples/wire-smoke/questline.toml](../examples/wire-smoke/questline.toml).
 
 ```powershell
 $env:QUESTLINE_LIVE_TARGET = "1"
+$env:QUESTLINE_ADB_PATH = "path\to\platform-tools\adb.exe"   # if adb not on PATH
 $env:QUESTLINE_APK_PATH = "path\to\dev.apk"
 $env:QUESTLINE_APP_PACKAGE = "com.example.game"
+$env:QUESTLINE_APP_ACTIVITY = "com.unity3d.player.UnityPlayerGameActivity"
 uv run pytest examples/wire-smoke -q -o addopts= `
   --questline-profile android_local `
   --questline-config examples/wire-smoke/questline.toml
 ```
+
+Mono + ARMv7 Dev APKs may show a one-shot Android **DeprecatedAbi** / “version not
+supported” system dialog on 64-bit phones — session auto-dismisses; see
+[android.md](android.md) troubleshooting.
 
 ## Wire roadmap (formal)
 
@@ -71,7 +79,7 @@ uv run pytest examples/wire-smoke -q -o addopts= `
 |-------|--------|--------|
 | **MVP (05b)** | connect / alive / app_state / hooks_manifest / call_hook / soft-reload | ✅ |
 | **Editor live** | `examples/wire-smoke` + reference game QL-2b | ✅ |
-| **Android live** | Rebuild Dev APK with Wire; `android_local` smoke | ⬜ follow-up |
+| **Android live** | Rebuild Dev APK with Wire; `android_local` smoke | ✅ |
 | **Wire v2 UI** | find / hierarchy / tap / screenshot | ❌ **Deferred** — implement via **Poco** (phase-14), not Wire |
 
 Wire stays the **hooks / session** transport. Poco (not AltTester) is the planned
@@ -89,6 +97,6 @@ host when `UseQuestlineWire = true`. Companion embed includes `QuestlineWireServ
 | `unity-package/Runtime/Questline.Companion.asmdef` | `UNITY_EDITOR \|\| QUESTLINE_DEV` |
 | `unity-package/package.json` | Sync version notes |
 
-**Editor Wire is green;** game exit task `automation/` coverage-demo is **scaffolded**
-(GAME-INTEGRATION §3). Android Wire live still needs Dev APK rebuild.
+**Editor + Android Wire live are green** (`examples/wire-smoke`); game
+`automation/` coverage-demo Editor green (GAME-INTEGRATION §3).
 AltTester UPM may remain installed dormant; do not treat it as primary live.

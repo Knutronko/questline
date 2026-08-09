@@ -21,12 +21,15 @@
      Unity side uses `System.Net.Sockets` under `#if UNITY_EDITOR || QUESTLINE_DEV` —
      zero third-party deps. WebSocket was rejected for MVP (needs a package or custom
      framing with little gain over line-delimited JSON for request/response).
-  5. **Default port: 13000** (existing profiles + `adb reverse`). Wire and an AltTester
-     Prefab **must not both bind** the same port; games enable one listener for a given
-     profile. Profile keys stay `target_host` / `target_port` / `reverse_port`.
+  5. **Default port: 13000** (existing profiles). Wire and an AltTester Prefab **must
+     not both bind** the same port; games enable one listener for a given profile.
+     Profile keys stay `target_host` / `target_port` / `reverse_port` (tunnel port).
+     On Android, **`driver = "questline"` uses `adb forward`** (host→device) because
+     Wire listens **in the player**; `adb reverse` steals device `:port` and breaks
+     bind (`Address already in use`). Legacy `alttester` keeps `adb reverse`.
   6. **Security:** listener compiles **only** under `UNITY_EDITOR || QUESTLINE_DEV`.
      Never ship in release/playtest store builds. MVP binds loopback; Android reaches it
-     via `adb reverse`. No auth/crypto in MVP (dev-only surface). Document that opening
+     via `adb forward`. No auth/crypto in MVP (dev-only surface). Document that opening
      the port on non-loopback is out of scope and forbidden for release tooling.
   7. **Protocol sketch (v1):**
      - Client → server request:
