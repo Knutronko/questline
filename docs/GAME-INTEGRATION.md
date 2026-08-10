@@ -60,11 +60,12 @@ Desktop remains **out** of the happy path (ADR-0005). Android uses **`adb forwar
 
 **Game-side exit (`automation/`):** coverage-demo scaffold is **in** the reference game
 repo (ElJuegaso). Editor profile green (hooks-first). UI find/tap / `HandleOptional(Popup)`
-deferred to **Poco** (QL-4 / fw 14). Framework `android_local` wire-smoke ✅; optional
-game-suite Android run remains maintainer-checked.
+→ **Wire v2 (fw 09b / QL-2c)**; **Poco** remains QL-4 / fw 14 as second UI backend.
+Framework `android_local` wire-smoke ✅; optional game-suite Android run remains
+maintainer-checked.
 
 Later framework phases EXTEND that suite in maintainer-checked acceptance (07 reporters →
-Slack; 08/10 HUD; 09 perf; 12–13 agents; 14 Poco UI + UTF).
+Slack; 08/10 HUD; 09 perf; **09b Wire UI**; 12–13 agents; 14 Poco + UTF).
 
 Exit checklist (historical DoD — now mostly done on Editor):
 
@@ -72,11 +73,11 @@ Exit checklist (historical DoD — now mostly done on Editor):
 2. Coverage-demo exercising phase-05 capabilities:
    - profiles: `editor` ✅ · `standalone` (same Wire contract) · `android_local` ✅ (fw smoke)
    - pages + locator registry (real HUD / smoke GO names) ✅
-   - scenario steps + Save / AssertThat / `.call()` ✅; `HandleOptional(Popup)` deferred to Poco
+   - scenario steps + Save / AssertThat / `.call()` ✅; `HandleOptional(Popup)` → Wire v2 / Poco
    - assertions + deliberate death-point demo ✅ (marker-excluded by default)
    - quarantined test + ledger ✅
    - wait probe vs deadline (hooks) ✅
-   - artifacts on failure (best-effort; Wire screenshot stub) ✅
+   - artifacts on failure (best-effort; Wire screenshot → 09b) ✅
    - device provider wiring + live Wire for `android_local` ✅
 3. Each later framework phase then EXTENDS this suite.
 
@@ -94,8 +95,9 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | 06 | Nothing new (fault injection mock-based; optional live reuses Wire) | — |
 | 07–08 | Nothing new (consume the suite of §3) | — |
 | **09** | Companion perf counters compiled in dev builds | **QL-3** (tiny) |
+| **09b** | Companion Wire v2 UI ops (`hierarchy`/`find`/`tap`/`screenshot`); rebuild Dev APK | **QL-2c** |
 | 10–13 | Nothing new; agents/eval run against the §3 suite and the mock game | — |
-| **14** | Test assembly (asmdef) + UTF C# tests + **Poco** SDK in a dev build (UI hierarchy; prefer over AltTester) | **QL-4** |
+| **14** | Test assembly (asmdef) + UTF C# tests + **Poco** SDK (second UI backend) | **QL-4** |
 | 15 | Nothing new | — |
 | FP-G1 | SO **export manifest** (which ScriptableObjects are balance data) | **QL-5** |
 | FP-G2 | Game code calls the telemetry API (its existing debug-event convention maps ~1:1) | **QL-6** |

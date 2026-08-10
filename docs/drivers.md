@@ -10,8 +10,8 @@ Phase 02 ships the port, locator model, `DriverHandle`, in-memory `MockDriver`, 
    `is_alive`, `find` / `find_all`, `hierarchy`, `screenshot`, interactions
    (`tap` / `press` / `swipe` / `text_input`), `call_game_method`, `app_state`,
    `hooks_manifest`.
-   **QuestlineWire MVP:** session + hooks + `app_state` (UI methods stubbed). Prefer
-   **Poco** (phase-14) for hierarchy/find/tap — not AltTester.
+   **QuestlineWire:** session + hooks (05b) + UI find/hierarchy/tap/screenshot (**09b**,
+   ADR-0008). **Poco** (phase-14) is the second UI backend — not AltTester.
 2. **Implement `compile(Locator) -> native query`** — map
    `by ∈ {id,name,path,text,component}` (+ optional `scope`) to the backend’s selector
    language. Do not leak native types through `Element` / `HierarchySnapshot`.
@@ -70,6 +70,7 @@ uv run pytest tests/test_alttester_conformance_live.py -q -o addopts=
 ```
 
 See [wire-setup.md](wire-setup.md) for the happy-path companion listener.
+See [ADR-0008](adr/ADR-0008-wire-v2-ui.md) for Wire v2 UI ops (phase-09b).
 See [unity-setup.md](unity-setup.md) for legacy AltTester only.
 See [android.md](android.md) for `android_local` (`adb forward` + LocalAdbProvider for Wire).
 See [ADR-0005](adr/ADR-0005-questline-wire.md) for protocol and security.

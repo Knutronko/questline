@@ -10,8 +10,8 @@ This is the **default** live path. For legacy AltTester (Desktop hub), see
 
 | Priority | Profile `driver` | Use for |
 |----------|------------------|---------|
-| 1 | `"questline"` | Live Editor / Android smoke, hooks, soft-reload |
-| 2 | `"poco"` (phase-14) | UI hierarchy / find / tap (preferred over AltTester) |
+| 1 | `"questline"` | Live Editor / Android — hooks + **Wire v2 UI** (find/tap after phase-09b) |
+| 2 | `"poco"` (phase-14) | Second UI backend / richer stacks |
 | 3 | `"alttester"` | Legacy only — needs Desktop |
 | — | `"mock"` | CI / unit |
 
@@ -80,10 +80,10 @@ supported” system dialog on 64-bit phones — session auto-dismisses; see
 | **MVP (05b)** | connect / alive / app_state / hooks_manifest / call_hook / soft-reload | ✅ |
 | **Editor live** | `examples/wire-smoke` + reference game QL-2b | ✅ |
 | **Android live** | Rebuild Dev APK with Wire; `android_local` smoke | ✅ |
-| **Wire v2 UI** | find / hierarchy / tap / screenshot | ❌ **Deferred** — implement via **Poco** (phase-14), not Wire |
+| **Wire v2 UI (09b)** | find / hierarchy / tap / screenshot — [ADR-0008](adr/ADR-0008-wire-v2-ui.md) | ⬜ after phase-09 |
 
-Wire stays the **hooks / session** transport. Poco (not AltTester) is the planned
-**UI hierarchy** adapter.
+Wire is the **happy-path** Unity transport (hooks today; UI in 09b). **Poco** (14) is
+the **second** UI adapter. See [phase-09b brief](phases/phase-09b-wire-v2.md).
 
 ## Reference game (ElJuegaso) — QL-2b ✅
 

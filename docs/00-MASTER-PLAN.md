@@ -37,7 +37,7 @@
 |---|---|---|
 | Language / runner | Python 3.12 + pytest (framework = library + pytest plugin) | Ecosystem (fixtures, markers, xdist), market relevance |
 | Repo model | Public monorepo: `core/`, `drivers/`, `ai/`, `hud/`, `unity-package/`, `examples/`, `docs/` | Solo maintainer, phase-per-PR flow |
-| First live driver | **QuestlineWire** (`driver = "questline"`) — hooks-first, no Desktop. AltTester was an early experiment; kept as **legacy remoto**. **Poco** (Phase 14) is the planned **UI hierarchy** adapter (preferred over AltTester for find/tap). Appium = device layer post-v0.1. | €0 live; DriverPort stays swappable |
+| First live driver | **QuestlineWire** (`driver = "questline"`) — hooks-first, no Desktop; **Wire v2 (09b)** adds Unity find/hierarchy/tap. AltTester = **legacy remoto**. **Poco** (Phase 14) = second UI backend (+ UTF). Appium = device layer post-v0.1. | €0 live; DriverPort stays swappable |
 | Game targets | Unity Editor play mode, Windows standalone, Android (adb) | What can be validated on a Windows PC |
 | Unit tests (C#) | Orchestrate Unity Test Framework in batchmode, ingest results into the same run store | One dashboard for Python + C# results |
 | CI dogfood | GitHub Actions (real merge gate) + TeamCity adapter vs REST API (designed, Docker-validatable) | Free, gates every phase PR |
@@ -135,17 +135,18 @@ Merge gate: GitHub Actions (lint + type check + unit tests + phase acceptance te
 | 7 | Reporters | Slack + GitHub Issues adapters over event bus | Real Slack ws + repo |
 | 8 | HUD I (viewer) | Run history/detail/artifacts + live view | Local runs |
 | 9 | PerfProbe | adb metrics sampler, thresholds, series in store | Author's game on device |
+| 9b | QuestlineWire v2 UI | find / hierarchy / tap / screenshot on Wire (ADR-0008) | Author's Unity game + Dev APK (QL-2c) |
 | 10 | HUD II (control center) | Launch runs, quarantine mgmt, profile editor, perf graphs | Local runs |
 | 11 | AI foundation | LLMPort + adapters (Mistral/Groq/Ollama/Cursor CLI), cost ledger, failover | Live free-tier calls |
 | 12 | AI agents | Triage agent, maintainer agent (diagnose/fix + gates), self-healing locators | Broken-on-purpose tests |
 | 13 | AI generation + eval | Spec→test generator, unit-test generator, eval harness + metrics | Golden set |
-| 14 | **Poco** + UTF | Primary **UI hierarchy** adapter (conformance); Unity Test Framework ingestion. Prefer Poco over AltTester for find/tap. | Example game via Poco |
+| 14 | **Poco** + UTF | **Second** UI backend (conformance) + Unity Test Framework ingestion | Example game via Poco |
 | 15 | Integrations & release | CIPort + TeamCity adapter, farm stubs, iOS design doc, docs site, v0.1.0 | Tagged release |
 
-Dependency notes: 8→10 (HUD), 11→12→13 (AI), 2→4→5→**5b**, 4→9, 3→12/13.
-Phase **5b** (QuestlineWire) is the €0 live path (Editor green). **Poco** (14) is the
-UI hierarchy path — not AltTester. Phases 7, 9, 11 can start out of order if blocked
-elsewhere. Inserted lettered phases do not renumber later briefs.
+Dependency notes: 8→10 (HUD), 11→12→13 (AI), 2→4→5→**5b**→**9b**, 4→9, 9→9b (before GameLens bots),
+3→12/13. Phase **5b**+**9b** = €0 Unity live (hooks + UI). **Poco** (14) = second UI
+adapter — not AltTester. Phases 7, 9, 11 can start out of order if blocked elsewhere.
+Inserted lettered phases do not renumber later briefs.
 
 ---
 

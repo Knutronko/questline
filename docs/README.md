@@ -41,9 +41,10 @@
 | 7 | Reporters | [phase-07-reporters.md](phases/phase-07-reporters.md) |
 | 8 | HUD viewer | [phase-08-hud-viewer.md](phases/phase-08-hud-viewer.md) |
 | 9 | PerfProbe | [phase-09-perfprobe.md](phases/phase-09-perfprobe.md) |
+| 9b | QuestlineWire v2 (find/hierarchy/tap) | [phase-09b-wire-v2.md](phases/phase-09b-wire-v2.md) |
 | 10 | HUD control center | [phase-10-hud-control-center.md](phases/phase-10-hud-control-center.md) |
 | 11 | AI foundation | [phase-11-ai-foundation.md](phases/phase-11-ai-foundation.md) |
 | 12 | AI agents | [phase-12-ai-agents.md](phases/phase-12-ai-agents.md) |
 | 13 | AI generation & eval | [phase-13-ai-generation-eval.md](phases/phase-13-ai-generation-eval.md) |
-| 14 | **Poco** / UTF (UI hierarchy) | [phase-14-poco-utf.md](phases/phase-14-poco-utf.md) |
+| 14 | **Poco** / UTF (second UI backend) | [phase-14-poco-utf.md](phases/phase-14-poco-utf.md) |
 | 15 | Integrations & release | [phase-15-integrations-release.md](phases/phase-15-integrations-release.md) |
