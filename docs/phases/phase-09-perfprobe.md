@@ -31,6 +31,7 @@ assertions. Device metrics via adb; Editor/standalone metrics via the companion 
 
 ## Out of scope
 HUD graphs (Phase 10 renders this data), anomaly detection (backlog), iOS metrics.
+Wire v2 UI (`find`/`tap`) is **phase-09b** (after this phase) — do not implement here.
 
 ## Acceptance criteria
 - [ ] CI: parsers green on recorded fixtures; sampler lifecycle unit tests (start/stop/kill).
@@ -40,4 +41,4 @@ HUD graphs (Phase 10 renders this data), anomaly detection (backlog), iOS metric
 - [ ] Editor profile produces companion-sourced samples.
 
 ## PR checklist
-Title `phase-09: perfprobe`.
+Title `phase-09: perfprobe`. Next planned fw bridge: [phase-09b](phase-09b-wire-v2.md).

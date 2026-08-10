@@ -15,6 +15,9 @@
      config (host/port/adb) — no ElJuegaso-only hacks.
   2. **Prefer Wire for live hooks; Poco for UI hierarchy.** Poco (phase-14) is the planned
      **primary UI** adapter (find/hierarchy/tap). Wire does not grow full UI parity.
+     **Superseded for happy-path Unity UI by [ADR-0008](ADR-0008-wire-v2-ui.md)
+     (phase-09b):** Wire gains lightweight find/hierarchy/tap/screenshot; Poco remains
+     the second UI backend / richer stacks. Hooks/session decisions in this ADR stand.
   3. **AltTester Desktop is out of the happy path.** Keep `AltTesterDriver` + `[alttester]`
      as **legacy remoto** only. Do not rip game UPM overnight; do not recommend Desktop.
   4. **Transport:** TCP + **NDJSON** (one UTF-8 JSON object per line, `\n`-terminated).
@@ -54,11 +57,15 @@
      | Unknown hook name / bad arg types | `AuthoringError` | authoring |
      | Hook handler throws in game | `TestError` (message from server) | test |
      | UI methods not in MVP (`find` / `tap` / …) | `NotImplementedError` wrapped or documented stub raising `AuthoringError` with “Wire MVP: use hooks / see phase-14 Poco” | authoring |
+     **After phase-09b (ADR-0008):** `find` / `find_all` / `hierarchy` / `tap` /
+     `screenshot` are implemented on Wire; remaining stubs (`press` / `swipe` /
+     `text_input`) keep an explicit `AuthoringError`.
   9. **MVP scope lock:** connect / disconnect / `is_alive` / `app_state` /
-     `hooks_manifest` / `call_game_method` (+ soft-reload re-handshake). **Out:** full
-     hierarchy/find/tap/screenshot parity; Poco; Appium; removing AltTester from examples
-     overnight.
+     `hooks_manifest` / `call_game_method` (+ soft-reload re-handshake). **Out of MVP
+     (05b):** full hierarchy/find/tap/screenshot parity — later **09b / ADR-0008**, not
+     blocked on Poco. Still out: Appium; removing AltTester from examples overnight.
 - **Consequences:** Editor + Android Wire live smoke are green (`adb forward` on device).
-  Game `automation/` coverage-demo scaffold is in. UI hierarchy → **Poco** (14), not
-  Wire v2 and not AltTester. ADR-0004 remains the hook contract; Wire is the happy-path
-  *transport*. Update `STATUS-DUAL.md` when status changes.
+  Game `automation/` coverage-demo scaffold is in. UI hierarchy on Wire → **phase-09b**
+  ([ADR-0008](ADR-0008-wire-v2-ui.md)); **Poco** (14) remains second UI adapter + UTF.
+  ADR-0004 remains the hook contract; Wire is the happy-path *transport* (+ UI after 09b).
+  Update `STATUS-DUAL.md` when status changes.
