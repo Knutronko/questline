@@ -73,6 +73,9 @@ jobs:
           npx playwright install --with-deps chromium
           cd ../..
           uv run python scripts/serve_hud_smoke.py --port 8741 &
+          SMOKE_PID=$!
+          cleanup() { kill "$SMOKE_PID" 2>/dev/null || true; wait "$SMOKE_PID" 2>/dev/null || true; }
+          trap cleanup EXIT
           for i in $(seq 1 30); do
             curl -sf http://127.0.0.1:8741/api/health && break
             sleep 1
