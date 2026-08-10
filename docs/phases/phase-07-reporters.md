@@ -33,12 +33,12 @@ a reporter crash never affects the run (bus isolation from Phase 01 is the guara
 HUD, AI digests (Phase 12 posts through these reporters).
 
 ## Acceptance criteria
-- [ ] CI: all adapters unit-tested against recorded/fake transports (no live calls in CI).
+- [x] CI: all adapters unit-tested against recorded/fake transports (no live calls in CI).
 - [ ] Maintainer-checked: demo run posts to a real Slack workspace with correct threading.
 - [ ] Maintainer-checked: forced test failure files a GitHub issue in a sandbox repo;
       rerun dedupes (comments, no duplicate); infra failure files NOTHING.
-- [ ] Allow-list rendering test passes.
-- [ ] Reporter crash isolation test: a reporter that raises on every event → run completes,
+- [x] Allow-list rendering test passes.
+- [x] Reporter crash isolation test: a reporter that raises on every event → run completes,
       other reporters unaffected, error logged.
 
 ## PR checklist

@@ -1,0 +1,5 @@
+Failure · {{nodeid}}
+verdict={{verdict}} · error={{error_type}}
+{{error_message}}
+death-point step: {{death_step_name}}
+run_id={{run_id}}

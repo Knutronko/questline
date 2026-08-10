@@ -14,6 +14,7 @@ dependencies = [
     "pydantic>=2.0",
     "pyyaml>=6.0",
     "typer>=0.12",
+    "rich>=13.0",
 ]
 
 [project.optional-dependencies]
@@ -27,7 +28,9 @@ alttester = [
 ]
 poco = []
 appium = []
+# Slack/GitHub use stdlib urllib; extras document the install surface from the brief.
 slack = []
+github = []
 notion = []
 ai = []
 hud = []
@@ -38,6 +41,9 @@ questline = "questline.cli:app"
 [project.entry-points.pytest11]
 # Name sorts after pytest_cov so coverage starts before this plugin imports package code.
 zzz_questline = "questline.authoring.plugin"
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/questline/reporters/slack/templates" = "questline/reporters/slack/templates"
 
 [tool.ruff]
 target-version = "py311"
@@ -53,14 +59,23 @@ sigterm = true
 omit = [
     "*/questline/drivers/port.py",
     "*/questline/devices/port.py",
+    "*/questline/reporters/port.py",
     # Lazy package re-exports — exercised via attribute access, not line hits.
     "*/questline/authoring/__init__.py",
+    "*/questline/reporters/__init__.py",
     "*/questline/__init__.py",
     # Live AltDriver wrapper — covered via FakeAltTransport in unit tests; real
     # websocket path needs Unity (maintainer-checked / QL-1).
     "*/questline/drivers/alttester/transport.py",
     # Real adb/emulator binaries — covered via FakeAdb; live paths need a device.
     "*/questline/devices/adb/client.py",
+    # Live Slack/GitHub HTTP — covered via Fake* transports in unit tests.
+    "*/questline/reporters/slack/transport.py",
+    "*/questline/reporters/github_issues/transport.py",
+    # Documented stubs (NotImplementedError).
+    "*/questline/reporters/notion.py",
+    "*/questline/reporters/jira.py",
+    "*/questline/reporters/testrail.py",
 ]
 
 [tool.coverage.report]

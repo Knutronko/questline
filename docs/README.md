@@ -19,6 +19,7 @@
 | [unity-setup.md](unity-setup.md) | Legacy AltTester only (Desktop; not €0) |
 | [android.md](android.md) | Local adb + Wire `android_local` |
 | [resilience.md](resilience.md) | Health, recovery ladder, watchdog, infra vs test verdicts |
+| [reporting.md](reporting.md) | Reporters: console, HTML, Slack, GitHub Issues; secrets; allow-list |
 | [GAME-INTEGRATION.md](GAME-INTEGRATION.md) | Reference-game dogfood contract (phase ↔ game triggers) |
 | [STATUS-DUAL.md](STATUS-DUAL.md) | **Vista de una pasada:** estado + roadmaps questline ↔ P1 + orden propuesto |
 | [FEATURE-PIPELINE-PLAN.md](FEATURE-PIPELINE-PLAN.md) | Feature→tests pipeline plan + phase addendums |

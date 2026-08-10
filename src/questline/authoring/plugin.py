@@ -22,6 +22,7 @@ _STASH_RUN_ID = pytest.StashKey[str]()
 _STASH_RUN_T0 = pytest.StashKey[float]()
 _STASH_WATCHDOG = pytest.StashKey[Any]()
 _STASH_RECOVERY = pytest.StashKey[Any]()
+_STASH_REPORTERS = pytest.StashKey[list[Any]]()
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -209,16 +210,46 @@ def questline_store(
 
 
 @pytest.fixture(scope="session")
-def questline_run_id(
+def questline_reporters(
     questline_settings: Settings,
     questline_bus: EventBus,
     questline_store: RunStore,
     pytestconfig: pytest.Config,
 ) -> Any:
-    from questline.core.events import RunFinished, RunStarted
+    """Build and subscribe reporters from ``settings.reporters`` (phase-07)."""
+    reporters = attach_session_reporters(
+        questline_settings, questline_bus, questline_store, pytestconfig
+    )
+    yield reporters
+
+
+def attach_session_reporters(
+    settings: Settings,
+    bus: EventBus,
+    store: RunStore,
+    pytestconfig: pytest.Config,
+) -> list[Any]:
+    """Instantiate profile reporters, subscribe to *bus*, stash on config."""
+    from questline.reporters.registry import build_reporters
+
+    reporters = build_reporters(settings, store=store)
+    for reporter in reporters:
+        bus.subscribe(reporter.on_event)
+    pytestconfig.stash[_STASH_REPORTERS] = reporters
+    return reporters
+
+
+@pytest.fixture(scope="session")
+def questline_run_id(
+    questline_settings: Settings,
+    questline_bus: EventBus,
+    questline_store: RunStore,
+    questline_reporters: list[Any],
+    pytestconfig: pytest.Config,
+) -> Any:
+    from questline.core.events import RunStarted
     from questline.core.watchdog import Watchdog
 
-    _ = questline_store
     run_id = str(uuid.uuid4())
     pytestconfig.stash[_STASH_RUN_ID] = run_id
     t0 = time.perf_counter()
@@ -238,19 +269,55 @@ def questline_run_id(
     watchdog.start()
     yield run_id
     watchdog.stop()
+    seal_session_run(
+        settings=questline_settings,
+        bus=questline_bus,
+        store=questline_store,
+        reporters=questline_reporters,
+        pytestconfig=pytestconfig,
+        run_id=run_id,
+        t0=t0,
+        watchdog=watchdog,
+    )
+
+
+def seal_session_run(
+    *,
+    settings: Settings,
+    bus: EventBus,
+    store: RunStore,
+    reporters: list[Any],
+    pytestconfig: pytest.Config,
+    run_id: str,
+    t0: float,
+    watchdog: Any,
+) -> None:
+    """Publish RunFinished + finalize reporters (no-op if watchdog already fired)."""
+    from questline.core.events import RunFinished
+    from questline.reporters.registry import finalize_all
+    from questline.reporters.summary import build_run_summary
+
     if watchdog.fired:
         return
     status = "passed"
     tr = pytestconfig.pluginmanager.get_plugin("terminalreporter")
     if tr is not None and (tr.stats.get("failed") or tr.stats.get("error")):
         status = "failed"
-    questline_bus.publish(
+    bus.publish(
         RunFinished(
             run_id=run_id,
             status=status,
             duration_s=time.perf_counter() - t0,
         )
     )
+    summary = build_run_summary(
+        store,
+        run_id,
+        profile=settings.profile,
+        driver=settings.driver,
+        device=settings.device,
+    )
+    finalize_all(reporters, summary)
 
 
 def wire_driver_handle(

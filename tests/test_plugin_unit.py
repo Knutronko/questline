@@ -218,6 +218,114 @@ def test_wire_driver_handle_alttester_android(monkeypatch: pytest.MonkeyPatch) -
     handle.disconnect()
 
 
+def test_attach_session_reporters_and_seal(tmp_path: Path) -> None:
+    """In-process coverage for reporter attach + run seal helpers."""
+    from _pytest.stash import Stash
+
+    from questline.core.config import Settings
+    from questline.core.events import EventBus, RunStarted
+    from questline.core.store import RunStore
+    from questline.reporters.html import HtmlReporter
+
+    settings = Settings(
+        profile="ci",
+        driver="mock",
+        device="local",
+        reporters=["console", "html"],
+        store_dir=tmp_path / ".questline",
+    )
+    bus = EventBus()
+    store = RunStore(
+        settings.store_db,
+        artifacts_dir=settings.artifacts_dir,
+        ledger_path=settings.ledger_path,
+    )
+    store.attach(bus)
+
+    config = MagicMock()
+    config.stash = Stash()
+    config.pluginmanager.get_plugin.return_value = SimpleNamespace(stats={})
+
+    reporters = pl.attach_session_reporters(settings, bus, store, config)
+    assert len(reporters) == 2
+    assert config.stash[pl._STASH_REPORTERS] is reporters
+
+    run_id = "r-seal"
+    bus.publish(RunStarted(run_id=run_id, profile=settings.profile))
+    pl.seal_session_run(
+        settings=settings,
+        bus=bus,
+        store=store,
+        reporters=reporters,
+        pytestconfig=config,
+        run_id=run_id,
+        t0=0.0,
+        watchdog=SimpleNamespace(fired=False),
+    )
+    assert store.get_run(run_id)["status"] == "passed"
+    html = next(r for r in reporters if isinstance(r, HtmlReporter))
+    assert html.last_path is not None
+    assert html.last_path.is_file()
+    store.close()
+
+
+def test_seal_session_run_failed_and_watchdog_skip(tmp_path: Path) -> None:
+    from _pytest.stash import Stash
+
+    from questline.core.config import Settings
+    from questline.core.events import EventBus, RunStarted
+    from questline.core.store import RunStore
+
+    settings = Settings(
+        profile="ci",
+        driver="mock",
+        reporters=["console"],
+        store_dir=tmp_path / ".questline",
+    )
+    bus = EventBus()
+    store = RunStore(
+        settings.store_db,
+        artifacts_dir=settings.artifacts_dir,
+        ledger_path=settings.ledger_path,
+    )
+    store.attach(bus)
+    config = MagicMock()
+    config.stash = Stash()
+    config.pluginmanager.get_plugin.return_value = SimpleNamespace(
+        stats={"failed": ["t"]}
+    )
+    reporters = pl.attach_session_reporters(settings, bus, store, config)
+
+    run_id = "r-fail"
+    bus.publish(RunStarted(run_id=run_id, profile="ci"))
+    pl.seal_session_run(
+        settings=settings,
+        bus=bus,
+        store=store,
+        reporters=reporters,
+        pytestconfig=config,
+        run_id=run_id,
+        t0=0.0,
+        watchdog=SimpleNamespace(fired=False),
+    )
+    assert store.get_run(run_id)["status"] == "failed"
+
+    run_id2 = "r-wd"
+    bus.publish(RunStarted(run_id=run_id2, profile="ci"))
+    pl.seal_session_run(
+        settings=settings,
+        bus=bus,
+        store=store,
+        reporters=reporters,
+        pytestconfig=config,
+        run_id=run_id2,
+        t0=0.0,
+        watchdog=SimpleNamespace(fired=True),
+    )
+    assert store.get_run(run_id2)["status"] == "running"
+    store.close()
+
+
 def test_handle_optional_then_steps() -> None:
     from questline.authoring.steps import HandleOptional, Tap
     from questline.drivers.locators import Locator, LocatorStrategy

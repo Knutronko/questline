@@ -1,0 +1,5 @@
+Questline run finished · status={{status}} · {{duration_s}}s
+pass={{passed}} fail={{failed}} skip={{skipped}} total={{total}}
+verdicts: infra={{infra_failures}} test={{test_failures}} authoring={{authoring_failures}}
+profile={{profile}} · driver={{driver}} · device={{device}}
+run_id={{run_id}}
