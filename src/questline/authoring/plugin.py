@@ -22,6 +22,7 @@ _STASH_RUN_ID = pytest.StashKey[str]()
 _STASH_RUN_T0 = pytest.StashKey[float]()
 _STASH_WATCHDOG = pytest.StashKey[Any]()
 _STASH_RECOVERY = pytest.StashKey[Any]()
+_STASH_REPORTERS = pytest.StashKey[list[Any]]()
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -209,16 +210,35 @@ def questline_store(
 
 
 @pytest.fixture(scope="session")
-def questline_run_id(
+def questline_reporters(
     questline_settings: Settings,
     questline_bus: EventBus,
     questline_store: RunStore,
     pytestconfig: pytest.Config,
 ) -> Any:
+    """Build and subscribe reporters from ``settings.reporters`` (phase-07)."""
+    from questline.reporters.registry import build_reporters
+
+    reporters = build_reporters(questline_settings, store=questline_store)
+    for reporter in reporters:
+        questline_bus.subscribe(reporter.on_event)
+    pytestconfig.stash[_STASH_REPORTERS] = reporters
+    yield reporters
+
+
+@pytest.fixture(scope="session")
+def questline_run_id(
+    questline_settings: Settings,
+    questline_bus: EventBus,
+    questline_store: RunStore,
+    questline_reporters: list[Any],
+    pytestconfig: pytest.Config,
+) -> Any:
     from questline.core.events import RunFinished, RunStarted
     from questline.core.watchdog import Watchdog
+    from questline.reporters.registry import finalize_all
+    from questline.reporters.summary import build_run_summary
 
-    _ = questline_store
     run_id = str(uuid.uuid4())
     pytestconfig.stash[_STASH_RUN_ID] = run_id
     t0 = time.perf_counter()
@@ -251,6 +271,14 @@ def questline_run_id(
             duration_s=time.perf_counter() - t0,
         )
     )
+    summary = build_run_summary(
+        questline_store,
+        run_id,
+        profile=questline_settings.profile,
+        driver=questline_settings.driver,
+        device=questline_settings.device,
+    )
+    finalize_all(questline_reporters, summary)
 
 
 def wire_driver_handle(

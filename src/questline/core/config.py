@@ -85,6 +85,14 @@ class Settings(BaseModel):
     reverse_port: int | None = None  # defaults to target_port when android
     expected_app_version: str | None = None
 
+    # Reporter non-secrets (toml / env OK).
+    slack_channel: str | None = None
+    github_repo: str | None = None  # owner/name
+    github_issues_auto_close: bool = False
+    github_issues_labels: list[str] = Field(
+        default_factory=lambda: ["questline", "test-failure"]
+    )
+
     # Optional secret values — populated only from env, never toml.
     api_key: str | None = None
     slack_token: str | None = None
@@ -197,6 +205,10 @@ def _defaults() -> dict[str, Any]:
         "install_apk": True,
         "reverse_port": None,
         "expected_app_version": None,
+        "slack_channel": None,
+        "github_repo": None,
+        "github_issues_auto_close": False,
+        "github_issues_labels": ["questline", "test-failure"],
     }
 
 
@@ -344,6 +356,24 @@ def _env_overrides(env: dict[str, str]) -> dict[str, Any]:
     if f"{_ENV_PREFIX}REPORTERS" in env:
         raw = env[f"{_ENV_PREFIX}REPORTERS"].strip()
         mapping["reporters"] = [p.strip() for p in raw.split(",") if p.strip()] if raw else []
+
+    if f"{_ENV_PREFIX}SLACK_CHANNEL" in env and env[f"{_ENV_PREFIX}SLACK_CHANNEL"]:
+        mapping["slack_channel"] = env[f"{_ENV_PREFIX}SLACK_CHANNEL"]
+
+    if f"{_ENV_PREFIX}GITHUB_REPO" in env and env[f"{_ENV_PREFIX}GITHUB_REPO"]:
+        mapping["github_repo"] = env[f"{_ENV_PREFIX}GITHUB_REPO"]
+
+    if f"{_ENV_PREFIX}GITHUB_ISSUES_AUTO_CLOSE" in env:
+        mapping["github_issues_auto_close"] = _parse_bool(
+            env[f"{_ENV_PREFIX}GITHUB_ISSUES_AUTO_CLOSE"],
+            f"{_ENV_PREFIX}GITHUB_ISSUES_AUTO_CLOSE",
+        )
+
+    if f"{_ENV_PREFIX}GITHUB_ISSUES_LABELS" in env:
+        raw_labels = env[f"{_ENV_PREFIX}GITHUB_ISSUES_LABELS"].strip()
+        mapping["github_issues_labels"] = (
+            [p.strip() for p in raw_labels.split(",") if p.strip()] if raw_labels else []
+        )
 
     if f"{_ENV_PREFIX}LOG_JSON" in env:
         mapping["log_json"] = _parse_bool(env[f"{_ENV_PREFIX}LOG_JSON"], f"{_ENV_PREFIX}LOG_JSON")

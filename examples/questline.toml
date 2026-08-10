@@ -3,7 +3,7 @@
 [profile.editor]
 driver = "mock"
 device = "local"
-reporters = ["console"]
+reporters = ["console", "html"]
 wait.probe = 2.0
 wait.deadline = 20.0
 wait.interval = 0.5
@@ -11,7 +11,7 @@ wait.interval = 0.5
 [profile.ci]
 driver = "mock"
 device = "local"
-reporters = ["console"]
+reporters = ["console", "html"]
 log_json = true
 wait.probe = 1.0
 wait.deadline = 30.0
@@ -20,7 +20,7 @@ wait.interval = 0.25
 [profile.mock]
 driver = "mock"
 device = "local"
-reporters = ["console"]
+reporters = ["console", "html"]
 markers = ["quest.demo"]
 wait.probe = 0.2
 wait.deadline = 2.0
@@ -33,7 +33,7 @@ target_host = "127.0.0.1"
 target_port = 13000
 target_platform = "editor"
 device = "local"
-reporters = ["console"]
+reporters = ["console", "html"]
 wait.probe = 2.0
 wait.deadline = 20.0
 wait.interval = 0.5
@@ -47,7 +47,7 @@ target_port = 13000
 target_platform = "android"
 target_app_name = "__default__"
 install_apk = true
-reporters = ["console"]
+reporters = ["console", "html"]
 wait.probe = 2.0
 wait.deadline = 45.0
 wait.interval = 0.5

@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-11** (D10.5 IEB baseline cerrado → D11 economía/GameLens).
+> Última revisión: **2026-08-11** (phase-07 Reporters ✅ → next **08** HUD I).
 
 ---
 
@@ -12,8 +12,8 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 fases 0–15 + **05b Wire** + **06** | Editor + **Android Wire** live verdes; session usa `adb forward` | **07** Reporters | Ninguno crítico; AltTester Desktop **fuera** del happy path |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Wire + **`automation/`** + **D10.5 IEB baseline** (PR #40) | **D11** economía mid/late + GameLens KPIs · (fw 07) | AltTester UPM **remoto/legacy**; Poco = UI (fw 14 / QL-4) |
+| **questline** | v0.1 fases 0–15 + **05b Wire** + **06–07** | Editor + **Android Wire** live verdes; **Reporters** (console/HTML/Slack/GH Issues) | **08** HUD I viewer | Ninguno crítico; AltTester Desktop **fuera** del happy path |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Wire + **`automation/`** + **D10.5 IEB baseline** (PR #40) | **D11** economía mid/late + GameLens KPIs · (fw 08) | AltTester UPM **remoto/legacy**; Poco = UI (fw 14 / QL-4) |
 
 **Drivers (prioridad):**
 
@@ -45,8 +45,8 @@
 | 5 | Android local | ✅ código/CI | Device plumbing; live = Wire |
 | **05b** | **QuestlineWire** | ✅ | Editor + Android live verdes (`wire-smoke`) |
 | 6 | Resilience | ✅ | Health/recovery/watchdog; `tests/resilience/`; ADR-0006 |
-| 7 | Reporters | ⬜ **next (fw)** | Consume `automation/` (scaffold ✅) |
-| 8 | HUD I viewer | ⬜ | |
+| 7 | Reporters | ✅ | console/HTML/Slack/GH Issues; `docs/reporting.md`; fakes in CI |
+| 8 | HUD I viewer | ⬜ **next (fw)** | |
 | 9 | PerfProbe | ⬜ | Trigger juego **QL-3** |
 | 10 | HUD II control | ⬜ | |
 | 11 | AI foundation | ⬜ | |
@@ -66,7 +66,7 @@
 
 Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-setup.md) ·
 [`ADR-0005`](adr/ADR-0005-questline-wire.md) · [`resilience.md`](resilience.md) ·
-[`ADR-0006`](adr/ADR-0006-recovery-ladder.md).
+[`ADR-0006`](adr/ADR-0006-recovery-ladder.md) · [`reporting.md`](reporting.md).
 
 ---
 
@@ -102,8 +102,8 @@ flowchart TB
     Q4 --> Q5[05 Android local ✅]
     Q5 --> Q5b[05b QuestlineWire ✅ Editor live]
     Q5b --> Q6[06 Resilience ✅]
-    Q6 --> Q7[07 Reporters ⬜ next fw]
-    Q5b --> Q8[08 HUD I]
+    Q6 --> Q7[07 Reporters ✅]
+    Q7 --> Q8[08 HUD I next fw]
     Q4 --> Q9[09 PerfProbe]
     Q8 --> Q10[10 HUD II]
     Q3[03 Authoring ✅] --> Q11[11-13 AI]
@@ -144,12 +144,11 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | **phase-07 Reporters** | questline | Next fw phase; suite `automation/` lista para consumir |
-| 2 | **D11** economía mid/late + GameLens KPIs | ElJuegaso | Siguiente proto tras D10.5; paralelo a fw 07 |
-| 3 | **phase-08 HUD** | questline | Tras reporters; suite alimenta viewer |
-| 4 | **QL-5 / phase-09 ↔ QL-3** | ambos | GameLens SO + perf (D11 / fw 09) |
-| 5 | **D12 ↔ QL-6** | ambos | Infinito + telemetría |
-| 6 | **phase-14 Poco + QL-4** | ambos | **UI hierarchy** (Poco > AltTester legacy) |
+| 1 | **phase-08 HUD I** | questline | Next fw phase; suite + reporters alimentan viewer |
+| 2 | **D11** economía mid/late + GameLens KPIs | ElJuegaso | Siguiente proto tras D10.5; paralelo a fw 08 |
+| 3 | **QL-5 / phase-09 ↔ QL-3** | ambos | GameLens SO + perf (D11 / fw 09) |
+| 4 | **D12 ↔ QL-6** | ambos | Infinito + telemetría |
+| 5 | **phase-14 Poco + QL-4** | ambos | **UI hierarchy** (Poco > AltTester legacy) |
 
 **Stack live:** Wire = hooks/e2e smoke. **Poco** = find/hierarchy/tap cuando haga falta UI rica.
 **AltTester** = opción remota legacy (Desktop), no primaria.
@@ -188,6 +187,7 @@ Formalizado en: questline `GAME-INTEGRATION.md` + `00-MASTER-PLAN.md` §6 · ElJ
 | QuestlineWire setup (happy path) | [`wire-setup.md`](wire-setup.md) |
 | QuestlineWire ADR | [`ADR-0005`](adr/ADR-0005-questline-wire.md) |
 | Resilience | [`resilience.md`](resilience.md) · [`ADR-0006`](adr/ADR-0006-recovery-ladder.md) |
+| Reporting | [`reporting.md`](reporting.md) |
 | Phase 05b brief | [`phase-05b-questline-wire.md`](phases/phase-05b-questline-wire.md) |
 | Android / adb | [`android.md`](android.md) |
 | Legacy AltTester setup | [`unity-setup.md`](unity-setup.md) |
