@@ -25,7 +25,18 @@ jobs:
       - name: Create venv and install dependencies
         run: |
           uv venv --python ${{ matrix.python-version }}
-          uv pip install -e ".[dev,alttester]"
+          uv pip install -e ".[dev,alttester,hud]"
+
+      - name: Setup Node (HUD frontend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build HUD frontend
+        working-directory: hud/frontend
+        run: |
+          npm install
+          npm run build
 
       - name: Lint
         run: uv run ruff check src/ tests/ examples/demo-tests/ examples/unity-smoke/
@@ -54,3 +65,19 @@ jobs:
             --path examples/demo-tests/quarantine.yaml \
             --tests examples/demo-tests \
             --rootdir .
+
+      - name: HUD Playwright smoke
+        if: matrix.python-version == '3.12'
+        run: |
+          cd hud/frontend
+          npx playwright install --with-deps chromium
+          cd ../..
+          uv run python scripts/serve_hud_smoke.py --port 8741 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8741/api/health && break
+            sleep 1
+          done
+          cd hud/frontend
+          npx playwright test
+        env:
+          HUD_BASE_URL: http://127.0.0.1:8741

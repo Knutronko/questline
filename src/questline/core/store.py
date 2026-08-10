@@ -78,10 +78,14 @@ class RunStore:
         self._bus = bus
         bus.subscribe(self.on_event)
 
-    def close(self) -> None:
+    def detach(self) -> None:
+        """Unsubscribe from the attached bus without closing the database."""
         if self._bus is not None:
             self._bus.unsubscribe(self.on_event)
             self._bus = None
+
+    def close(self) -> None:
+        self.detach()
         with self._lock:
             self._conn.close()
 
@@ -137,11 +141,78 @@ class RunStore:
             row = self._conn.execute("SELECT * FROM runs WHERE id = ?", (run_id,)).fetchone()
         return dict(row) if row else None
 
+    def list_runs(
+        self,
+        *,
+        profile: str | None = None,
+        status: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        """Return runs newest-first with optional profile/status filters."""
+        clauses: list[str] = []
+        params: list[Any] = []
+        if profile:
+            clauses.append("profile = ?")
+            params.append(profile)
+        if status:
+            clauses.append("status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = (
+            f"SELECT * FROM runs {where} ORDER BY started_at DESC LIMIT ? OFFSET ?"
+        )
+        params.extend([max(0, int(limit)), max(0, int(offset))])
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        return [dict(r) for r in rows]
+
+    def list_artifacts(
+        self,
+        *,
+        run_id: str | None = None,
+        test_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """List ArtifactSaved payloads from the events table."""
+        clauses = ["type = ?"]
+        params: list[Any] = ["ArtifactSaved"]
+        if run_id:
+            clauses.append("run_id = ?")
+            params.append(run_id)
+        if test_id:
+            clauses.append("test_id = ?")
+            params.append(test_id)
+        sql = (
+            "SELECT payload FROM events WHERE "
+            + " AND ".join(clauses)
+            + " ORDER BY id"
+        )
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            try:
+                payload = json.loads(row["payload"])
+            except (TypeError, json.JSONDecodeError):
+                continue
+            if isinstance(payload, dict):
+                out.append(payload)
+        return out
+
     def list_tests(self, run_id: str) -> list[dict[str, Any]]:
         with self._lock:
             rows = self._conn.execute(
                 "SELECT * FROM tests WHERE run_id = ? ORDER BY started_at",
                 (run_id,),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def list_tests_by_nodeid(self, nodeid: str, *, limit: int = 50) -> list[dict[str, Any]]:
+        """History of a test identity across runs (newest first)."""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT * FROM tests WHERE nodeid = ? ORDER BY started_at DESC LIMIT ?",
+                (nodeid, max(0, int(limit))),
             ).fetchall()
         return [dict(r) for r in rows]
 
@@ -244,10 +315,22 @@ class RunStore:
 
     def _apply_event(self, event: Event) -> None:
         if isinstance(event, RunStarted):
+            meta: dict[str, Any] = {}
+            if event.tags:
+                for key in ("driver", "device"):
+                    val = event.tags.get(key)
+                    if val:
+                        meta[key] = val
             self._conn.execute(
                 "INSERT OR REPLACE INTO runs (id, profile, started_at, finished_at, status, meta) "
                 "VALUES (?, ?, ?, NULL, ?, ?)",
-                (event.run_id, event.profile, _ts(event.timestamp), "running", "{}"),
+                (
+                    event.run_id,
+                    event.profile,
+                    _ts(event.timestamp),
+                    "running",
+                    json.dumps(meta),
+                ),
             )
         elif isinstance(event, RunFinished):
             self._conn.execute(

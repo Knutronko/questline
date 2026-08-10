@@ -32,14 +32,15 @@ Control center (launch/stop runs, quarantine mgmt, config editor — Phase 10), 
 (Phase 09 data → rendered in Phase 10), auth/multi-user.
 
 ## Acceptance criteria
-- [ ] CI: backend endpoint tests against a fixture store; frontend builds; a Playwright (or
+- [x] CI: backend endpoint tests against a fixture store; frontend builds; a Playwright (or
       equivalent) smoke: open HUD → see seeded runs → drill to a test → see steps.
-- [ ] Live view test: scripted mock run streams into the browser (backend WS integration
+- [x] Live view test: scripted mock run streams into the browser (backend WS integration
       test acceptable in CI; visual check by maintainer).
-- [ ] Wheel embeds built assets — `pip install questline[hud]` on a clean machine serves
+- [x] Wheel embeds built assets — `pip install questline[hud]` on a clean machine serves
       the UI with no Node.
 - [ ] Maintainer-checked: HUD over their real Android run history is usable and fast
       (<200 ms navigation on a few hundred runs).
 
 ## PR checklist
-Title `phase-08: HUD viewer`. ADR-0006 (frontend stack + embedding strategy).
+Title `phase-08: HUD viewer`. **ADR-0007** (frontend stack + embedding strategy; brief’s
+“ADR-0006” was already taken by the recovery ladder).
