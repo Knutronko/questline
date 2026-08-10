@@ -17,7 +17,7 @@ Format: `- [ ] (phase-NN) description`
 - [ ] (phase-03) Plugin auto-discovery of project `questline.toml` at repo root without `--questline-config` when running nested example suites.
 - [ ] (phase-03) Quarantine audit nodeid normalization helper (Windows `\` vs `/`) shared by CLI and CI.
 - [x] (phase-05 exit) Scaffold game-repo `automation/` — **done** (Editor coverage-demo
-      green 2026-08-09). Android Wire live + Poco UI assertions remain follow-ups.
+      green 2026-08-09). Poco UI assertions remain (phase-14 / QL-4).
       See `docs/GAME-INTEGRATION.md` §3.
 - [x] (phase-04) Live path superseded by Wire; Desktop abandoned.
 - [x] (phase-05b) Editor `wire-smoke` green; Wire MVP done. Poco UI remains (phase-14).
