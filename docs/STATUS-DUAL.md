@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-09** (Android Wire smoke `android_local` ✅ + Editor + phase-06).
+> Última revisión: **2026-08-11** (D10.5 IEB baseline cerrado → D11 economía/GameLens).
 
 ---
 
@@ -13,7 +13,7 @@
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
 | **questline** | v0.1 fases 0–15 + **05b Wire** + **06** | Editor + **Android Wire** live verdes; session usa `adb forward` | **07** Reporters | Ninguno crítico; AltTester Desktop **fuera** del happy path |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Wire Editor/Android verdes + **`automation/`** Editor 4✓ | D10 feel · (fw 07 consume suite) · opcional `automation/` Android | AltTester UPM **remoto/legacy** (no borrar aún); Poco = UI hierarchy (fw 14 / QL-4); Dev APK Mono+ARMv7 → diálogo ABI en Android 14+ (infra, auto-dismiss) |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Wire + **`automation/`** + **D10.5 IEB baseline** (PR #40) | **D11** economía mid/late + GameLens KPIs · (fw 07) | AltTester UPM **remoto/legacy**; Poco = UI (fw 14 / QL-4) |
 
 **Drivers (prioridad):**
 
@@ -75,8 +75,9 @@ Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-
 | Id | Qué | Estado | Docs |
 |----|-----|--------|------|
 | D1–D9.5 | Tablero → hub/designer | ✅ (código; playtests varios) | [`plan-fase-d.md`](https://github.com/Knutronko/ElJuegaso/blob/main/docs/prototipos/P1/plan-fase-d.md) |
-| D10 | Skills / balance / loadout | 🔄 código; playtest humano pendiente | `diseno-crecimiento-roster.md` |
-| D11 | Economía / tools dump | ⬜ | |
+| D10 | Skills / balance / loadout | ✅ código; feel vía D10.5 | `diseno-crecimiento-roster.md` |
+| **D10.5** | Balance **IEB** (entry infinito) | ✅ baseline (código+Pass A/B; Hecho=playtest) | `diseno-d10-5-balance-ieb.md` |
+| D11 | Economía mid/late + GameLens KPIs | ⬜ **siguiente** | `economias.md` + diseno-d10-5 § Calibración |
 | D12 | Modo infinito | ⬜ | `diseno-modo-infinito.md` |
 | D13+ | FTUE, visual, save debt… | ⬜ | [`roadmap-post-d6.md`](https://github.com/Knutronko/ElJuegaso/blob/main/docs/prototipos/P1/roadmap-post-d6.md) |
 | **QL-1** | Companion + hooks + smoke GOs | ✅ | `integracion-questline.md` |
@@ -113,8 +114,9 @@ flowchart TB
   end
 
   subgraph Game[ElJuegaso P1]
-    D95[D9.5 ✅] --> D10[D10 Skills playtest]
-    D10 --> D11[D11 Economia]
+    D95[D9.5 ✅] --> D10[D10 Skills ✅]
+    D10 --> D105[D10.5 IEB baseline ✅]
+    D105 --> D11[D11 Economia + GameLens]
     D11 --> D12[D12 Infinito]
     D12 --> D13[D13 FTUE]
     QL1[QL-1 ✅] --> QL2[QL-2 Dev APK ✅]
