@@ -38,6 +38,9 @@ def test_allowlisted_artifact_name() -> None:
     assert art["name"] == "shot.png"
     assert art["kind"] == "screenshot"
 
+    unix = allowlisted_artifact({"path": "/tmp/run/logcat.txt", "kind": "logcat"})
+    assert unix["name"] == "logcat.txt"
+
 
 def test_trends_and_enrich(tmp_path: Path) -> None:
     store = seed_fixture_store(tmp_path / "store.db")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from unittest.mock import patch
 
@@ -10,14 +11,19 @@ from typer.testing import CliRunner
 from questline.cli import app
 
 runner = CliRunner()
+_ANSI = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
 
 def test_hud_help() -> None:
-    result = runner.invoke(app, ["hud", "--help"])
+    result = runner.invoke(
+        app,
+        ["hud", "--help"],
+        env={"NO_COLOR": "1", "TERM": "dumb", "COLUMNS": "120"},
+    )
     assert result.exit_code == 0
-    assert "--port" in result.stdout
-    assert "--open" in result.stdout
-    assert "--host" in result.stdout
+    plain = _ANSI.sub("", (result.stdout or "") + (result.stderr or ""))
+    for token in ("--port", "--open", "--host"):
+        assert token in plain, f"missing {token!r} in help:\n{plain}"
 
 
 def test_hud_serve_invoked(tmp_path: Path) -> None:

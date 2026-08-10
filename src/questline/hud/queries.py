@@ -100,7 +100,8 @@ def allowlisted_artifact(payload: dict[str, Any]) -> dict[str, Any]:
     # Expose basename only for UI labels; full path used server-side for serving.
     path = payload.get("path")
     if isinstance(path, str) and path:
-        out["name"] = Path(path).name
+        # Normalize Windows separators so basename works on Linux CI too.
+        out["name"] = Path(path.replace("\\", "/")).name
     return out
 
 
