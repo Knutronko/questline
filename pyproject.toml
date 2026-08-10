@@ -33,7 +33,11 @@ slack = []
 github = []
 notion = []
 ai = []
-hud = []
+hud = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "httpx>=0.27",
+]
 
 [project.scripts]
 questline = "questline.cli:app"
@@ -44,6 +48,7 @@ zzz_questline = "questline.authoring.plugin"
 
 [tool.hatch.build.targets.wheel.force-include]
 "src/questline/reporters/slack/templates" = "questline/reporters/slack/templates"
+"src/questline/hud/static" = "questline/hud/static"
 
 [tool.ruff]
 target-version = "py311"
@@ -76,6 +81,8 @@ omit = [
     "*/questline/reporters/notion.py",
     "*/questline/reporters/jira.py",
     "*/questline/reporters/testrail.py",
+    # Demo seed for Playwright smoke (exercised outside cov gate).
+    "*/questline/hud/fixtures.py",
 ]
 
 [tool.coverage.report]

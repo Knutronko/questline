@@ -192,5 +192,73 @@ def quarantine_audit(
         raise typer.Exit(code=1)
 
 
+@app.command()
+def hud(
+    port: Annotated[
+        int,
+        typer.Option("--port", "-p", help="TCP port (default 8741)"),
+    ] = 8741,
+    host: Annotated[
+        str,
+        typer.Option(
+            "--host",
+            help="Bind address (default 127.0.0.1; opt-in for non-localhost)",
+        ),
+    ] = "127.0.0.1",
+    open_browser: Annotated[
+        bool,
+        typer.Option("--open", help="Open the HUD in the default browser"),
+    ] = False,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", help="Profile name (for store path resolution)"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store", help="Override path to store.db"),
+    ] = None,
+) -> None:
+    """Serve the local HUD viewer (run history, detail, live WebSocket)."""
+    try:
+        from questline.hud.server import serve
+    except ImportError as exc:
+        typer.secho(
+            "HUD requires: pip install 'questline[hud]'",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(code=1) from exc
+
+    try:
+        settings = load_settings(config_path=config, profile=profile)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    db_path = Path(store_db) if store_db is not None else settings.store_db
+    from questline.core.events import EventBus
+    from questline.core.store import RunStore
+
+    store = RunStore(
+        db_path,
+        artifacts_dir=settings.artifacts_dir,
+        ledger_path=settings.ledger_path,
+    )
+    bus = EventBus()
+    store.attach(bus)
+    typer.echo(f"questline hud → http://{host}:{port}/  (store={db_path})")
+    try:
+        serve(store=store, bus=bus, host=host, port=port, open_browser=open_browser)
+    finally:
+        store.close()
+
+
 if __name__ == "__main__":
     app()

@@ -25,6 +25,15 @@ uv run pytest examples/wire-smoke -q -o addopts= `
 See [`docs/wire-setup.md`](docs/wire-setup.md). AltTester Desktop is **not** required.
 UI hierarchy later = **Poco** (phase-14), not AltTester.
 
+## HUD (local run viewer)
+
+```powershell
+uv pip install -e ".[hud]"
+questline hud --open
+```
+
+See [`docs/hud.md`](docs/hud.md).
+
 ## Documentation
 
 - Index: [`docs/README.md`](docs/README.md)

@@ -254,7 +254,14 @@ def questline_run_id(
     pytestconfig.stash[_STASH_RUN_ID] = run_id
     t0 = time.perf_counter()
     pytestconfig.stash[_STASH_RUN_T0] = t0
-    questline_bus.publish(RunStarted(run_id=run_id, profile=questline_settings.profile))
+    tags: dict[str, str] = {}
+    if questline_settings.driver:
+        tags["driver"] = questline_settings.driver
+    if questline_settings.device:
+        tags["device"] = questline_settings.device
+    questline_bus.publish(
+        RunStarted(run_id=run_id, profile=questline_settings.profile, tags=tags)
+    )
 
     def _watchdog_exit(code: int) -> None:
         pytest.exit(f"questline watchdog fired (exit {code})", returncode=code)
