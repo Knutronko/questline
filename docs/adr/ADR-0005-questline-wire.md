@@ -58,7 +58,7 @@
      `hooks_manifest` / `call_game_method` (+ soft-reload re-handshake). **Out:** full
      hierarchy/find/tap/screenshot parity; Poco; Appium; removing AltTester from examples
      overnight.
-- **Consequences:** Editor live smoke is green via Wire. Game `automation/` exit
-  coverage-demo is scaffolded (Editor). Android Wire live needs Dev APK rebuild. UI
-  hierarchy → **Poco** (14), not Wire v2 and not AltTester. ADR-0004 remains the hook
-  contract; Wire is the happy-path *transport*. Update `STATUS-DUAL.md` when status changes.
+- **Consequences:** Editor + Android Wire live smoke are green (`adb forward` on device).
+  Game `automation/` coverage-demo scaffold is in. UI hierarchy → **Poco** (14), not
+  Wire v2 and not AltTester. ADR-0004 remains the hook contract; Wire is the happy-path
+  *transport*. Update `STATUS-DUAL.md` when status changes.

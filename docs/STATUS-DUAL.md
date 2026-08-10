@@ -145,9 +145,9 @@ flowchart TB
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
 | 1 | **phase-07 Reporters** | questline | Next fw phase; suite `automation/` lista para consumir |
-| 2 | **D10 playtest / feel** | ElJuegaso | Paralelo; no bloquea fw |
+| 2 | **D11** economía mid/late + GameLens KPIs | ElJuegaso | Siguiente proto tras D10.5; paralelo a fw 07 |
 | 3 | **phase-08 HUD** | questline | Tras reporters; suite alimenta viewer |
-| 4 | **D11 ↔ QL-5 / phase-09 ↔ QL-3** | ambos | Economía/GameLens y perf |
+| 4 | **QL-5 / phase-09 ↔ QL-3** | ambos | GameLens SO + perf (D11 / fw 09) |
 | 5 | **D12 ↔ QL-6** | ambos | Infinito + telemetría |
 | 6 | **phase-14 Poco + QL-4** | ambos | **UI hierarchy** (Poco > AltTester legacy) |
 
