@@ -181,7 +181,7 @@ PowerShell only to start the server:
 uv pip install -e ".[dev,hud]"
 uv run questline hud --open
 # or fixture smoke:
-uv run python scripts/serve_hud_smoke.py --port 8741
+uv run python scripts/serve_hud_smoke.py --port 8742
 ```
 
 Then in the browser:
@@ -224,7 +224,7 @@ uv pip install -e ".[dev,hud]"
 uv run pytest tests/test_hud_api.py tests/test_hud_cli.py tests/test_hud_control.py tests/test_hud_queries.py -q
 
 # Playwright (Node): seed + serve, then e2e
-uv run python scripts/serve_hud_smoke.py --port 8741
+uv run python scripts/serve_hud_smoke.py --port 8742
 # other shell:
 cd hud/frontend
 npm ci

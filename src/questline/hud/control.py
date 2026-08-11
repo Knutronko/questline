@@ -139,6 +139,7 @@ def meta(request: Request) -> dict[str, Any]:
     return {
         "read_only": _read_only(request),
         "control_center": not _read_only(request),
+        "smoke": bool(getattr(_state(request), "smoke", False)),
         "config_path": str(_config_path(request)) if cfg else None,
         "project_root": str(_project_root(request)),
         "quarantine_path": str(_quarantine_path(request)),

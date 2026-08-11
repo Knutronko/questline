@@ -81,7 +81,7 @@ class _SmokeLauncher(RunLauncher):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--port", type=int, default=8741)
+    parser.add_argument("--port", type=int, default=8742)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument(
         "--db",
@@ -138,7 +138,13 @@ def main() -> None:
         lock_dir=root / "device-locks",
         spawn=spawn,  # type: ignore[arg-type]
     )
-    print(f"seeded HUD store at {args.db}")
+    print(f"seeded HUD SMOKE store at {args.db}")
+    print(
+        f"WARNING: this is the Playwright fixture server (fake launcher). "
+        f"For real runs use: uv run questline hud --open  (port 8741)"
+    )
+    print(f"smoke HUD → http://{args.host}:{args.port}/")
+    app.state.smoke = True
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 
 

@@ -273,7 +273,7 @@ def hud(
     bus = EventBus()
     store.attach(bus)
     mode = "read-only viewer" if read_only else "control center"
-    typer.echo(f"questline hud → http://{host}:{port}/  ({mode}; store={db_path})")
+    typer.echo(f"questline hud -> http://{host}:{port}/  ({mode}; store={db_path})")
     try:
         serve(
             store=store,

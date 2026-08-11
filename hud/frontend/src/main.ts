@@ -12,6 +12,7 @@ import { renderPerf, wirePerf } from "./pages/perf";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
 let readOnly = false;
+let smokeMode = false;
 
 function shell(active: string, body: string): string {
   const link = (href: string, label: string) =>
@@ -21,6 +22,21 @@ function shell(active: string, body: string): string {
     : `${link("#/launch", "Launch")}
         ${link("#/quarantine", "Quarantine")}
         ${link("#/profiles", "Profiles")}`;
+  const badges = [
+    readOnly ? `<span class="badge warn" title="--read-only">RO</span>` : "",
+    smokeMode
+      ? `<span class="badge warn" title="Playwright smoke fixture — not real runs">SMOKE</span>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const smokeBanner = smokeMode
+    ? `<div class="empty" style="margin:0 0 0.75rem;border-color:var(--warn)">
+        <strong>SMOKE FIXTURE SERVER</strong> — fake launcher + seeded runs.
+        For real Wire/mock runs stop this process and use
+        <code>uv run questline hud --open</code> (port 8741).
+      </div>`
+    : "";
   return `
     <header class="topbar">
       <a class="brand" href="#/">Questline <span>HUD</span></a>
@@ -31,9 +47,9 @@ function shell(active: string, body: string): string {
         ${link("#/trends", "Trends")}
         ${link("#/live", "Live")}
       </nav>
-      ${readOnly ? `<span class="badge warn" title="--read-only">RO</span>` : ""}
+      ${badges}
     </header>
-    <main class="main">${body}</main>
+    <main class="main">${smokeBanner}${body}</main>
   `;
 }
 
@@ -195,9 +211,11 @@ async function boot(): Promise<void> {
   try {
     const meta = await getMeta();
     readOnly = !!meta.read_only;
+    smokeMode = !!meta.smoke;
     if (!readOnly) await ensureCsrf();
   } catch {
     readOnly = false;
+    smokeMode = false;
   }
   await paint();
 }

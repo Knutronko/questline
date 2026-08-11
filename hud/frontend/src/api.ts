@@ -38,6 +38,7 @@ export type TestSummary = {
 export type Meta = {
   read_only: boolean;
   control_center: boolean;
+  smoke?: boolean;
   config_path: string | null;
   project_root: string;
   quarantine_path: string;
