@@ -19,7 +19,7 @@ in the **run store / event bus first**; the HUD only *reads* (until phase 10 mut
 | When | Phase | What appears in the HUD |
 |------|-------|-------------------------|
 | ✅ | **08** Viewer | Runs, filters, run/test detail, verdicts, death-point, artifacts, trends, live WS |
-| next | **09** PerfProbe | Samples → `perf_samples` / `PerfSample` events (store). **No graphs yet** — phase 10 |
+| next | **09** PerfProbe | Samples → `perf_samples` / `PerfSample` events (store). **No graphs yet** — phase 10. Verify with `questline perf report`. |
 | after 09 | **09b** Wire v2 | Richer live/automation runs (find/tap) → more steps/artifacts in the same viewer |
 | later | **10** HUD II | Launcher, quarantine UI, profile editor, **perf graphs** + run comparison |
 | later | **11–13** AI | Cost per run / triage panels (read store `ai_calls`); action buttons with 12 |

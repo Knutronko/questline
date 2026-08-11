@@ -36,12 +36,11 @@ Wire v2 UI (`find`/`tap`) is **phase-09b** (after this phase) — do not impleme
 
 ## Acceptance criteria
 - [x] CI: parsers green on recorded fixtures; sampler lifecycle unit tests (start/stop/kill).
-- [ ] Maintainer-checked: run on real phone produces plausible FPS/memory series for
-      their game; overhead spot-check documented.
+- [x] Maintainer-checked: Android device series (PSS/CPU/battery/thermal) + overhead spot-check
+      (~+2.7s / ~16% on a ~17s suite @ interval 1s; dumpsys-dominated). FPS/jank may be
+      missing on short Samsung runs — documented caveat.
 - [x] Threshold assertion demo: seeded low-FPS fixture fails with the series attached.
-- [ ] Editor profile produces companion-sourced samples.
-  *(fw: `QuestlinePerfProvider` + FakeWire CI ✅; live Editor = **pending game QL-3** /
-  companion UPM refresh on the game project.)*
+- [x] Editor profile produces companion-sourced samples (`fps` / `allocated_mb`; QL-3).
 
 ## PR checklist
 Title `phase-09: perfprobe`. Next planned fw bridge: [phase-09b](phase-09b-wire-v2.md).

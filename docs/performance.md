@@ -88,3 +88,14 @@ questline perf report <run_id> --store .questline/store.db -o perf.html
 ## Out of scope (later)
 
 HUD graphs (phase-10), Wire v2 find/tap (09b), anomaly detection, iOS.
+
+## Maintainer spot-check (2026-08-11, ElJuegaso P1)
+
+| Surface | Result |
+|---------|--------|
+| Editor + `source=companion` | `fps` / `allocated_mb` series OK (`draw_calls` remains 0) |
+| Android SM-A346E + `source=auto` | `memory_pss_mb` / `cpu_pct` / battery / thermal OK; no FPS on short run |
+| Overhead | perf OFF ~16.9s vs ON ~19.6s on the automation suite (~+2.7s); raise `interval_s` if needed |
+
+**HUD:** samples live in the store / events; **no graphs in HUD I** — use
+`questline perf report <run_id>` until phase-10.
