@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-11** (fw **09b** Wire v2 UI ✅; next **10** HUD II / game **QL-2c**).
+> Última revisión: **2026-08-11** (fw **09b** Wire v2 UI ✅ Editor live; next **10** HUD II / Android QL-2c optional).
 
 ---
 
@@ -12,8 +12,8 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 + **05b–09b** | Wire v2 UI (find/hierarchy/tap/screenshot) + FakeWire CI | **10** HUD II; game **QL-2c** | Ninguno crítico; AltTester Desktop **fuera** del happy path |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b/QL-3** + Wire + **`automation/`** + **D10.5** | **QL-2c** (sync companion + Dev APK) → **D11** | AltTester UPM **remoto/legacy**; Poco = 2º UI (fw 14) |
+| **questline** | v0.1 + **05b–09b** | Wire v2 UI live Editor ✅; FakeWire CI; transport lock (INC-0001) | **10** HUD II | Ninguno crítico; AltTester Desktop **fuera** del happy path |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b/QL-2c/QL-3** + Wire + **`automation/`** + **D10.5** | **D11** (ideal); Android Dev APK rebuild optional | AltTester UPM **remoto/legacy**; Poco = 2º UI (fw 14) |
 
 **Drivers (prioridad):**
 
@@ -87,7 +87,7 @@ Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-
 | **QL-1** | Companion + hooks + smoke GOs | ✅ | `integracion-questline.md` |
 | **QL-2** | APK DEV `QUESTLINE_DEV` | ✅ | Dev APK con Wire en device |
 | **QL-2b** | Bootstrap Wire + companion | ✅ | Editor + Android Wire **verde** |
-| **QL-2c** | Companion Wire v2 UI ops | ⬜ **next (game)** | Trigger fw **09b** ✅ — refresh companion + Dev APK |
+| **QL-2c** | Companion Wire v2 UI ops | ✅ companion (ElJuegaso PR #41) | Rebuild Dev APK for Android UI optional |
 | **QL-3** | Perf counters companion | ✅ | `QuestlinePerfProvider` + Dev APK; Editor + Android maintainer 2026-08-11 |
 | **QL-4** | UTF C# + Poco (2º UI) | ⬜ | Trigger fw **14** |
 | **QL-5** | Manifest SOs (GameLens) | ⬜ | Trigger FP-G1 · encaja **D11** |
@@ -133,7 +133,7 @@ flowchart TB
     LiveEd --> LiveAnd[Android Wire smoke ✅]
     LiveAnd -.-> Auto
     QL2b --> QL3[QL-3 Perf ✅]
-    QL2b --> QL2c[QL-2c Wire v2 UI next]
+    QL2b --> QL2c[QL-2c Wire v2 UI ✅]
     QL2c --> D11
     D11 -.-> QL5[QL-5 SO manifest]
     D12 -.-> QL6[QL-6 Telemetry]
@@ -156,11 +156,12 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | **QL-2c** (sync Wire v2 companion + Dev APK) | ElJuegaso | find/tap live en juego tras fw **09b** ✅ |
-| 2 | **D11** + **QL-5 / FP-G1** | ElJuegaso (+ fw) | Economía + GameLens con UI Wire disponible |
+| 1 | **D11** + **QL-5 / FP-G1** | ElJuegaso (+ fw) | Economía + GameLens; Wire UI ya disponible |
+| 2 | Rebuild Dev APK (Android Wire v2) | ElJuegaso | Opcional tras QL-2c companion |
 | 3 | **D12 ↔ QL-6 / FP-G2** | ambos | Infinito + telemetría |
 | 4 | **FP-G3** bots (cuando toque) | fw | Curvas medidas usando Wire v2 |
-| 5 | **phase-14 Poco + QL-4** | ambos | 2º UI backend + UTF (no bloquea ElJuegaso smoke) |
+| 5 | **phase-14 Poco + QL-4** | ambos | 2º UI backend + UTF |
+
 
 **Stack live:** Wire = hooks + hierarchy/find/tap (**09b** ✅). **Poco** = 2º adapter.
 **AltTester** = legacy remoto.

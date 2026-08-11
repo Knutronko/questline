@@ -30,8 +30,9 @@ Format: `- [ ] (phase-NN) description`
       no UnityEditor dependency). Optional Editor-only extension or game-injected counter.
 - [ ] (phase-09) PerfProbe anomaly detection / soak trend analysis — deferred (phase brief
       out of scope; see AI roadmap / future phases).
-- [ ] (phase-09) Maintainer live: real-device FPS/memory series + overhead spot-check; Editor
-      companion samples after game **QL-3** (UPM refresh + Dev APK rebuild).
+- [ ] (phase-09) Document PowerShell clear of `QUESTLINE_PERF_*` in every live how-to that
+      follows a perf dogfood (see INC-0001) — done in wire-setup + performance.md; keep
+      citing INC when adding new live recipes.
 - [ ] (phase-05) Add Unity `.meta` files under `unity-package/` so git UPM (`questline.git?path=unity-package`) is importable — today Unity ignores the immutable package without `.meta`, forcing games to embed/copy the companion (ElJuegaso workaround). Cheap follow-up; deferred to avoid diluting Android scope.
 - [ ] (phase-05) `questline devices list|lock` CLI surface (architecture CLI mentions `devices`; provider is enough for android_local pytest wiring).
 - [ ] (phase-05) Sample-project minimal Android APK in-repo for CI-less live dogfood when game QL-2 is pending (optional; maintainer may use a local sample instead).

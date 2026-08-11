@@ -79,6 +79,22 @@ uv run pytest examples/wire-smoke -q -o addopts= `
 Includes hooks + **UI** (`test_wire_v2_hierarchy_find_tap`). No `[alttester]` extra.
 Profile key: `driver = "questline"`.
 
+### PowerShell env footgun (INC-0001)
+
+`QUESTLINE_PERF_*` from a prior PerfProbe dogfood **survives for the life of that
+PowerShell window** and overrides toml. PerfProbe then shares the Wire socket with
+tests → stolen NDJSON replies (hooks/UI see `GetPerfSample` / `fps` payloads).
+
+Before Wire-only smoke:
+
+```powershell
+Remove-Item Env:QUESTLINE_PERF_ENABLED, Env:QUESTLINE_PERF_SOURCE, Env:QUESTLINE_PERF_INTERVAL_S -ErrorAction SilentlyContinue
+Get-ChildItem Env:QUESTLINE*   # sanity
+```
+
+See [`INCIDENTS.md`](INCIDENTS.md) · [INC-0001](incidents/INC-0001-wire-perf-socket-race.md).
+Transport locks requests after the 09b fix; still clear env when isolating UI.
+
 ## Android
 
 `LocalAdbProvider` + **`adb forward tcp:13000 tcp:13000`** (host→device). Wire listens

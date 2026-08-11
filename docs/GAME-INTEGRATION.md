@@ -95,7 +95,7 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | 06 | Nothing new (fault injection mock-based; optional live reuses Wire) | — |
 | 07–08 | Nothing new (consume the suite of §3) | — |
 | **09** | Companion perf counters compiled in dev builds | **QL-3** ✅ (2026-08-11) — see [`performance.md`](performance.md) |
-| **09b** | Companion Wire v2 UI ops (`hierarchy`/`find`/`tap`/`screenshot`); rebuild Dev APK | **QL-2c** (next — sync `QuestlineWireUi.cs` + rebuild) |
+| **09b** | Companion Wire v2 UI ops (`hierarchy`/`find`/`tap`/`screenshot`); rebuild Dev APK | **QL-2c** ✅ companion (PR #41); Android APK rebuild optional |
 | 10–13 | Nothing new; agents/eval run against the §3 suite and the mock game | — |
 | **14** | Test assembly (asmdef) + UTF C# tests + **Poco** SDK (second UI backend) | **QL-4** |
 | 15 | Nothing new | — |
