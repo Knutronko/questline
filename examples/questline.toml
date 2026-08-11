@@ -40,7 +40,7 @@ wait.interval = 0.5
 
 # Phase-05 Android local adb (requires instrumented APK + adb device/emulator).
 [profile.android_local]
-driver = "alttester"
+driver = "questline"
 device = "adb"
 target_host = "127.0.0.1"
 target_port = 13000
@@ -51,3 +51,8 @@ reporters = ["console", "html"]
 wait.probe = 2.0
 wait.deadline = 45.0
 wait.interval = 0.5
+# Opt-in PerfProbe (phase-09) — see docs/performance.md
+# perf.enabled = true
+# perf.interval_s = 1.0
+# perf.scope = "test"
+# perf.source = "auto"

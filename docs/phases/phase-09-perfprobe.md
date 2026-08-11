@@ -30,15 +30,18 @@ assertions. Device metrics via adb; Editor/standalone metrics via the companion 
 6. Docs: `docs/performance.md` (what each metric means, caveats: emulator FPS ≠ device FPS).
 
 ## Out of scope
-HUD graphs (Phase 10 renders this data), anomaly detection (backlog), iOS metrics.
+HUD graphs (Phase 10 renders this data — see `docs/hud.md` integration contract),
+anomaly detection (backlog), iOS metrics.
 Wire v2 UI (`find`/`tap`) is **phase-09b** (after this phase) — do not implement here.
 
 ## Acceptance criteria
-- [ ] CI: parsers green on recorded fixtures; sampler lifecycle unit tests (start/stop/kill).
+- [x] CI: parsers green on recorded fixtures; sampler lifecycle unit tests (start/stop/kill).
 - [ ] Maintainer-checked: run on real phone produces plausible FPS/memory series for
       their game; overhead spot-check documented.
-- [ ] Threshold assertion demo: seeded low-FPS fixture fails with the series attached.
+- [x] Threshold assertion demo: seeded low-FPS fixture fails with the series attached.
 - [ ] Editor profile produces companion-sourced samples.
+  *(fw: `QuestlinePerfProvider` + FakeWire CI ✅; live Editor = **pending game QL-3** /
+  companion UPM refresh on the game project.)*
 
 ## PR checklist
 Title `phase-09: perfprobe`. Next planned fw bridge: [phase-09b](phase-09b-wire-v2.md).

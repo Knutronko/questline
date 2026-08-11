@@ -1,0 +1,6 @@
+IsStatusOverrideActive: false
+ThermalStatus: 0
+CachedTemperatures: 3
+Temperature{mValue=36.5, mType=3, mName=CPU, mStatus=0}
+Temperature{mValue=34.1, mType=0, mName=SKIN, mStatus=0}
+Temperature{mValue=31.2, mType=2, mName=BATTERY, mStatus=0}

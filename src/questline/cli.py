@@ -25,6 +25,13 @@ quarantine_app = typer.Typer(
 )
 app.add_typer(quarantine_app, name="quarantine")
 
+perf_app = typer.Typer(
+    name="perf",
+    help="PerfProbe reports and helpers (phase-09).",
+    no_args_is_help=True,
+)
+app.add_typer(perf_app, name="perf")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -82,6 +89,11 @@ def doctor(
         f"store_db:    {settings.store_db}",
         f"artifacts:   {settings.artifacts_dir}",
         f"ledger:      {settings.ledger_path}",
+        (
+            f"perf:        enabled={settings.perf.enabled} "
+            f"interval={settings.perf.interval_s}s "
+            f"scope={settings.perf.scope} source={settings.perf.source}"
+        ),
     ]
     typer.echo("\n".join(lines))
 
@@ -256,6 +268,87 @@ def hud(
     typer.echo(f"questline hud → http://{host}:{port}/  (store={db_path})")
     try:
         serve(store=store, bus=bus, host=host, port=port, open_browser=open_browser)
+    finally:
+        store.close()
+
+
+@perf_app.command("report")
+def perf_report(
+    run_id: Annotated[str, typer.Argument(help="Run id to summarize")],
+    format: Annotated[
+        str,
+        typer.Option("--format", "-f", help="Output format: text or html"),
+    ] = "text",
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            "--output", "-o", help="Write report file (default: print text / artifacts dir)"
+        ),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="Profile name (for store path resolution)"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store", help="Override path to store.db"),
+    ] = None,
+) -> None:
+    """Print or write a PerfProbe summary for a run."""
+    from questline.core.store import RunStore
+    from questline.perf.report import render_perf_report, write_perf_report
+
+    fmt = format.strip().lower()
+    if fmt not in {"text", "html"}:
+        typer.secho("--format must be 'text' or 'html'", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2)
+
+    try:
+        settings = load_settings(config_path=config, profile=profile)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    db_path = Path(store_db) if store_db is not None else settings.store_db
+    if not db_path.is_file():
+        typer.secho(f"store not found: {db_path}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+
+    store = RunStore(db_path, artifacts_dir=settings.artifacts_dir)
+    try:
+        if store.get_run(run_id) is None:
+            typer.secho(f"unknown run_id: {run_id}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1)
+        samples = store.list_perf_samples(run_id=run_id)
+        if output is not None:
+            out_path = Path(output)
+            if out_path.suffix.lower() in {".html", ".htm"}:
+                fmt = "html"
+            elif out_path.suffix.lower() in {".txt", ".md"}:
+                fmt = "text"
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(
+                render_perf_report(run_id=run_id, samples=samples, fmt=fmt),  # type: ignore[arg-type]
+                encoding="utf-8",
+            )
+            typer.echo(str(out_path))
+        elif fmt == "html":
+            path = write_perf_report(
+                run_id=run_id,
+                samples=samples,
+                output_dir=settings.artifacts_dir,
+                fmt="html",
+            )
+            typer.echo(str(path))
+        else:
+            typer.echo(render_perf_report(run_id=run_id, samples=samples, fmt="text"), nl=False)
     finally:
         store.close()
 

@@ -29,6 +29,9 @@ void Awake()
 
 #if UNITY_EDITOR || QUESTLINE_DEV
     QuestlineWireServer.EnsureStarted(13000);
+    // Wire bootstrap also registers GetPerfSample (PerfProbe / QL-3).
+    // Explicit call is safe if you start Wire later or use AltTester only:
+    QuestlinePerfProvider.EnsureRegistered();
 #endif
 }
 ```
@@ -39,4 +42,5 @@ Python (`driver = "questline"`):
 driver.hooks_manifest()  # serializable registry dump
 driver.call_game_method(GameHook("SetLevel"), 3)
 driver.call_game_method(GameHook("ReloadActiveScene", causes_soft_reload=True))
+driver.call_game_method(GameHook("GetPerfSample"))  # fps / allocated_mb / draw_calls
 ```

@@ -53,6 +53,39 @@ class ResilienceSettings(BaseModel):
         return v
 
 
+class PerfSettings(BaseModel):
+    """Opt-in PerfProbe knobs (phase-09). Off by default."""
+
+    enabled: bool = False
+    interval_s: float = 1.0
+    scope: str = "test"  # test | run
+    source: str = "auto"  # auto | android | companion
+    metrics: list[str] = Field(default_factory=list)
+
+    @field_validator("interval_s")
+    @classmethod
+    def _positive_interval(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("interval_s must be > 0")
+        return v
+
+    @field_validator("scope")
+    @classmethod
+    def _scope_ok(cls, v: str) -> str:
+        lowered = v.strip().lower()
+        if lowered not in {"test", "run"}:
+            raise ValueError("perf.scope must be 'test' or 'run'")
+        return lowered
+
+    @field_validator("source")
+    @classmethod
+    def _source_ok(cls, v: str) -> str:
+        lowered = v.strip().lower()
+        if lowered not in {"auto", "android", "companion"}:
+            raise ValueError("perf.source must be 'auto', 'android', or 'companion'")
+        return lowered
+
+
 class Settings(BaseModel):
     """Resolved runtime settings for one invocation."""
 
@@ -64,6 +97,7 @@ class Settings(BaseModel):
     reporters: list[str] = Field(default_factory=list)
     wait: WaitSettings = Field(default_factory=WaitSettings)
     resilience: ResilienceSettings = Field(default_factory=ResilienceSettings)
+    perf: PerfSettings = Field(default_factory=PerfSettings)
     log_json: bool = False
     project_root: Path = Field(default_factory=Path.cwd)
     store_dir: Path | None = None
@@ -190,6 +224,13 @@ def _defaults() -> dict[str, Any]:
             "circuit_breaker_losses": 3,
             "recovery_enabled": True,
         },
+        "perf": {
+            "enabled": False,
+            "interval_s": 1.0,
+            "scope": "test",
+            "source": "auto",
+            "metrics": [],
+        },
         "log_json": False,
         "target_host": "127.0.0.1",
         "target_port": 13000,
@@ -303,7 +344,7 @@ def _profile_table(
             f"Fix the name or add a [profile.{name}] table."
         )
     table = dict(profiles[name])
-    # Normalize wait / resilience sub-tables
+    # Normalize wait / resilience / perf sub-tables
     wait = table.get("wait")
     if wait is not None and not isinstance(wait, dict):
         raise AuthoringError(
@@ -315,6 +356,12 @@ def _profile_table(
         raise AuthoringError(
             f"[profile.{name}].resilience must be a table "
             f"(e.g. resilience.watchdog_timeout_s = 120), got {type(resilience).__name__}."
+        )
+    perf = table.get("perf")
+    if perf is not None and not isinstance(perf, dict):
+        raise AuthoringError(
+            f"[profile.{name}].perf must be a table "
+            f"(e.g. perf.enabled = true), got {type(perf).__name__}."
         )
     return table
 
@@ -436,6 +483,30 @@ def _env_overrides(env: dict[str, str]) -> dict[str, Any]:
         )
     if resilience:
         mapping["resilience"] = resilience
+
+    perf: dict[str, Any] = {}
+    if f"{_ENV_PREFIX}PERF_ENABLED" in env:
+        perf["enabled"] = _parse_bool(
+            env[f"{_ENV_PREFIX}PERF_ENABLED"],
+            f"{_ENV_PREFIX}PERF_ENABLED",
+        )
+    p_int = f"{_ENV_PREFIX}PERF_INTERVAL_S"
+    if p_int in env and env[p_int] != "":
+        try:
+            perf["interval_s"] = float(env[p_int])
+        except ValueError as exc:
+            raise AuthoringError(
+                f"Environment variable {p_int}={env[p_int]!r} is not a number."
+            ) from exc
+    if f"{_ENV_PREFIX}PERF_SCOPE" in env and env[f"{_ENV_PREFIX}PERF_SCOPE"]:
+        perf["scope"] = env[f"{_ENV_PREFIX}PERF_SCOPE"]
+    if f"{_ENV_PREFIX}PERF_SOURCE" in env and env[f"{_ENV_PREFIX}PERF_SOURCE"]:
+        perf["source"] = env[f"{_ENV_PREFIX}PERF_SOURCE"]
+    if f"{_ENV_PREFIX}PERF_METRICS" in env:
+        raw_m = env[f"{_ENV_PREFIX}PERF_METRICS"].strip()
+        perf["metrics"] = [p.strip() for p in raw_m.split(",") if p.strip()] if raw_m else []
+    if perf:
+        mapping["perf"] = perf
     return mapping
 
 

@@ -94,7 +94,7 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | **05b** | **QuestlineWire** listener + `driver=questline`; Editor live smoke | **QL-2b** ✅ |
 | 06 | Nothing new (fault injection mock-based; optional live reuses Wire) | — |
 | 07–08 | Nothing new (consume the suite of §3) | — |
-| **09** | Companion perf counters compiled in dev builds | **QL-3** (tiny) |
+| **09** | Companion perf counters compiled in dev builds | **QL-3** (tiny) — triggered: refresh UPM for `QuestlinePerfProvider` / rebuild Dev APK; see [`performance.md`](performance.md) |
 | **09b** | Companion Wire v2 UI ops (`hierarchy`/`find`/`tap`/`screenshot`); rebuild Dev APK | **QL-2c** |
 | 10–13 | Nothing new; agents/eval run against the §3 suite and the mock game | — |
 | **14** | Test assembly (asmdef) + UTF C# tests + **Poco** SDK (second UI backend) | **QL-4** |

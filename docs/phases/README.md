@@ -16,9 +16,15 @@ Before opening / updating the PR:
 2. Out-of-scope → `BACKLOG.md`.
 3. **Update `docs/STATUS-DUAL.md`** if done/next/blocked changed.
 4. Game-related needs → `docs/GAME-INTEGRATION.md` (do not invent game commits).
+5. **HUD:** if the phase adds store/event data users should see, extend `questline hud`
+   (API + SPA + `docs/hud.md` + tests) **or** explicitly defer UI in the brief (see
+   [`docs/hud.md`](../hud.md) integration contract). Example: PerfProbe (09) → store now,
+   graphs in HUD II (10).
 
 Paste into session prompts if helpful:
 
 ```
 Also update docs/STATUS-DUAL.md (semáforo + roadmap rows + date) in this PR if status changed.
+If this phase adds store/event data users should see, extend questline hud (API + SPA +
+docs/hud.md + tests) or explicitly defer UI to a later phase in the brief / BACKLOG.
 ```

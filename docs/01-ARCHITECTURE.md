@@ -224,11 +224,14 @@ next to Python UI tests.
   bridge). Wrappable in Tauri later if a native app is ever wanted.
 - **Viewer** (Phase 8): run history, filters, test detail (steps timeline, artifacts,
   screenshots, hierarchy snapshots, death-point report), trends, flakiness view
-  (pass-rate per test over time), AI cost per run.
+  (pass-rate per test over time), AI cost per run (when `ai_calls` exist).
 - **Control center** (Phase 10): launch/stop runs (profile picker, marker/test selection,
   device picker), quarantine management (ledger-backed), profile/config editor with
-  validation, perf graphs (PerfProbe series, threshold overlays), AI actions
+  validation, perf graphs (PerfProbe series from phase 09, threshold overlays), AI actions
   (trigger triage/maintainer on a failed run).
+- **Integration rule:** new observables land in the store/bus first; each phase either
+  extends the HUD (API + SPA + `docs/hud.md`) or **explicitly defers** UI (e.g. phase 09
+  samples → phase 10 graphs). See [`docs/hud.md`](hud.md) § Evolution / Integration contract.
 
 ---
 
