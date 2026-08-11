@@ -30,6 +30,10 @@ class LaunchBody(BaseModel):
     device_serial: str | None = None
     reporters: list[str] | None = None
     include_quarantined: bool = False
+    # Optional questline.toml under project_root (absolute or relative).
+    config: str | None = None
+    # Sets QUESTLINE_LIVE_TARGET=1 for suites that skip without it (wire-smoke).
+    live_target: bool = False
 
 
 class ProfileBody(BaseModel):
@@ -72,6 +76,50 @@ def _config_path(request: Request) -> Path:
 def _project_root(request: Request) -> Path:
     root = getattr(_state(request), "project_root", None)
     return Path(root) if root is not None else _config_path(request).parent
+
+
+def _resolve_config_path(request: Request, config: str | None) -> Path:
+    """Resolve a config path; must stay under project_root."""
+    root = _project_root(request).resolve()
+    if not config or not str(config).strip():
+        return _config_path(request).resolve()
+    raw = Path(config.strip())
+    path = raw if raw.is_absolute() else (root / raw)
+    path = path.resolve()
+    try:
+        path.relative_to(root)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=403,
+            detail=f"config path outside project root: {path}",
+        ) from exc
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail=f"config not found: {path}")
+    return path
+
+
+def _discover_configs(root: Path) -> list[dict[str, str]]:
+    """Known questline.toml files under the project (root + examples)."""
+    found: list[Path] = []
+    root_cfg = root / "questline.toml"
+    if root_cfg.is_file():
+        found.append(root_cfg)
+    examples = root / "examples"
+    if examples.is_dir():
+        found.extend(sorted(examples.rglob("questline.toml")))
+    out: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for path in found:
+        key = str(path.resolve())
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            rel = str(path.resolve().relative_to(root.resolve()))
+        except ValueError:
+            rel = str(path)
+        out.append({"path": rel, "absolute": str(path.resolve())})
+    return out
 
 
 def _quarantine_path(request: Request) -> Path:
@@ -128,7 +176,11 @@ def live_ingest(request: Request, payload: dict[str, Any] = Body(...)) -> dict[s
 
 @router.get("/devices")
 def list_devices(request: Request) -> dict[str, Any]:
-    """Live device list via LocalAdbProvider (best-effort; empty if adb missing)."""
+    """Live device list via LocalAdbProvider (best-effort; empty if adb missing).
+
+    Editor Wire does **not** need an adb device — leave the picker on
+    \"(no adb pin)\". Empty list is normal without a phone/emulator.
+    """
     try:
         from questline.devices.adb.provider import LocalAdbProvider
 
@@ -143,10 +195,35 @@ def list_devices(request: Request) -> dict[str, Any]:
                     "caps": dict(d.caps),
                 }
                 for d in devices
-            ]
+            ],
+            "hint": (
+                "No adb devices online. That is OK for Unity Editor Wire "
+                "(profile editor). Connect a phone/emulator for android_local."
+                if not devices
+                else None
+            ),
         }
     except Exception as exc:
-        return {"devices": [], "error": str(exc)}
+        return {
+            "devices": [],
+            "error": str(exc),
+            "hint": (
+                "adb list failed. Editor Wire still works without a device — "
+                "use profile editor and leave device on (no adb pin)."
+            ),
+        }
+
+
+@router.get("/configs")
+def list_configs(request: Request) -> dict[str, Any]:
+    root = _project_root(request)
+    configs = _discover_configs(root)
+    active = str(_config_path(request).resolve())
+    return {
+        "project_root": str(root.resolve()),
+        "active": active,
+        "configs": configs,
+    }
 
 
 @router.get("/reporters")
@@ -198,8 +275,11 @@ def collect_tests(
 
 
 @router.get("/profiles")
-def profiles(request: Request) -> dict[str, Any]:
-    path = _config_path(request)
+def profiles(
+    request: Request,
+    config: str | None = Query(None, description="Optional questline.toml under project"),
+) -> dict[str, Any]:
+    path = _resolve_config_path(request, config)
     try:
         names = list_profile_names(path)
     except AuthoringError as exc:
@@ -324,6 +404,10 @@ def quarantine_audit(body: QuarantineAuditBody, request: Request) -> dict[str, A
 @router.post("/launcher/start")
 def runs_launch(body: LaunchBody, request: Request) -> dict[str, Any]:
     launcher = _launcher(request)
+    cfg = _resolve_config_path(request, body.config)
+    extra_env: dict[str, str] = {}
+    if body.live_target:
+        extra_env["QUESTLINE_LIVE_TARGET"] = "1"
     req = LaunchRequest(
         profile=body.profile,
         tests=list(body.tests),
@@ -331,8 +415,9 @@ def runs_launch(body: LaunchBody, request: Request) -> dict[str, Any]:
         device_serial=body.device_serial,
         reporters=body.reporters,
         include_quarantined=body.include_quarantined,
-        config_path=_config_path(request),
+        config_path=cfg,
         cwd=_project_root(request),
+        extra_env=extra_env,
     )
     try:
         status = launcher.launch(req)

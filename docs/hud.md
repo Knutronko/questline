@@ -7,6 +7,8 @@ run/test detail (verdicts, death-point, artifacts), trends, live WebSocket view,
 
 Stack decision: [ADR-0007](adr/ADR-0007-hud-frontend-stack.md).
 Architecture overview: [`01-ARCHITECTURE.md`](01-ARCHITECTURE.md) §6.
+**Operator walkthrough (all capabilities → HUD flows):**
+[`hud-operator-guide.md`](hud-operator-guide.md).
 
 ## Evolution — what later phases add
 

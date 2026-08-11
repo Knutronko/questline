@@ -1,7 +1,10 @@
-# Dev/CI default config. Demo suite may still pass --questline-config explicitly.
+# Dev/CI + HUD launcher profiles (repo root).
+# Wire Editor/Android suites also work with examples/wire-smoke/questline.toml
+# via the HUD config picker — same profile names.
 
 [profile.default]
 driver = "mock"
+reporters = ["console"]
 wait.probe = 0.05
 wait.deadline = 0.5
 wait.interval = 0.01
@@ -9,6 +12,34 @@ wait.interval = 0.01
 [profile.mock]
 driver = "mock"
 markers = ["quest_demo"]
+reporters = ["console"]
 wait.probe = 0.05
 wait.deadline = 0.5
 wait.interval = 0.01
+
+# QuestlineWire — Unity Editor Play mode (127.0.0.1:13000). No adb device needed.
+[profile.editor]
+driver = "questline"
+target_host = "127.0.0.1"
+target_port = 13000
+target_platform = "editor"
+device = "local"
+reporters = ["console"]
+wait.probe = 2.0
+wait.deadline = 20.0
+wait.interval = 0.5
+perf.enabled = false
+
+# QuestlineWire — Android Dev APK + adb (pick serial in HUD Launch when multiple).
+[profile.android_local]
+driver = "questline"
+device = "adb"
+target_host = "127.0.0.1"
+target_port = 13000
+target_platform = "android"
+install_apk = true
+reporters = ["console"]
+wait.probe = 2.0
+wait.deadline = 45.0
+wait.interval = 0.5
+perf.enabled = false

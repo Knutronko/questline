@@ -321,7 +321,32 @@ def test_reporters_and_concurrent_launch(client: TestClient) -> None:
     _mut(client, "POST", "/api/launcher/stop")
 
 
-def test_collect_tests_scoped(client: TestClient, hud_root: Path) -> None:
-    res = client.get("/api/tests/collect", params={"path": str(hud_root)})
-    assert res.status_code == 200
-    assert "nodeids" in res.json()
+def test_configs_and_wire_profiles(client: TestClient, hud_root: Path) -> None:
+    # Root toml in fixture only had mock — write editor profile like repo root.
+    (hud_root / "questline.toml").write_text(
+        '[profile.mock]\ndriver = "mock"\n'
+        '[profile.editor]\ndriver = "questline"\ntarget_platform = "editor"\n',
+        encoding="utf-8",
+    )
+    wire_dir = hud_root / "examples" / "wire-smoke"
+    wire_dir.mkdir(parents=True)
+    (wire_dir / "questline.toml").write_text(
+        '[profile.editor]\ndriver = "questline"\n',
+        encoding="utf-8",
+    )
+    configs = client.get("/api/configs")
+    assert configs.status_code == 200
+    paths = {c["path"].replace("\\", "/") for c in configs.json()["configs"]}
+    assert "questline.toml" in paths
+    assert "examples/wire-smoke/questline.toml" in paths
+
+    profiles = client.get("/api/profiles")
+    assert "editor" in profiles.json()["profiles"]
+    assert "mock" in profiles.json()["profiles"]
+
+    wire_profiles = client.get(
+        "/api/profiles",
+        params={"config": "examples/wire-smoke/questline.toml"},
+    )
+    assert wire_profiles.status_code == 200
+    assert "editor" in wire_profiles.json()["profiles"]

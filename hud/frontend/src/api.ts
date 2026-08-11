@@ -147,8 +147,30 @@ export function getTrends(limit = 50): Promise<{
   return getJson(`/api/trends?limit=${limit}`);
 }
 
-export function listProfiles(): Promise<{ profiles: string[]; path: string }> {
-  return getJson("/api/profiles");
+export function listProfiles(config?: string): Promise<{ profiles: string[]; path: string }> {
+  const q = config ? `?config=${encodeURIComponent(config)}` : "";
+  return getJson(`/api/profiles${q}`);
+}
+
+export function listConfigs(): Promise<{
+  project_root: string;
+  active: string;
+  configs: Array<{ path: string; absolute: string }>;
+}> {
+  return getJson("/api/configs");
+}
+
+export function listDevices(): Promise<{
+  devices: Array<{
+    id: string;
+    platform: string;
+    api_level: number | null;
+    caps: Record<string, string>;
+  }>;
+  error?: string;
+  hint?: string | null;
+}> {
+  return getJson("/api/devices");
 }
 
 export function getProfile(name: string): Promise<{
@@ -186,13 +208,6 @@ export function saveProfile(
   });
 }
 
-export function listDevices(): Promise<{
-  devices: Array<{ id: string; platform: string; api_level: number | null; caps: Record<string, string> }>;
-  error?: string;
-}> {
-  return getJson("/api/devices");
-}
-
 export function listReporters(): Promise<{ reporters: string[] }> {
   return getJson("/api/reporters");
 }
@@ -208,6 +223,8 @@ export function launchRun(body: {
   device_serial?: string;
   reporters?: string[];
   include_quarantined?: boolean;
+  config?: string;
+  live_target?: boolean;
 }): Promise<{ launcher: LauncherStatus }> {
   return mutateJson("POST", "/api/launcher/start", body);
 }
