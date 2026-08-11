@@ -44,3 +44,10 @@ Wire v2 UI (`find`/`tap`) is **phase-09b** (after this phase) — do not impleme
 
 ## PR checklist
 Title `phase-09: perfprobe`. Next planned fw bridge: [phase-09b](phase-09b-wire-v2.md).
+
+## Lessons / incidents
+
+| Id | Lesson |
+|----|--------|
+| [INC-0001](../incidents/INC-0001-wire-perf-socket-race.md) | Leaving `QUESTLINE_PERF_*` set after maintainer C/D races Wire NDJSON in later sessions — document clear-env; transport lock landed in 09b. |
+| [INC-0002](../incidents/INC-0002-companion-sync-uncommitted.md) | QL-3 companion copy must ship as a **game PR** the same day; local-only embed looks like “unfinished phase”. |

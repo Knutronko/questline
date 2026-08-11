@@ -17,7 +17,7 @@ namespace Questline.Companion
     /// </summary>
     public sealed class QuestlineWireServer : MonoBehaviour
     {
-        public const int ProtocolVersion = 1;
+        public const int ProtocolVersion = 2;
         public const int DefaultPort = 13000;
         public const string CompanionVersion = "0.1.0";
 
@@ -248,9 +248,28 @@ namespace Questline.Companion
                         });
                     case "call_hook":
                         return RunOnMainThread(() => InvokeHookOp(id, paramsJson));
+                    case "hierarchy":
+                        return RunOnMainThread(() =>
+                            WireJson.OkResponse(id, QuestlineWireUi.HierarchyResult(paramsJson)));
+                    case "find":
+                        return RunOnMainThread(() =>
+                            WireJson.OkResponse(id, QuestlineWireUi.FindResult(paramsJson, all: false)));
+                    case "find_all":
+                        return RunOnMainThread(() =>
+                            WireJson.OkResponse(id, QuestlineWireUi.FindResult(paramsJson, all: true)));
+                    case "tap":
+                        return RunOnMainThread(() =>
+                            WireJson.OkResponse(id, QuestlineWireUi.TapResult(paramsJson)));
+                    case "screenshot":
+                        return RunOnMainThread(() =>
+                            WireJson.OkResponse(id, QuestlineWireUi.ScreenshotResult()));
                     default:
                         return WireJson.ErrorResponse(id, "authoring", $"unknown op: {op}");
                 }
+            }
+            catch (QuestlineWireUi.ElementNotFoundException ex)
+            {
+                return WireJson.ErrorResponse(id, "element_not_found", ex.Message);
             }
             catch (Exception ex)
             {
@@ -298,7 +317,8 @@ namespace Questline.Companion
             sb.Append('{');
             sb.Append("\"protocol_version\":").Append(ProtocolVersion).Append(',');
             sb.Append("\"companion_version\":\"").Append(WireJson.Escape(CompanionVersion)).Append("\",");
-            sb.Append("\"scene\":\"").Append(WireJson.Escape(scene)).Append('"');
+            sb.Append("\"scene\":\"").Append(WireJson.Escape(scene)).Append("\",");
+            sb.Append("\"features\":[\"hooks\",\"ui\"]");
             sb.Append('}');
             return sb.ToString();
         }
@@ -318,6 +338,8 @@ namespace Questline.Companion
 
         private static string ClassifyException(Exception ex)
         {
+            if (ex is QuestlineWireUi.ElementNotFoundException)
+                return "element_not_found";
             if (ex is ArgumentException || ex is FormatException)
                 return "authoring";
             if (ex is InvalidOperationException)
@@ -440,6 +462,24 @@ namespace Questline.Companion
                 i++;
             value = json.Substring(start, i - start);
             return value.Length > 0;
+        }
+
+        public static bool TryGetInt(string json, string key, out int value)
+        {
+            value = 0;
+            if (!TryGetString(json, key, out var raw) || string.IsNullOrEmpty(raw))
+                return false;
+            return int.TryParse(raw, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out value);
+        }
+
+        public static bool TryGetFloat(string json, string key, out float value)
+        {
+            value = 0f;
+            if (!TryGetString(json, key, out var raw) || string.IsNullOrEmpty(raw))
+                return false;
+            return float.TryParse(raw, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out value);
         }
 
         public static bool TryGetRawObject(string json, string key, out string raw)

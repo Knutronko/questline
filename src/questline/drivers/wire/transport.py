@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import socket
+import threading
+import uuid
 from typing import Any, Protocol, runtime_checkable
 
 from questline.core.errors import InfraError, SessionLostError
@@ -21,7 +23,11 @@ class WireTransport(Protocol):
 
 
 class TcpWireTransport:
-    """Real TCP + NDJSON client (one request → one response line)."""
+    """Real TCP + NDJSON client (one request → one response line).
+
+    ``request`` is serialized with a lock so concurrent callers (e.g. PerfProbe
+    background sampler + test thread) cannot interleave lines on the socket.
+    """
 
     def __init__(
         self,
@@ -33,11 +39,17 @@ class TcpWireTransport:
         self._sock.settimeout(recv_timeout_s)
         self._buffer = b""
         self._closed = False
+        self._lock = threading.Lock()
 
     def request(self, op: str, params: dict[str, Any] | None = None) -> Any:
+        with self._lock:
+            return self._request_unlocked(op, params)
+
+    def _request_unlocked(self, op: str, params: dict[str, Any] | None = None) -> Any:
         if self._closed:
             raise SessionLostError("wire transport closed", kind="disposed")
-        line = make_request(op, params) + "\n"
+        req_id = uuid.uuid4().hex
+        line = make_request(op, params, req_id=req_id) + "\n"
         try:
             self._sock.sendall(line.encode("utf-8"))
             raw = self._readline()
@@ -48,6 +60,14 @@ class TcpWireTransport:
             data = parse_response(raw)
         except Exception as exc:
             raise map_wire_error(exc) from exc
+        resp_id = data.get("id")
+        if resp_id is not None and str(resp_id) != req_id:
+            self._alive_clear()
+            raise SessionLostError(
+                f"wire response id mismatch (concurrent clients on one socket?): "
+                f"sent {req_id}, got {resp_id!r} for op={op!r}",
+                kind="protocol",
+            )
         if not data.get("ok", False):
             err = data.get("error") or {}
             code = str(err.get("code", "infra"))
@@ -98,7 +118,7 @@ def connect_real_transport(target: ConnectionTarget) -> WireTransport:
         raise map_wire_error(exc) from exc
 
     transport = TcpWireTransport(sock, recv_timeout_s=timeout)
-    # Handshake — proves the peer speaks Wire v1.
+    # Handshake — proves the peer speaks Wire.
     try:
         hello = transport.request("hello")
     except Exception:

@@ -69,13 +69,16 @@ to `Element` / `HierarchySnapshot` without leaking Unity types to tests.
 |-----------|------|
 | **09b** | **QL-2c** — sync `QuestlineWireServer` (+ any new companion files), Editor verify, rebuild `QUESTLINE_DEV` APK for Android |
 
+**HUD:** Wire v2 reuses existing screenshot / `ArtifactSaved` paths — **no new HUD
+pages/APIs in 09b** (same deferral contract as phase 09 → graphs in 10). See `docs/hud.md`.
+
 ## Acceptance criteria
 
-- [ ] CI: Wire UI unit tests via fake transport; existing hooks smoke still green;
+- [x] CI: Wire UI unit tests via fake transport; existing hooks smoke still green;
       **full matrix below** covered (or explicitly skipped with reason).
-- [ ] `examples/wire-smoke` includes a UI find/(tap|hierarchy) case; maintainer Editor live green.
-- [ ] `hello` feature/`protocol_version` gate documented; old companion → clear error on UI ops.
-- [ ] Docs + **STATUS-DUAL** (semáforo + roadmap + **Mermaid §4**) + GAME-INTEGRATION QL-2c
+- [x] `examples/wire-smoke` includes a UI find/(tap|hierarchy) case; maintainer Editor live green.
+- [x] `hello` feature/`protocol_version` gate documented; old companion → clear error on UI ops.
+- [x] Docs + **STATUS-DUAL** (semáforo + roadmap + **Mermaid §4**) + GAME-INTEGRATION QL-2c
       row updated; ADR-0008 remains accepted; `wire-setup.md` roadmap row → ✅.
 - [ ] Optional: Android live after QL-2c APK.
 
@@ -104,3 +107,12 @@ Title `phase-09b: Wire v2 find/hierarchy/tap`. Self-review section required.
 PowerShell Cómo probarlo (Editor `QUESTLINE_LIVE_TARGET=1` + wire-smoke).
 **Docs gate:** STATUS-DUAL Mermaid + tables; wire-setup; GAME-INTEGRATION; hud.md evolution
 row if UI runs produce new artifacts users should see (or explicitly defer).
+
+## Lessons / incidents
+
+| Id | Lesson |
+|----|--------|
+| [INC-0001](../incidents/INC-0001-wire-perf-socket-race.md) | Live wire-smoke saw `hooks_manifest`/`hierarchy` return `GetPerfSample` payloads — leftover `QUESTLINE_PERF_ENABLED`; fixed with transport lock + id check + clear-env docs. |
+| [INC-0002](../incidents/INC-0002-companion-sync-uncommitted.md) | Editor AC needs game companion v2 in Play (`listening … (v2)`); framework-only merge is not enough — QL-2c PR required. |
+
+Maintainer Editor live: **green** 2026-08-11 (`examples/wire-smoke` 4 passed after INC-0001 clear-env + lock).

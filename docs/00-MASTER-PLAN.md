@@ -160,22 +160,27 @@ Inserted lettered phases do not renumber later briefs.
 3. **Mandatory self-review before finishing:** the session audits its own implementation —
    future failure modes, inconsistencies with `01-ARCHITECTURE.md` and the design rules,
    unhandled edge cases, weak tests — and writes a **Self-review** section in the PR
-   description: findings (fixed vs accepted-risk) + improvement proposals (→ BACKLOG.md).
-   A PR without this section is not ready for review.
-4. **Update `docs/STATUS-DUAL.md`** when the phase changes done/next/blocked state (semáforo
+   description: findings (fixed vs accepted-risk) + improvement proposals (→ BACKLOG.md)
+   + **`Incidents: INC-NNNN | none`** (see `docs/INCIDENTS.md`). A PR without this section
+   is not ready for review.
+4. **Incidents:** if the session hits a maintainer-visible live/CI trap or needs a mid-PR
+   bugfix that future AIs should not repeat, file `docs/incidents/INC-NNNN-*.md`, add it
+   to the `INCIDENTS.md` index, and link from the phase brief **Lessons / incidents**
+   section. Do not dump incident narrative only into chat.
+5. **Update `docs/STATUS-DUAL.md`** when the phase changes done/next/blocked state (semáforo
    + roadmap row + date). Include the update in the phase PR. Cross-links:
    `docs/GAME-INTEGRATION.md`.
-5. The session ends with: branch pushed, PR description filled from the brief's checklist +
+6. The session ends with: branch pushed, PR description filled from the brief's checklist +
    self-review, CI green. **The maintainer reviews and merges — the session never merges.**
-6. **Revision round (on the branch, before merge):** the maintainer checks out the PR branch,
+7. **Revision round (on the branch, before merge):** the maintainer checks out the PR branch,
    tests the phase hands-on, and leaves requested changes (PR comments or a list). The same
    session — or a fresh one given the brief + the change list — applies them on the same
    branch until CI is green and the maintainer is satisfied. One phase = one PR, and nothing
    reaches `main` untested by a human.
-7. A phase is *done* when its acceptance criteria are demonstrably met (CI + manual check
+8. A phase is *done* when its acceptance criteria are demonstrably met (CI + manual check
    where hardware is involved). "It should work" is not done.
-8. Briefs are immutable once merged; scope changes create a revision commit with reasoning.
-   (`STATUS-DUAL.md` is a **living** doc — not a phase brief.)
+9. Briefs are immutable once merged; scope changes create a revision commit with reasoning.
+   (`STATUS-DUAL.md` and `INCIDENTS.md` are **living** docs — not phase briefs.)
 
 ## 7. Beyond v0.1
 

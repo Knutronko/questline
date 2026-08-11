@@ -24,14 +24,15 @@ Format: `- [ ] (phase-NN) description`
 - [x] (phase-05b follow-up) Android Wire smoke after Dev APK rebuild — green 2026-08-09
       (`android_local` + `adb forward`; reverse steals device `:port`).
 - [ ] (phase-14) Poco as **second** UI hierarchy adapter (+ UTF); Wire v2 UI is phase-09b.
-- [ ] (phase-09b) Wire v2 find/hierarchy/tap/screenshot — brief + ADR-0008 accepted (docs);
-      implement after phase-09. Game trigger QL-2c.
+- [x] (phase-09b) Wire v2 find/hierarchy/tap/screenshot — FakeWire CI + companion UI ops;
+      game trigger QL-2c (sync companion + Dev APK).
 - [ ] (phase-09) Companion `draw_calls` is a reserved slot (always 0 in Runtime asmdef —
       no UnityEditor dependency). Optional Editor-only extension or game-injected counter.
 - [ ] (phase-09) PerfProbe anomaly detection / soak trend analysis — deferred (phase brief
       out of scope; see AI roadmap / future phases).
-- [ ] (phase-09) Maintainer live: real-device FPS/memory series + overhead spot-check; Editor
-      companion samples after game **QL-3** (UPM refresh + Dev APK rebuild).
+- [ ] (phase-09) Document PowerShell clear of `QUESTLINE_PERF_*` in every live how-to that
+      follows a perf dogfood (see INC-0001) — done in wire-setup + performance.md; keep
+      citing INC when adding new live recipes.
 - [ ] (phase-05) Add Unity `.meta` files under `unity-package/` so git UPM (`questline.git?path=unity-package`) is importable — today Unity ignores the immutable package without `.meta`, forcing games to embed/copy the companion (ElJuegaso workaround). Cheap follow-up; deferred to avoid diluting Android scope.
 - [ ] (phase-05) `questline devices list|lock` CLI surface (architecture CLI mentions `devices`; provider is enough for android_local pytest wiring).
 - [ ] (phase-05) Sample-project minimal Android APK in-repo for CI-less live dogfood when game QL-2 is pending (optional; maintainer may use a local sample instead).

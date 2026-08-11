@@ -1,4 +1,4 @@
-"""QuestlineWire protocol constants and request helpers (ADR-0005)."""
+"""QuestlineWire protocol constants and request helpers (ADR-0005 / ADR-0008)."""
 
 from __future__ import annotations
 
@@ -6,9 +6,34 @@ import json
 import uuid
 from typing import Any
 
-PROTOCOL_VERSION = 1
+# NDJSON envelope field ``v`` — framing version (stable across Wire MVP + v2).
+ENVELOPE_VERSION = 1
 
-OPS = frozenset({"hello", "ping", "app_state", "hooks_manifest", "call_hook"})
+# Capability advertised in ``hello.result.protocol_version`` (Wire v2 UI = 2).
+PROTOCOL_VERSION = 2
+
+FEATURE_HOOKS = "hooks"
+FEATURE_UI = "ui"
+DEFAULT_FEATURES: tuple[str, ...] = (FEATURE_HOOKS, FEATURE_UI)
+
+OPS = frozenset(
+    {
+        "hello",
+        "ping",
+        "app_state",
+        "hooks_manifest",
+        "call_hook",
+        "hierarchy",
+        "find",
+        "find_all",
+        "tap",
+        "screenshot",
+    }
+)
+
+# Hierarchy reply bounds (companion + FakeWire must enforce).
+DEFAULT_MAX_DEPTH = 32
+DEFAULT_MAX_NODES = 500
 
 
 def make_request(
@@ -18,7 +43,7 @@ def make_request(
     if op not in OPS:
         raise ValueError(f"unknown wire op: {op}")
     payload = {
-        "v": PROTOCOL_VERSION,
+        "v": ENVELOPE_VERSION,
         "id": req_id or uuid.uuid4().hex,
         "op": op,
         "params": params or {},
@@ -32,3 +57,15 @@ def parse_response(line: str) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError("wire response must be a JSON object")
     return data
+
+
+def hello_advertises_ui(hello: dict[str, Any]) -> bool:
+    """True when companion hello advertises Wire v2 UI capability."""
+    features = hello.get("features")
+    if isinstance(features, list) and FEATURE_UI in features:
+        return True
+    version = hello.get("protocol_version")
+    try:
+        return int(version) >= 2
+    except (TypeError, ValueError):
+        return False

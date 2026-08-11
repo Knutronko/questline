@@ -28,6 +28,13 @@ Env overrides (never put secrets in toml — N/A for perf flags):
 
 Off by default so CI stays €0 and quiet unless a profile opts in.
 
+**Warning (INC-0001):** `QUESTLINE_PERF_ENABLED=true` in PowerShell persists for the
+whole window and overrides `perf.enabled = false` in toml. A later Wire-only
+`wire-smoke` in the same window will start PerfProbe on the shared TCP socket.
+Clear env before isolating Wire UI (see [`wire-setup.md`](wire-setup.md) and
+[`INCIDENTS.md`](INCIDENTS.md)). TcpWireTransport serializes requests after the
+09b fix; clearing env is still the right default for UI debugging.
+
 ## Metrics
 
 | Metric | Source | Meaning |
