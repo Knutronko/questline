@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import base64
+import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
-import threading
 
 from questline.core.errors import AuthoringError, ElementNotFoundError, SessionLostError, TestError
 from questline.drivers.locators import LocatorStrategy
