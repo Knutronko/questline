@@ -171,6 +171,13 @@ def test_spa_fallback_and_asset(client: TestClient) -> None:
     assert index.status_code == 200
 
 
+def test_missing_api_route_is_json_not_html(client: TestClient) -> None:
+    res = client.get("/api/this-route-does-not-exist")
+    assert res.status_code == 404
+    assert "application/json" in res.headers.get("content-type", "")
+    assert "<!DOCTYPE" not in res.text
+
+
 def test_create_app_export(hud_store) -> None:
     from questline.hud import create_app as exported
 

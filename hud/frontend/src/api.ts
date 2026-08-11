@@ -61,11 +61,24 @@ let csrfToken: string | null = null;
 
 async function getJson<T>(path: string): Promise<T> {
   const res = await fetch(path);
+  const text = await res.text();
+  const looksHtml =
+    /^\s*</.test(text) ||
+    (res.headers.get("content-type") || "").includes("text/html");
+  if (looksHtml) {
+    throw new Error(
+      `${res.status} ${path}: got HTML instead of JSON. ` +
+        `Restart questline hud (old process missing new /api routes).`,
+    );
+  }
   if (!res.ok) {
-    const text = await res.text();
     throw new Error(`${res.status} ${path}: ${text}`);
   }
-  return (await res.json()) as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch (err) {
+    throw new Error(`${path}: invalid JSON (${String(err)})`);
+  }
 }
 
 export async function ensureCsrf(): Promise<string> {

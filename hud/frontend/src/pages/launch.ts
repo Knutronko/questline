@@ -54,12 +54,36 @@ const PRESETS: SuitePreset[] = [
 
 export async function renderLaunch(): Promise<string> {
   await ensureCsrf();
-  const [meta, configs, reporters, status] = await Promise.all([
-    getMeta(),
-    listConfigs(),
-    listReporters(),
-    launcherStatus().catch(() => ({ launcher: { state: "idle" } as LauncherStatus })),
-  ]);
+  let meta;
+  let configs: {
+    project_root: string;
+    active: string;
+    configs: Array<{ path: string; absolute: string }>;
+  };
+  let reporters: { reporters: string[] };
+  let status: { launcher: LauncherStatus };
+
+  try {
+    [meta, configs, reporters, status] = await Promise.all([
+      getMeta(),
+      listConfigs().catch(() => ({
+        project_root: "",
+        active: "",
+        configs: [{ path: "questline.toml", absolute: "questline.toml" }],
+      })),
+      listReporters().catch(() => ({ reporters: ["console"] })),
+      launcherStatus().catch(() => ({
+        launcher: { state: "idle" } as LauncherStatus,
+      })),
+    ]);
+  } catch (err) {
+    return `<h1>Launch</h1>
+      <div class="empty" data-testid="launch-error">
+        Failed to load launcher APIs: ${esc(String(err))}<br/>
+        Stop the old <code>questline hud</code> process and start it again from
+        <code>D:\\dev\\questline</code>.
+      </div>`;
+  }
 
   if (meta.read_only) {
     return `<h1>Launch</h1>

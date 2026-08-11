@@ -6,8 +6,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, WebSocket
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from questline.core.events import EventBus
@@ -131,7 +131,13 @@ def create_app(
 
         @app.get("/{full_path:path}")
         async def spa_fallback(full_path: str) -> Any:
-            # Do not steal API / live routes (already registered).
+            # Never serve the SPA shell for API / live — return JSON 404 instead of
+            # index.html (which breaks fetch().json() with "<!DOCTYPE...").
+            if full_path == "api" or full_path.startswith("api/") or full_path == "live":
+                return JSONResponse(
+                    {"detail": f"API route not found: /{full_path}"},
+                    status_code=404,
+                )
             candidate = assets / full_path
             if candidate.is_file():
                 return FileResponse(candidate)
