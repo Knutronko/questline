@@ -10,6 +10,8 @@ reporters = ["console"]
 wait.probe = 2.0
 wait.deadline = 20.0
 wait.interval = 0.5
+# Keep smoke deterministic; env QUESTLINE_PERF_ENABLED=true still overrides (clear it).
+perf.enabled = false
 
 [profile.standalone]
 driver = "questline"

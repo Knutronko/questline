@@ -6,6 +6,7 @@ import base64
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
+import threading
 
 from questline.core.errors import AuthoringError, ElementNotFoundError, SessionLostError, TestError
 from questline.drivers.locators import LocatorStrategy
@@ -142,8 +143,13 @@ class FakeWireTransport:
         self._max_depth = int(self._state.get("max_depth", DEFAULT_MAX_DEPTH))
         self._max_nodes = int(self._state.get("max_nodes", DEFAULT_MAX_NODES))
         self._point_taps: list[tuple[float, float]] = self._state.setdefault("point_taps", [])
+        self._lock = threading.Lock()
 
     def request(self, op: str, params: dict[str, Any] | None = None) -> Any:
+        with self._lock:
+            return self._request_unlocked(op, params)
+
+    def _request_unlocked(self, op: str, params: dict[str, Any] | None = None) -> Any:
         if self._closed:
             raise SessionLostError("fake wire closed", kind="disposed")
         params = params or {}

@@ -461,6 +461,83 @@ def test_tcp_wire_driver_against_loopback() -> None:
     t.join(2.0)
 
 
+def test_tcp_wire_concurrent_requests_serialized() -> None:
+    """PerfProbe-style concurrent call_hook must not steal other op responses."""
+    import threading
+
+    port_box: list[int] = []
+    ready = threading.Event()
+
+    def serve() -> None:
+        srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        srv.bind(("127.0.0.1", 0))
+        port_box.append(srv.getsockname()[1])
+        srv.listen(1)
+        ready.set()
+        conn, _ = srv.accept()
+        with conn:
+            buf = b""
+            while True:
+                chunk = conn.recv(4096)
+                if not chunk:
+                    break
+                buf += chunk
+                while b"\n" in buf:
+                    line, buf = buf.split(b"\n", 1)
+                    req = json.loads(line.decode("utf-8"))
+                    op = req.get("op")
+                    rid = req.get("id", "0")
+                    if op == "hello":
+                        result: Any = {
+                            "protocol_version": PROTOCOL_VERSION,
+                            "features": ["hooks", "ui"],
+                            "scene": "TcpFake",
+                        }
+                    elif op == "hooks_manifest":
+                        result = {"hooks": [{"name": "Ping", "args": []}]}
+                    elif op == "call_hook":
+                        result = {
+                            "value": json.dumps(
+                                {"fps": 60.0, "allocated_mb": 1.0, "draw_calls": 0}
+                            )
+                        }
+                    else:
+                        result = {"ok": True}
+                    # Tiny delay so concurrent clients can interleave without a lock.
+                    import time as _time
+
+                    _time.sleep(0.01)
+                    resp = {"v": 1, "id": rid, "ok": True, "result": result}
+                    conn.sendall((json.dumps(resp) + "\n").encode("utf-8"))
+        srv.close()
+
+    t = threading.Thread(target=serve, daemon=True)
+    t.start()
+    assert ready.wait(2.0)
+    transport = connect_real_transport(ConnectionTarget(host="127.0.0.1", port=port_box[0]))
+    errors: list[BaseException] = []
+
+    def spam_perf() -> None:
+        try:
+            for _ in range(20):
+                transport.request("call_hook", {"name": "GetPerfSample", "args": []})
+        except BaseException as exc:  # noqa: BLE001 — collect for assertion
+            errors.append(exc)
+
+    threads = [threading.Thread(target=spam_perf) for _ in range(2)]
+    for th in threads:
+        th.start()
+    for _ in range(10):
+        raw = transport.request("hooks_manifest")
+        assert isinstance(raw, dict) and "hooks" in raw
+    for th in threads:
+        th.join(5.0)
+    assert errors == []
+    transport.close()
+    t.join(2.0)
+
+
 def test_default_tree_fixture() -> None:
     root = default_fake_ui_tree()
     assert root.id == "canvas"
