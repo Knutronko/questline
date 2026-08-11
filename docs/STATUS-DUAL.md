@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-11** (fw **09b** Wire v2 UI ✅ Editor live; next **10** HUD II / Android QL-2c optional).
+> Última revisión: **2026-08-11** (fw **10** HUD II control center ✅; next **11** AI foundation / game D11).
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 + **05b–09b** | Wire v2 UI live Editor ✅; FakeWire CI; transport lock (INC-0001) | **10** HUD II | Ninguno crítico; AltTester Desktop **fuera** del happy path |
+| **questline** | v0.1 + **05b–10** | HUD II control center ✅ (launcher/quarantine/profiles/perf graphs) | **11** AI foundation | Ninguno crítico; AltTester Desktop **fuera** del happy path |
 | **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b/QL-2c/QL-3** + Wire + **`automation/`** + **D10.5** | **D11** (ideal); Android Dev APK rebuild optional | AltTester UPM **remoto/legacy**; Poco = 2º UI (fw 14) |
 
 **Drivers (prioridad):**
@@ -47,10 +47,10 @@
 | 6 | Resilience | ✅ | Health/recovery/watchdog; ADR-0006 |
 | 7 | Reporters | ✅ | console/HTML/Slack/GH Issues |
 | 8 | HUD I viewer | ✅ | FastAPI + SPA; ADR-0007 |
-| 9 | PerfProbe | ✅ | Sampler + android + companion + asserts + CLI; HUD graphs → **10** |
+| 9 | PerfProbe | ✅ | Sampler + android + companion + asserts + CLI; HUD graphs ✅ in **10** |
 | **09b** | **Wire v2 UI** | ✅ | find/hierarchy/tap/screenshot; ADR-0008; trigger **QL-2c** |
-| 10 | HUD II control | ⬜ **next (fw)** | |
-| 11 | AI foundation | ⬜ | |
+| 10 | HUD II control | ✅ | Launcher, quarantine, profiles, perf graphs, CSRF/`--read-only` |
+| 11 | AI foundation | ⬜ **next (fw)** | |
 | 12 | AI agents | ⬜ | |
 | 13 | AI generation + eval | ⬜ | |
 | 14 | **Poco** + UTF | ⬜ | 2º UI backend + UTF; trigger **QL-4** |
@@ -111,9 +111,10 @@ flowchart TB
     Q7 --> Q8[08 HUD I ✅]
     Q8 --> Q9[09 PerfProbe ✅]
     Q9 --> Q9b[09b Wire v2 UI ✅]
-    Q9b --> Q10[10 HUD II next]
+    Q9b --> Q10[10 HUD II ✅]
+    Q10 --> Q11[11-13 AI]
     Q4 --> Q9
-    Q3[03 Authoring ✅] --> Q11[11-13 AI]
+    Q3[03 Authoring ✅] --> Q11
     Q5b --> Q11
     Q9b --> Q14[14 Poco/UTF second UI]
     Q11 --> Q15[15 Release]
@@ -156,11 +157,12 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | **D11** + **QL-5 / FP-G1** | ElJuegaso (+ fw) | Economía + GameLens; Wire UI ya disponible |
-| 2 | Rebuild Dev APK (Android Wire v2) | ElJuegaso | Opcional tras QL-2c companion |
-| 3 | **D12 ↔ QL-6 / FP-G2** | ambos | Infinito + telemetría |
-| 4 | **FP-G3** bots (cuando toque) | fw | Curvas medidas usando Wire v2 |
-| 5 | **phase-14 Poco + QL-4** | ambos | 2º UI backend + UTF |
+| 1 | **phase-11** AI foundation | questline | Next fw phase after HUD II |
+| 2 | **D11** + **QL-5 / FP-G1** | ElJuegaso (+ fw) | Economía + GameLens; Wire UI ya disponible |
+| 3 | Rebuild Dev APK (Android Wire v2) | ElJuegaso | Opcional tras QL-2c companion |
+| 4 | **D12 ↔ QL-6 / FP-G2** | ambos | Infinito + telemetría |
+| 5 | **FP-G3** bots (cuando toque) | fw | Curvas medidas usando Wire v2 |
+| 6 | **phase-14 Poco + QL-4** | ambos | 2º UI backend + UTF |
 
 
 **Stack live:** Wire = hooks + hierarchy/find/tap (**09b** ✅). **Poco** = 2º adapter.
@@ -203,7 +205,7 @@ Formalizado en: questline `GAME-INTEGRATION.md` + `00-MASTER-PLAN.md` §6 · ElJ
 | PerfProbe | [`performance.md`](performance.md) · [`phase-09`](phases/phase-09-perfprobe.md) |
 | Resilience | [`resilience.md`](resilience.md) · [`ADR-0006`](adr/ADR-0006-recovery-ladder.md) |
 | Reporting | [`reporting.md`](reporting.md) |
-| HUD viewer | [`hud.md`](hud.md) · [`ADR-0007`](adr/ADR-0007-hud-frontend-stack.md) |
+| HUD control center | [`hud.md`](hud.md) · [`ADR-0007`](adr/ADR-0007-hud-frontend-stack.md) · [`phase-10`](phases/phase-10-hud-control-center.md) |
 | Phase 05b brief | [`phase-05b-questline-wire.md`](phases/phase-05b-questline-wire.md) |
 | Android / adb | [`android.md`](android.md) |
 | Legacy AltTester setup | [`unity-setup.md`](unity-setup.md) |

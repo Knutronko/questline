@@ -14,7 +14,7 @@ from questline.reporters.port import ReporterPort
 logger = logging.getLogger("questline.reporters")
 
 # Concrete adapters only — stubs are constructible but raise on use.
-_KNOWN = frozenset(
+KNOWN_REPORTERS = frozenset(
     {
         "console",
         "html",
@@ -26,6 +26,7 @@ _KNOWN = frozenset(
         "testrail",
     }
 )
+_KNOWN = KNOWN_REPORTERS  # backward-compatible alias
 
 
 def build_reporters(

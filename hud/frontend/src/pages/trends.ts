@@ -1,7 +1,7 @@
-import { esc, fmtDur, getTrends } from "../api";
+import { esc, fmtDur, getPerfCorrelation, getTrends } from "../api";
 
 export async function renderTrends(): Promise<string> {
-  const data = await getTrends(50);
+  const [data, corr] = await Promise.all([getTrends(50), getPerfCorrelation(50)]);
   const series = data.series || [];
   const maxDur = Math.max(1, ...series.map((s) => Number(s.duration_s ?? 0) || 0));
   const bars = series
@@ -38,6 +38,22 @@ export async function renderTrends(): Promise<string> {
     )
     .join("");
 
+  const corrRows = (corr.tests || [])
+    .map((t) => {
+      const pts = (t.points || [])
+        .map((p) => {
+          const dur = p.duration_s == null ? 0 : Number(p.duration_s);
+          return `<span class="dot ${p.passed ? "ok" : "bad"}" title="${esc(p.run_id)} · ${esc(fmtDur(dur))}"></span>`;
+        })
+        .join("");
+      return `<tr>
+        <td class="wrap">${esc(t.nodeid)}</td>
+        <td>${t.passed}/${t.failed}</td>
+        <td class="corr-dots">${pts}</td>
+      </tr>`;
+    })
+    .join("");
+
   return `
     <h1>Trends</h1>
     <h2>Pass rate (recent runs)</h2>
@@ -51,6 +67,14 @@ export async function renderTrends(): Promise<string> {
           <tr><th>Test</th><th>Runs</th><th>P/F</th><th>Pass%</th><th>Flake</th></tr>
         </thead>
         <tbody>${flaky || `<tr><td colspan="5">No flaky tests detected.</td></tr>`}</tbody>
+      </table>
+    </div>
+    <h2>Duration vs pass (correlation)</h2>
+    <p class="meta">Green = pass, red = fail per run (same flaky nodeids).</p>
+    <div class="table-wrap">
+      <table data-testid="corr-table">
+        <thead><tr><th>Test</th><th>P/F</th><th>Runs</th></tr></thead>
+        <tbody>${corrRows || `<tr><td colspan="3">No mixed pass/fail series yet.</td></tr>`}</tbody>
       </table>
     </div>
   `;

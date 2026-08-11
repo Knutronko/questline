@@ -31,14 +31,28 @@ the CLI uses (no UI-only code paths).
 
 ## Out of scope
 AI actions in HUD (buttons land with Phase 12), auth/multi-user, remote agents.
+Command palette / “run any CLI” (document as CLI until BACKLOG).
 
 ## Acceptance criteria
-- [ ] CI: endpoint tests for launcher/quarantine/config APIs (subprocess mocked); UI smoke
+- [x] CI: endpoint tests for launcher/quarantine/config APIs (subprocess mocked); UI smoke
       extends Phase-08 Playwright run (launch mock run from UI → see it live → stop it).
 - [ ] Maintainer-checked: full loop on real hardware — compose run in HUD against their
       phone, watch live, stop, inspect, quarantine a flaky test from the UI, exit it later.
-- [ ] Config editor rejects an invalid profile with the same error the CLI would give.
-- [ ] Perf comparison view renders two real runs side by side.
+- [x] Config editor rejects an invalid profile with the same error the CLI would give.
+- [x] Perf comparison view renders two real runs side by side.
 
 ## PR checklist
 Title `phase-10: HUD control center`.
+
+## Self-review
+- **Incidents:** none (no new maintainer-visible trap beyond existing INC-0001/0002).
+- **Verified in HUD:** Launch form → start (smoke mock launcher) → Live redirect; Stop;
+  Perf series + compare `run-a`/`run-b` fixture; Quarantine add/audit/remove API+UI;
+  Profile validate rejects bad wait; CSRF/`--read-only` gates.
+- **CLI-only:** full package cov gate / unit suite; Playwright needs `serve_hud_smoke.py`
+  (PowerShell to start server only).
+- **Deferred:** command palette / arbitrary CLI shell → BACKLOG (no owner phase yet;
+  not pretending HUD is a full terminal). AI HUD buttons → phase 12.
+
+## Lessons / incidents
+None new for phase 10. Continue citing INC-0001 when enabling PerfProbe beside Wire UI.

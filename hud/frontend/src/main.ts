@@ -1,23 +1,37 @@
 import "./style.css";
-import { esc, fmtDur, listRuns, type RunSummary } from "./api";
+import { ensureCsrf, esc, fmtDur, getMeta, listRuns, type RunSummary } from "./api";
 import { renderRun } from "./pages/run";
 import { renderTest } from "./pages/test";
 import { renderTrends } from "./pages/trends";
 import { renderLive, startLive } from "./pages/live";
+import { renderLaunch, wireLaunch } from "./pages/launch";
+import { renderQuarantine, wireQuarantine } from "./pages/quarantine";
+import { renderProfiles, wireProfiles } from "./pages/profiles";
+import { renderPerf, wirePerf } from "./pages/perf";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
+
+let readOnly = false;
 
 function shell(active: string, body: string): string {
   const link = (href: string, label: string) =>
     `<a href="${href}" class="${active === label ? "active" : ""}">${label}</a>`;
+  const control = readOnly
+    ? ""
+    : `${link("#/launch", "Launch")}
+        ${link("#/quarantine", "Quarantine")}
+        ${link("#/profiles", "Profiles")}`;
   return `
     <header class="topbar">
       <a class="brand" href="#/">Questline <span>HUD</span></a>
       <nav class="nav">
         ${link("#/", "Runs")}
+        ${control}
+        ${link("#/perf", "Perf")}
         ${link("#/trends", "Trends")}
         ${link("#/live", "Live")}
       </nav>
+      ${readOnly ? `<span class="badge warn" title="--read-only">RO</span>` : ""}
     </header>
     <main class="main">${body}</main>
   `;
@@ -34,6 +48,10 @@ function route(): { name: string; params: Record<string, string> } {
   }
   if (parts[0] === "trends") return { name: "trends", params: {} };
   if (parts[0] === "live") return { name: "live", params: {} };
+  if (parts[0] === "launch") return { name: "launch", params: {} };
+  if (parts[0] === "quarantine") return { name: "quarantine", params: {} };
+  if (parts[0] === "profiles") return { name: "profiles", params: {} };
+  if (parts[0] === "perf") return { name: "perf", params: {} };
   return { name: "runs", params: {} };
 }
 
@@ -41,7 +59,7 @@ function runsTable(runs: RunSummary[]): string {
   if (!runs.length) {
     return `<div class="empty" data-testid="empty-store">
       No runs in the store yet.<br/>
-      Run a suite with the questline plugin, then refresh.
+      Use <a href="#/launch">Launch</a> or run a suite with the questline plugin, then refresh.
     </div>`;
   }
   const rows = runs
@@ -100,6 +118,7 @@ async function renderRuns(): Promise<string> {
         </select>
       </label>
       <button type="button" id="f-apply">Filter</button>
+      ${readOnly ? "" : `<a class="btn" href="#/launch">Launch run</a>`}
     </div>
     ${runsTable(data.runs)}
   `;
@@ -122,6 +141,18 @@ async function paint(): Promise<void> {
     } else if (r.name === "live") {
       body = await renderLive();
       active = "Live";
+    } else if (r.name === "launch") {
+      body = await renderLaunch();
+      active = "Launch";
+    } else if (r.name === "quarantine") {
+      body = await renderQuarantine();
+      active = "Quarantine";
+    } else if (r.name === "profiles") {
+      body = await renderProfiles();
+      active = "Profiles";
+    } else if (r.name === "perf") {
+      body = await renderPerf();
+      active = "Perf";
     } else {
       body = await renderRuns();
       active = "Runs";
@@ -154,9 +185,24 @@ function wire(name: string): void {
       startLive(mount);
     }
   }
+  if (name === "launch") wireLaunch();
+  if (name === "quarantine") wireQuarantine();
+  if (name === "profiles") wireProfiles();
+  if (name === "perf") wirePerf();
+}
+
+async function boot(): Promise<void> {
+  try {
+    const meta = await getMeta();
+    readOnly = !!meta.read_only;
+    if (!readOnly) await ensureCsrf();
+  } catch {
+    readOnly = false;
+  }
+  await paint();
 }
 
 window.addEventListener("hashchange", () => {
   void paint();
 });
-void paint();
+void boot();

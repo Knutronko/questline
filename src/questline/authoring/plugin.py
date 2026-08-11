@@ -187,8 +187,11 @@ def _profile_custom_markers(
 @pytest.fixture(scope="session")
 def questline_bus() -> EventBus:
     from questline.core.events import EventBus
+    from questline.hud.forward import attach_hud_forwarder
 
-    return EventBus()
+    bus = EventBus()
+    attach_hud_forwarder(bus)
+    return bus
 
 
 @pytest.fixture(scope="session")

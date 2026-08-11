@@ -1,4 +1,4 @@
-/** Thin fetch wrapper for HUD REST. */
+/** Thin fetch wrapper for HUD REST (reads + CSRF mutators). */
 
 export type RunSummary = {
   id: string;
@@ -35,6 +35,30 @@ export type TestSummary = {
   death_step_name?: string | null;
 };
 
+export type Meta = {
+  read_only: boolean;
+  control_center: boolean;
+  config_path: string | null;
+  project_root: string;
+  quarantine_path: string;
+  reporters: string[];
+};
+
+export type LauncherStatus = {
+  job_id: string | null;
+  state: string;
+  profile: string | null;
+  pid: number | null;
+  argv: string[];
+  started_at: number | null;
+  finished_at: number | null;
+  returncode: number | null;
+  error: string | null;
+  device_serial: string | null;
+};
+
+let csrfToken: string | null = null;
+
 async function getJson<T>(path: string): Promise<T> {
   const res = await fetch(path);
   if (!res.ok) {
@@ -42,6 +66,39 @@ async function getJson<T>(path: string): Promise<T> {
     throw new Error(`${res.status} ${path}: ${text}`);
   }
   return (await res.json()) as T;
+}
+
+export async function ensureCsrf(): Promise<string> {
+  if (csrfToken) return csrfToken;
+  const data = await getJson<{ csrf_token: string }>("/api/csrf");
+  csrfToken = data.csrf_token;
+  return csrfToken;
+}
+
+async function mutateJson<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+): Promise<T> {
+  const token = await ensureCsrf();
+  const res = await fetch(path, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": token,
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`${res.status} ${path}: ${text}`);
+  }
+  if (res.status === 204) return undefined as T;
+  return (await res.json()) as T;
+}
+
+export function getMeta(): Promise<Meta> {
+  return getJson("/api/meta");
 }
 
 export function listRuns(params: {
@@ -88,6 +145,153 @@ export function getTrends(limit = 50): Promise<{
   flaky_tests: Array<Record<string, unknown>>;
 }> {
   return getJson(`/api/trends?limit=${limit}`);
+}
+
+export function listProfiles(): Promise<{ profiles: string[]; path: string }> {
+  return getJson("/api/profiles");
+}
+
+export function getProfile(name: string): Promise<{
+  name: string;
+  path: string;
+  fields: Record<string, unknown>;
+  secret_env_names: string[];
+}> {
+  return getJson(`/api/profiles/${encodeURIComponent(name)}`);
+}
+
+export function validateProfile(
+  name: string,
+  fields: Record<string, unknown>,
+): Promise<{ ok: boolean; errors: string[]; settings_summary: unknown }> {
+  return mutateJson("POST", `/api/profiles/${encodeURIComponent(name)}/validate`, {
+    fields,
+    apply: false,
+  });
+}
+
+export function saveProfile(
+  name: string,
+  fields: Record<string, unknown>,
+  apply: boolean,
+): Promise<{
+  ok: boolean;
+  errors: string[];
+  diff: string;
+  saved: boolean;
+}> {
+  return mutateJson("POST", `/api/profiles/${encodeURIComponent(name)}`, {
+    fields,
+    apply,
+  });
+}
+
+export function listDevices(): Promise<{
+  devices: Array<{ id: string; platform: string; api_level: number | null; caps: Record<string, string> }>;
+  error?: string;
+}> {
+  return getJson("/api/devices");
+}
+
+export function listReporters(): Promise<{ reporters: string[] }> {
+  return getJson("/api/reporters");
+}
+
+export function launcherStatus(): Promise<{ launcher: LauncherStatus }> {
+  return getJson("/api/launcher");
+}
+
+export function launchRun(body: {
+  profile: string;
+  tests?: string[];
+  markers?: string;
+  device_serial?: string;
+  reporters?: string[];
+  include_quarantined?: boolean;
+}): Promise<{ launcher: LauncherStatus }> {
+  return mutateJson("POST", "/api/launcher/start", body);
+}
+
+export function stopLaunch(): Promise<{ launcher: LauncherStatus }> {
+  return mutateJson("POST", "/api/launcher/stop");
+}
+
+export function listQuarantine(): Promise<{
+  path: string;
+  entries: Array<Record<string, unknown>>;
+}> {
+  return getJson("/api/quarantine");
+}
+
+export function addQuarantine(body: {
+  test_id: string;
+  reason: string;
+  owner: string;
+  exit_criteria: string;
+  issue?: string;
+  feature?: string;
+}): Promise<{ entry: Record<string, unknown> }> {
+  return mutateJson("POST", "/api/quarantine", body);
+}
+
+export function removeQuarantine(testId: string): Promise<{ removed: string }> {
+  return mutateJson(
+    "DELETE",
+    `/api/quarantine?test_id=${encodeURIComponent(testId)}`,
+  );
+}
+
+export function auditQuarantine(body?: {
+  tests?: string[];
+  rootdir?: string;
+}): Promise<{
+  ok: boolean;
+  ledger_only: string[];
+  marker_only: string[];
+  summary: string;
+}> {
+  return mutateJson("POST", "/api/quarantine/audit", body || {});
+}
+
+export function getPerf(runId: string): Promise<{
+  run_id: string;
+  found: boolean;
+  summary: Record<string, Record<string, number>>;
+  series: Record<string, Array<{ t?: string; v?: number; test_id?: string }>>;
+}> {
+  return getJson(`/api/perf/${encodeURIComponent(runId)}`);
+}
+
+export function comparePerf(
+  a: string,
+  b: string,
+): Promise<{
+  run_a: string;
+  run_b: string;
+  deltas: Array<{
+    metric: string;
+    a: Record<string, number>;
+    b: Record<string, number>;
+    delta_avg: number | null;
+  }>;
+  series_a: Record<string, Array<{ t?: string; v?: number }>>;
+  series_b: Record<string, Array<{ t?: string; v?: number }>>;
+}> {
+  return getJson(
+    `/api/perf/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`,
+  );
+}
+
+export function getPerfCorrelation(limit = 50): Promise<{
+  tests: Array<{
+    nodeid: string;
+    points: Array<{ run_id: string; duration_s: number | null; passed: boolean }>;
+    runs: number;
+    passed: number;
+    failed: number;
+  }>;
+}> {
+  return getJson(`/api/perf/correlation?limit=${limit}`);
 }
 
 export function artifactUrl(path: string): string {

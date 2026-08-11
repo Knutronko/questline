@@ -19,17 +19,19 @@ Before opening / updating the PR:
    index in `INCIDENTS.md`, link from this brief’s **Lessons / incidents** section.
 4. **Update `docs/STATUS-DUAL.md`** if done/next/blocked changed.
 5. Game-related needs → `docs/GAME-INTEGRATION.md` (do not invent game commits).
-6. **HUD:** if the phase adds store/event data users should see, extend `questline hud`
-   (API + SPA + `docs/hud.md` + tests) **or** explicitly defer UI in the brief (see
-   [`docs/hud.md`](../hud.md) integration contract). Example: PerfProbe (09) → store now,
-   graphs in HUD II (10).
+6. **HUD:** if the phase adds store/event data **or operator workflows** users should see,
+   extend `questline hud` (API + SPA + `docs/hud.md` + tests) **or** explicitly defer UI
+   in the brief / BACKLOG (see [`docs/hud.md`](../hud.md) HUD-first verification contract).
+   Prefer proving acceptance **in the HUD** when a surface exists; say
+   `Verified in HUD: …` in Self-review (CLI-only only for CI/scripting gaps).
 
 Paste into session prompts if helpful:
 
 ```
 Also update docs/STATUS-DUAL.md (semáforo + roadmap rows + date) in this PR if status changed.
-If this phase adds store/event data users should see, extend questline hud (API + SPA +
-docs/hud.md + tests) or explicitly defer UI to a later phase in the brief / BACKLOG.
+If this phase adds store/event data or operator workflows users should see, extend questline
+hud (API + SPA + docs/hud.md + tests) or explicitly defer UI to a later phase in the brief /
+BACKLOG. Prefer HUD verification in Self-review (Verified in HUD: …).
 If you hit a maintainer-visible live/CI trap or mid-PR bug, file docs/incidents/INC-NNNN-*.md,
 index it in docs/INCIDENTS.md, link from the phase brief Lessons section, and cite it in
 the PR Self-review (Incidents: INC-… | none).
