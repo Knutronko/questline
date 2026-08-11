@@ -1,6 +1,6 @@
 # ADR-0008: Wire v2 — Unity UI ops on QuestlineWire (before Poco)
 
-- **Status:** accepted (planning; implement in **phase-09b**)
+- **Status:** accepted (implemented in **phase-09b**)
 - **Context:** ADR-0005 locked Wire MVP to hooks/session and deferred find/hierarchy/tap
   to **Poco (phase-14)**. That deferral blocks €0 UI navigation for game
   `automation/` and for future **GameLens bot playthroughs (FP-G3)** until late in

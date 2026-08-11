@@ -60,7 +60,7 @@ Desktop remains **out** of the happy path (ADR-0005). Android uses **`adb forwar
 
 **Game-side exit (`automation/`):** coverage-demo scaffold is **in** the reference game
 repo (ElJuegaso). Editor profile green (hooks-first). UI find/tap / `HandleOptional(Popup)`
-→ **Wire v2 (fw 09b / QL-2c)**; **Poco** remains QL-4 / fw 14 as second UI backend.
+→ **Wire v2 (fw 09b ✅ / game QL-2c)**; **Poco** remains QL-4 / fw 14 as second UI backend.
 Framework `android_local` wire-smoke ✅; optional game-suite Android run remains
 maintainer-checked.
 
@@ -77,7 +77,7 @@ Exit checklist (historical DoD — now mostly done on Editor):
    - assertions + deliberate death-point demo ✅ (marker-excluded by default)
    - quarantined test + ledger ✅
    - wait probe vs deadline (hooks) ✅
-   - artifacts on failure (best-effort; Wire screenshot → 09b) ✅
+   - artifacts on failure (best-effort; Wire screenshot → 09b ✅; game suite after QL-2c) ✅
    - device provider wiring + live Wire for `android_local` ✅
 3. Each later framework phase then EXTENDS this suite.
 
@@ -95,7 +95,7 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | 06 | Nothing new (fault injection mock-based; optional live reuses Wire) | — |
 | 07–08 | Nothing new (consume the suite of §3) | — |
 | **09** | Companion perf counters compiled in dev builds | **QL-3** ✅ (2026-08-11) — see [`performance.md`](performance.md) |
-| **09b** | Companion Wire v2 UI ops (`hierarchy`/`find`/`tap`/`screenshot`); rebuild Dev APK | **QL-2c** |
+| **09b** | Companion Wire v2 UI ops (`hierarchy`/`find`/`tap`/`screenshot`); rebuild Dev APK | **QL-2c** (next — sync `QuestlineWireUi.cs` + rebuild) |
 | 10–13 | Nothing new; agents/eval run against the §3 suite and the mock game | — |
 | **14** | Test assembly (asmdef) + UTF C# tests + **Poco** SDK (second UI backend) | **QL-4** |
 | 15 | Nothing new | — |

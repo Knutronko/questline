@@ -10,8 +10,11 @@ Phase 02 ships the port, locator model, `DriverHandle`, in-memory `MockDriver`, 
    `is_alive`, `find` / `find_all`, `hierarchy`, `screenshot`, interactions
    (`tap` / `press` / `swipe` / `text_input`), `call_game_method`, `app_state`,
    `hooks_manifest`.
-   **QuestlineWire:** session + hooks (05b) + UI find/hierarchy/tap/screenshot (**09b**,
+   **QuestlineWire:** session + hooks (05b) + UI find/hierarchy/tap/screenshot (**09b** ✅,
    ADR-0008). **Poco** (phase-14) is the second UI backend — not AltTester.
+   Wire parity vs Mock: find/wait/hierarchy/screenshot/tap Element|Point; deferred
+   `press`/`swipe`/`text_input` → explicit `AuthoringError` (unit-tested). Vs Poco:
+   Wire is Unity happy-path; Poco proves driver switch + richer/non-Unity stacks.
 2. **Implement `compile(Locator) -> native query`** — map
    `by ∈ {id,name,path,text,component}` (+ optional `scope`) to the backend’s selector
    language. Do not leak native types through `Element` / `HierarchySnapshot`.

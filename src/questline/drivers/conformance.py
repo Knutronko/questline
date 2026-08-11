@@ -219,26 +219,64 @@ def case_hooks_manifest_and_call(factory: DriverFactory) -> None:
 
 
 def case_wire_ui_not_implemented(factory: DriverFactory) -> None:
-    """Wire MVP: UI methods raise AuthoringError (skipped for full UI drivers)."""
+    """Legacy: Wire MVP stub without UI — superseded by UI cases when FakeWire has UI."""
     from questline.core.errors import AuthoringError
 
     d = factory()
     d.connect(ConnectionTarget(host="127.0.0.1", port=13000))
-    marker = getattr(d, "find", None)
-    if marker is None:
-        pytest.skip("no find")
-    # Detect Wire-style stub: find raises AuthoringError mentioning Wire/MVP/Poco.
+    # Prefer detecting deferred gestures (always AuthoringError on Wire).
     try:
-        d.find(Locator(by=LocatorStrategy.ID, value="x"))
+        d.press(Point(0, 0))
     except AuthoringError as exc:
-        assert "Wire" in str(exc) or "MVP" in str(exc) or "Poco" in str(exc)
+        assert "press" in str(exc).lower() or "Wire" in str(exc) or "Poco" in str(exc)
         d.disconnect()
         return
     except Exception:
         d.disconnect()
-        pytest.skip("driver implements find (not Wire MVP stub)")
+        pytest.skip("driver implements press (not Wire deferred stub)")
     d.disconnect()
-    pytest.skip("find did not raise")
+    pytest.skip("press did not raise")
+
+
+def case_wire_ui_find_hierarchy(factory: DriverFactory) -> None:
+    """Wire v2: hierarchy + find by id (requires FakeWire UI tree or live markers)."""
+    d = factory()
+    d.connect(ConnectionTarget(host="127.0.0.1", port=13000))
+    snap = d.hierarchy()
+    assert snap.roots
+    assert all(isinstance(r.element, Element) for r in snap.roots)
+    el = d.find(Locator(by=LocatorStrategy.NAME, value="OkButton"))
+    assert el.name == "OkButton"
+    assert el.id
+    found = d.find_all(Locator(by=LocatorStrategy.NAME, value="OkButton"))
+    assert len(found) >= 1
+    d.disconnect()
+
+
+def case_wire_ui_tap_screenshot(factory: DriverFactory) -> None:
+    d = factory()
+    d.connect(ConnectionTarget(host="127.0.0.1", port=13000))
+    el = d.find(Locator(by=LocatorStrategy.ID, value="btn_ok"))
+    d.tap(el)
+    d.tap(Point(1.0, 2.0))
+    data = d.screenshot()
+    assert isinstance(data, bytes) and len(data) > 0
+    assert data[:4] == b"\x89PNG"
+    d.disconnect()
+
+
+def case_wire_deferred_gestures(factory: DriverFactory) -> None:
+    from questline.core.errors import AuthoringError
+
+    d = factory()
+    d.connect(ConnectionTarget(host="127.0.0.1", port=13000))
+    with pytest.raises(AuthoringError, match="press"):
+        d.press(Point(0, 0))
+    with pytest.raises(AuthoringError, match="swipe"):
+        d.swipe(Point(0, 0), Point(1, 1))
+    with pytest.raises(AuthoringError, match="text_input"):
+        d.text_input(Element(id="btn_ok"), "x")
+    d.disconnect()
 
 
 def case_forced_disconnect_session_lost_hooks(factory: DriverFactory) -> None:
@@ -278,11 +316,15 @@ CONFORMANCE_CASES: list[Callable[[DriverFactory], Any]] = [
     case_forced_disconnect_session_lost,
 ]
 
-# Hooks-first subset for QuestlineWire MVP (ADR-0005 / phase-05b).
+# Hooks + Wire v2 UI subset (ADR-0005 / ADR-0008). press/swipe/text_input stay deferred.
 WIRE_CONFORMANCE_CASES: list[Callable[[DriverFactory], Any]] = [
     case_connect_alive,
     case_app_state_foreground,
     case_hooks_manifest_and_call,
-    case_wire_ui_not_implemented,
+    case_wire_ui_find_hierarchy,
+    case_wire_ui_tap_screenshot,
+    case_wire_deferred_gestures,
+    case_find_immediate_miss,
+    case_find_deadline_timeout,
     case_forced_disconnect_session_lost_hooks,
 ]

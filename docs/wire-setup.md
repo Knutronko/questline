@@ -1,6 +1,6 @@
 # QuestlineWire — Unity setup (happy-path live)
 
-First-party live driver: TCP + NDJSON on **127.0.0.1:13000** (ADR-0005).
+First-party live driver: TCP + NDJSON on **127.0.0.1:13000** (ADR-0005 / ADR-0008).
 **No AltTester Desktop.** Dev/Editor only (`UNITY_EDITOR || QUESTLINE_DEV`).
 
 This is the **default** live path. For legacy AltTester (Desktop hub), see
@@ -10,7 +10,7 @@ This is the **default** live path. For legacy AltTester (Desktop hub), see
 
 | Priority | Profile `driver` | Use for |
 |----------|------------------|---------|
-| 1 | `"questline"` | Live Editor / Android — hooks + **Wire v2 UI** (find/tap after phase-09b) |
+| 1 | `"questline"` | Live Editor / Android — hooks + **Wire v2 UI** (find/hierarchy/tap/screenshot) |
 | 2 | `"poco"` (phase-14) | Second UI backend / richer stacks |
 | 3 | `"alttester"` | Legacy only — needs Desktop |
 | — | `"mock"` | CI / unit |
@@ -35,7 +35,35 @@ void Awake()
 #endif
 ```
 
-4. Console should log: `[QuestlineWire] listening on 127.0.0.1:13000 (v1)`.
+4. Console should log: `[QuestlineWire] listening on 127.0.0.1:13000 (v2)`.
+5. `hello` advertises `"protocol_version": 2` and `"features": ["hooks","ui"]`.
+   Older companions (v1 / no `ui`) → clear `AuthoringError` on UI ops; hooks still work.
+
+## Find / tap (Wire v2)
+
+```python
+from questline.drivers.locators import Locator, LocatorStrategy
+from questline.core.waits import WaitPolicy
+
+# Immediate
+el = driver.find(Locator(by=LocatorStrategy.NAME, value="OkButton"))
+driver.tap(el)
+
+# Wait budget
+el = driver.find(
+    Locator(by=LocatorStrategy.ID, value="btn_ok"),
+    WaitPolicy(probe=0.5, deadline=5.0, interval=0.2),
+    budget="deadline",
+)
+
+# Hierarchy snapshot (capped depth/nodes on companion)
+snap = driver.hierarchy()
+png = driver.screenshot()  # non-empty PNG bytes
+```
+
+Locator strategies: `id` (Unity instance id), `name`, `path`, `text` (UGUI/TMP),
+`component` (type name) + optional `scope` (path substring).
+`press` / `swipe` / `text_input` stay explicit `AuthoringError` (deferred / hooks).
 
 ## Python smoke (Editor)
 
@@ -48,14 +76,15 @@ uv run pytest examples/wire-smoke -q -o addopts= `
   --questline-config examples/wire-smoke/questline.toml
 ```
 
-No `[alttester]` extra. Profile key: `driver = "questline"`.
+Includes hooks + **UI** (`test_wire_v2_hierarchy_find_tap`). No `[alttester]` extra.
+Profile key: `driver = "questline"`.
 
 ## Android
 
 `LocalAdbProvider` + **`adb forward tcp:13000 tcp:13000`** (host→device). Wire listens
 **on the device**; do **not** use `adb reverse` for `driver = "questline"` (reverse
 steals device `:13000` → `Address already in use`).
-APK must be built with `QUESTLINE_DEV` so `QuestlineWireServer` is compiled in.
+APK must be built with `QUESTLINE_DEV` so `QuestlineWireServer` (+ Wire UI) is compiled in.
 See [android.md](android.md) and [examples/wire-smoke/questline.toml](../examples/wire-smoke/questline.toml).
 
 ```powershell
@@ -73,6 +102,8 @@ Mono + ARMv7 Dev APKs may show a one-shot Android **DeprecatedAbi** / “version
 supported” system dialog on 64-bit phones — session auto-dismisses; see
 [android.md](android.md) troubleshooting.
 
+**Android Wire v2 UI** smoke is optional until game **QL-2c** (companion refresh + Dev APK).
+
 ## Wire roadmap (formal)
 
 | Stage | Scope | Status |
@@ -80,12 +111,12 @@ supported” system dialog on 64-bit phones — session auto-dismisses; see
 | **MVP (05b)** | connect / alive / app_state / hooks_manifest / call_hook / soft-reload | ✅ |
 | **Editor live** | `examples/wire-smoke` + reference game QL-2b | ✅ |
 | **Android live** | Rebuild Dev APK with Wire; `android_local` smoke | ✅ |
-| **Wire v2 UI (09b)** | find / hierarchy / tap / screenshot — [ADR-0008](adr/ADR-0008-wire-v2-ui.md) | ⬜ after phase-09 |
+| **Wire v2 UI (09b)** | find / hierarchy / tap / screenshot — [ADR-0008](adr/ADR-0008-wire-v2-ui.md) | ✅ |
 
-Wire is the **happy-path** Unity transport (hooks today; UI in 09b). **Poco** (14) is
-the **second** UI adapter. See [phase-09b brief](phases/phase-09b-wire-v2.md).
+Wire is the **happy-path** Unity transport (hooks + UI). **Poco** (14) is the
+**second** UI adapter. See [phase-09b brief](phases/phase-09b-wire-v2.md).
 
-## Reference game (ElJuegaso) — QL-2b ✅
+## Reference game (ElJuegaso) — QL-2b ✅ → **QL-2c** next
 
 Bootstrap already calls `QuestlineWireServer.EnsureStarted(13000)` and skips AltTester
 host when `UseQuestlineWire = true`. Companion embed includes `QuestlineWireServer.cs`.
@@ -93,10 +124,11 @@ host when `UseQuestlineWire = true`. Companion embed includes `QuestlineWireServ
 | Path in questline | Action in game |
 |---|---|
 | `unity-package/Runtime/QuestlineHooks.cs` | Keep in sync on API changes |
-| `unity-package/Runtime/QuestlineWireServer.cs` | Embedded (QL-2b) |
+| `unity-package/Runtime/QuestlineWireServer.cs` | Embedded (QL-2b); refresh for v2 |
+| `unity-package/Runtime/QuestlineWireUi.cs` | **New (09b)** — sync in **QL-2c** |
 | `unity-package/Runtime/Questline.Companion.asmdef` | `UNITY_EDITOR \|\| QUESTLINE_DEV` |
 | `unity-package/package.json` | Sync version notes |
 
-**Editor + Android Wire live are green** (`examples/wire-smoke`); game
-`automation/` coverage-demo Editor green (GAME-INTEGRATION §3).
-AltTester UPM may remain installed dormant; do not treat it as primary live.
+**QL-2c:** copy/refresh companion (include `QuestlineWireUi.cs`), Editor verify find/tap,
+rebuild `QUESTLINE_DEV` APK for Android. Framework `examples/wire-smoke` UI case is green
+in Editor once the companion is refreshed.

@@ -24,8 +24,8 @@ Format: `- [ ] (phase-NN) description`
 - [x] (phase-05b follow-up) Android Wire smoke after Dev APK rebuild — green 2026-08-09
       (`android_local` + `adb forward`; reverse steals device `:port`).
 - [ ] (phase-14) Poco as **second** UI hierarchy adapter (+ UTF); Wire v2 UI is phase-09b.
-- [ ] (phase-09b) Wire v2 find/hierarchy/tap/screenshot — brief + ADR-0008 accepted (docs);
-      implement after phase-09. Game trigger QL-2c.
+- [x] (phase-09b) Wire v2 find/hierarchy/tap/screenshot — FakeWire CI + companion UI ops;
+      game trigger QL-2c (sync companion + Dev APK).
 - [ ] (phase-09) Companion `draw_calls` is a reserved slot (always 0 in Runtime asmdef —
       no UnityEditor dependency). Optional Editor-only extension or game-injected counter.
 - [ ] (phase-09) PerfProbe anomaly detection / soak trend analysis — deferred (phase brief

@@ -20,7 +20,9 @@ in the **run store / event bus first**; the HUD only *reads* (until phase 10 mut
 |------|-------|-------------------------|
 | ✅ | **08** Viewer | Runs, filters, run/test detail, verdicts, death-point, artifacts, trends, live WS |
 | next | **09** PerfProbe | Samples → `perf_samples` / `PerfSample` events (store). **No graphs yet** — phase 10. Verify with `questline perf report`. |
-| after 09 | **09b** Wire v2 | Richer live/automation runs (find/tap) → more steps/artifacts in the same viewer |
+| after 09 | **09b** Wire v2 ✅ | Richer live/automation runs (find/tap/screenshot). **HUD:** no new store
+tables — screenshots already flow via existing `ArtifactSaved`; no dedicated Wire UI
+panel. Defer any new viewer chrome to phase **10** if needed. |
 | later | **10** HUD II | Launcher, quarantine UI, profile editor, **perf graphs** + run comparison |
 | later | **11–13** AI | Cost per run / triage panels (read store `ai_calls`); action buttons with 12 |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
