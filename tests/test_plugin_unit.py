@@ -356,3 +356,104 @@ def test_handle_optional_then_steps() -> None:
     ).execute(ctx)
     assert "btn" in seen
     assert "lambda" in seen
+
+
+def test_perf_helpers_attach_start_stop(tmp_path: Path) -> None:
+    """In-process coverage for PerfProbe plugin helpers (authoring gate)."""
+    from _pytest.stash import Stash
+
+    from questline.core.config import PerfSettings, Settings
+    from questline.core.events import EventBus
+    from questline.core.store import RunStore
+    from questline.drivers.port import ConnectionTarget
+    from questline.drivers.wire.fake import FakeWireDriverHarness
+    from questline.perf.asserts import clear_perf_context
+
+    settings = Settings(
+        driver="questline",
+        target_platform="editor",
+        store_dir=tmp_path / ".questline",
+        perf=PerfSettings(enabled=True, interval_s=0.5, scope="test", source="companion"),
+    )
+    bus = EventBus()
+    store = RunStore(
+        settings.store_db,
+        artifacts_dir=settings.artifacts_dir,
+        ledger_path=settings.ledger_path,
+    )
+    store.attach(bus)
+    harness = FakeWireDriverHarness()
+    driver = harness()
+    driver.connect(ConnectionTarget(host="127.0.0.1", port=13000, platform="editor"))
+    handle = DriverHandle(driver)
+
+    config = MagicMock()
+    config.stash = Stash()
+    probe = pl._attach_perf_to_session(
+        settings=settings,
+        bus=bus,
+        store=store,
+        run_id="run-perf",
+        handle=handle,
+        device_bundle=None,
+        pytestconfig=config,
+    )
+    assert probe is not None
+    assert config.stash[pl._STASH_PERF_PROBE] is probe
+
+    pl._perf_bind_test_context(
+        store=store, bus=bus, run_id="run-perf", test_id="t::perf"
+    )
+    item = MagicMock()
+    item.nodeid = "t::perf"
+    pl._perf_on_test_start(item=item, probe=probe, settings=settings)
+    assert probe.running
+    pl._perf_on_test_finish(probe=probe, settings=settings)
+    assert not probe.running
+
+    # No-op paths
+    pl._perf_on_test_start(item=item, probe=None, settings=settings)
+    pl._perf_on_test_finish(probe=None, settings=settings)
+
+    pl._detach_perf_from_session(probe)
+    clear_perf_context()
+    handle.disconnect()
+    store.close()
+
+
+def test_perf_helpers_run_scope_starts_immediately(tmp_path: Path) -> None:
+    from _pytest.stash import Stash
+
+    from questline.core.config import PerfSettings, Settings
+    from questline.core.events import EventBus
+    from questline.core.store import RunStore
+    from questline.drivers.port import ConnectionTarget
+    from questline.drivers.wire.fake import FakeWireDriverHarness
+
+    settings = Settings(
+        driver="questline",
+        target_platform="editor",
+        store_dir=tmp_path / ".questline",
+        perf=PerfSettings(enabled=True, scope="run", source="companion"),
+    )
+    bus = EventBus()
+    store = RunStore(settings.store_db, artifacts_dir=settings.artifacts_dir)
+    store.attach(bus)
+    driver = FakeWireDriverHarness()()
+    driver.connect(ConnectionTarget(host="127.0.0.1", port=13000, platform="editor"))
+    handle = DriverHandle(driver)
+    config = MagicMock()
+    config.stash = Stash()
+    probe = pl._attach_perf_to_session(
+        settings=settings,
+        bus=bus,
+        store=store,
+        run_id="run-scope",
+        handle=handle,
+        device_bundle=None,
+        pytestconfig=config,
+    )
+    assert probe is not None and probe.running
+    pl._detach_perf_from_session(probe)
+    handle.disconnect()
+    store.close()
