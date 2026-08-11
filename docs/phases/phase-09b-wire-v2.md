@@ -71,13 +71,36 @@ to `Element` / `HierarchySnapshot` without leaking Unity types to tests.
 
 ## Acceptance criteria
 
-- [ ] CI: Wire UI unit tests via fake transport; existing hooks smoke still green.
-- [ ] `examples/wire-smoke` includes a UI find/(tap\|hierarchy) case; maintainer Editor live green.
+- [ ] CI: Wire UI unit tests via fake transport; existing hooks smoke still green;
+      **full matrix below** covered (or explicitly skipped with reason).
+- [ ] `examples/wire-smoke` includes a UI find/(tap|hierarchy) case; maintainer Editor live green.
 - [ ] `hello` feature/`protocol_version` gate documented; old companion → clear error on UI ops.
-- [ ] Docs + STATUS-DUAL + GAME-INTEGRATION QL-2c row updated; ADR-0008 status remains accepted.
+- [ ] Docs + **STATUS-DUAL** (semáforo + roadmap + **Mermaid §4**) + GAME-INTEGRATION QL-2c
+      row updated; ADR-0008 remains accepted; `wire-setup.md` roadmap row → ✅.
 - [ ] Optional: Android live after QL-2c APK.
+
+## Required test matrix (before merge)
+
+Enumerate and cover (FakeWire unit **and** live Editor where marked). Do **not** merge
+with only a happy-path tap.
+
+| Area | Cases (minimum) |
+|------|-----------------|
+| `hierarchy` | empty/minimal tree; depth/node caps enforced; stable ids round-trip |
+| `find` / `find_all` | by `name`, `id`, `path`, `text`, `component`; scope filter; 0 matches → wait then `ElementNotFoundError`; multiple matches (`find` vs `find_all`) |
+| `tap` | Element from prior find; `Point` screen tap; missing/stale element id |
+| `screenshot` | non-empty PNG bytes; failure path maps cleanly (no silent empty) |
+| Transport / versioning | old companion (no `ui` feature) → `AuthoringError` on UI ops; hooks still work; disconnect mid-op → `SessionLostError` |
+| Regression | MVP hooks (`hello`/`ping`/`call_hook`/`hooks_manifest`) unchanged |
+| Conformance | Wire driver passes hooks + new UI subset (or documented skip for deferred gestures) |
+| Live | Editor wire-smoke find+tap; document Android as optional maintainer / QL-2c |
+
+`press` / `swipe` / `text_input` must remain explicit `AuthoringError` (message points to
+backlog / hooks), with a unit test each.
 
 ## PR checklist
 
 Title `phase-09b: Wire v2 find/hierarchy/tap`. Self-review section required.
 PowerShell Cómo probarlo (Editor `QUESTLINE_LIVE_TARGET=1` + wire-smoke).
+**Docs gate:** STATUS-DUAL Mermaid + tables; wire-setup; GAME-INTEGRATION; hud.md evolution
+row if UI runs produce new artifacts users should see (or explicitly defer).
