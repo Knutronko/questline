@@ -106,6 +106,16 @@ namespace Questline.Companion
             };
             _acceptThread.Start();
             Debug.Log($"[QuestlineWire] listening on 127.0.0.1:{_port} (v{ProtocolVersion})");
+
+            // PerfProbe companion counters (phase-09 / QL-3) — no-op if already registered.
+            try
+            {
+                QuestlinePerfProvider.EnsureRegistered();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[QuestlineWire] PerfProvider register failed: {ex.Message}");
+            }
         }
 
         private void StopListener()

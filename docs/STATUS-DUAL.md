@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-11** (docs: **09b Wire v2** planificado tras 09; next fw **09** PerfProbe).
+> Última revisión: **2026-08-11** (fw **09** PerfProbe; next **09b** Wire v2).
 
 ---
 
@@ -12,8 +12,8 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 + **05b Wire** + **06–08** | HUD I ✅; plan **09b Wire v2** (ADR-0008) | **09** PerfProbe → **09b** Wire v2 | Ninguno crítico; AltTester Desktop **fuera** del happy path |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Wire + **`automation/`** + **D10.5 IEB baseline** | **D11** tras fw **09b** (UI Wire) / paralelo blando a **09+QL-3** | AltTester UPM **remoto/legacy**; Poco = 2º UI (fw 14) |
+| **questline** | v0.1 + **05b Wire** + **06–08** + **09 PerfProbe** | PerfProbe (adb + companion + asserts + CLI) | **09b** Wire v2 UI | Ninguno crítico; AltTester Desktop **fuera** del happy path |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b** + Wire + **`automation/`** + **D10.5 IEB baseline** | **QL-3** (refresh companion / Dev APK) + **D11** tras fw **09b** | AltTester UPM **remoto/legacy**; Poco = 2º UI (fw 14) |
 
 **Drivers (prioridad):**
 
@@ -47,8 +47,8 @@
 | 6 | Resilience | ✅ | Health/recovery/watchdog; ADR-0006 |
 | 7 | Reporters | ✅ | console/HTML/Slack/GH Issues |
 | 8 | HUD I viewer | ✅ | FastAPI + SPA; ADR-0007 |
-| 9 | PerfProbe | ⬜ **next (fw)** | Trigger juego **QL-3** |
-| **09b** | **Wire v2 UI** | ⬜ tras 09 | find/hierarchy/tap/screenshot; ADR-0008; trigger **QL-2c** |
+| 9 | PerfProbe | ✅ | Sampler + android parsers + companion + asserts + `perf report` |
+| **09b** | **Wire v2 UI** | ⬜ **next (fw)** | find/hierarchy/tap/screenshot; ADR-0008; trigger **QL-2c** |
 | 10 | HUD II control | ⬜ | |
 | 11 | AI foundation | ⬜ | |
 | 12 | AI agents | ⬜ | |
@@ -67,7 +67,8 @@
 
 Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-setup.md) ·
 [`ADR-0005`](adr/ADR-0005-questline-wire.md) · [`ADR-0008`](adr/ADR-0008-wire-v2-ui.md) ·
-[`phase-09b`](phases/phase-09b-wire-v2.md) · [`resilience.md`](resilience.md) ·
+[`phase-09b`](phases/phase-09b-wire-v2.md) · [`performance.md`](performance.md) ·
+[`resilience.md`](resilience.md) ·
 [`ADR-0006`](adr/ADR-0006-recovery-ladder.md) · [`reporting.md`](reporting.md) ·
 [`hud.md`](hud.md) · [`ADR-0007`](adr/ADR-0007-hud-frontend-stack.md).
 
@@ -87,7 +88,7 @@ Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-
 | **QL-2** | APK DEV `QUESTLINE_DEV` | ✅ | Dev APK con Wire en device |
 | **QL-2b** | Bootstrap Wire + companion | ✅ | Editor + Android Wire **verde** |
 | **QL-2c** | Companion Wire v2 UI ops | ⬜ | Trigger fw **09b** |
-| **QL-3** | Perf counters companion | ⬜ | Trigger fw **09** |
+| **QL-3** | Perf counters companion | ⬜ **triggered** (fw 09) | Refresh UPM `QuestlinePerfProvider` + rebuild Dev APK |
 | **QL-4** | UTF C# + Poco (2º UI) | ⬜ | Trigger fw **14** |
 | **QL-5** | Manifest SOs (GameLens) | ⬜ | Trigger FP-G1 · encaja **D11** |
 | **QL-6** | Telemetría | ⬜ | Trigger FP-G2 · encaja **D12** |
@@ -108,8 +109,8 @@ flowchart TB
     Q5b --> Q6[06 Resilience ✅]
     Q6 --> Q7[07 Reporters ✅]
     Q7 --> Q8[08 HUD I ✅]
-    Q8 --> Q9[09 PerfProbe next]
-    Q9 --> Q9b[09b Wire v2 UI]
+    Q8 --> Q9[09 PerfProbe ✅]
+    Q9 --> Q9b[09b Wire v2 UI next]
     Q9b --> Q10[10 HUD II]
     Q4 --> Q9
     Q3[03 Authoring ✅] --> Q11[11-13 AI]
@@ -154,7 +155,7 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | **phase-09 PerfProbe** + **QL-3** | ambos | Next fw; métricas para feel / HUD II |
+| 1 | **QL-3** (companion refresh / Dev APK) | ElJuegaso | Consume fw **09** `GetPerfSample` |
 | 2 | **phase-09b Wire v2** + **QL-2c** | ambos | find/tap €0 **antes** de GameLens / playtest auto |
 | 3 | **D11** + **QL-5 / FP-G1** | ElJuegaso (+ fw) | Economía + GameLens con UI Wire disponible |
 | 4 | **D12 ↔ QL-6 / FP-G2** | ambos | Infinito + telemetría |
@@ -198,6 +199,7 @@ Formalizado en: questline `GAME-INTEGRATION.md` + `00-MASTER-PLAN.md` §6 · ElJ
 | QuestlineWire setup (happy path) | [`wire-setup.md`](wire-setup.md) |
 | QuestlineWire ADR (MVP) | [`ADR-0005`](adr/ADR-0005-questline-wire.md) |
 | Wire v2 UI ADR | [`ADR-0008`](adr/ADR-0008-wire-v2-ui.md) · [`phase-09b`](phases/phase-09b-wire-v2.md) |
+| PerfProbe | [`performance.md`](performance.md) · [`phase-09`](phases/phase-09-perfprobe.md) |
 | Resilience | [`resilience.md`](resilience.md) · [`ADR-0006`](adr/ADR-0006-recovery-ladder.md) |
 | Reporting | [`reporting.md`](reporting.md) |
 | HUD viewer | [`hud.md`](hud.md) · [`ADR-0007`](adr/ADR-0007-hud-frontend-stack.md) |

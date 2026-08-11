@@ -23,6 +23,7 @@ _STASH_RUN_T0 = pytest.StashKey[float]()
 _STASH_WATCHDOG = pytest.StashKey[Any]()
 _STASH_RECOVERY = pytest.StashKey[Any]()
 _STASH_REPORTERS = pytest.StashKey[list[Any]]()
+_STASH_PERF_PROBE = pytest.StashKey[Any]()
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -179,9 +180,7 @@ def _profile_custom_markers(
             if isinstance(item, str):
                 out.append((item, f"custom marker from profile '{profile}'"))
             elif isinstance(item, dict) and "name" in item:
-                out.append(
-                    (str(item["name"]), str(item.get("description", "custom marker")))
-                )
+                out.append((str(item["name"]), str(item.get("description", "custom marker"))))
     return out
 
 
@@ -259,9 +258,7 @@ def questline_run_id(
         tags["driver"] = questline_settings.driver
     if questline_settings.device:
         tags["device"] = questline_settings.device
-    questline_bus.publish(
-        RunStarted(run_id=run_id, profile=questline_settings.profile, tags=tags)
-    )
+    questline_bus.publish(RunStarted(run_id=run_id, profile=questline_settings.profile, tags=tags))
 
     def _watchdog_exit(code: int) -> None:
         pytest.exit(f"questline watchdog fired (exit {code})", returncode=code)
@@ -417,12 +414,83 @@ def _connection_target_for(settings: Settings, questline_device: Any) -> Any:
     )
 
 
+def _attach_perf_to_session(
+    *,
+    settings: Settings,
+    bus: EventBus,
+    store: RunStore,
+    run_id: str,
+    handle: Any,
+    device_bundle: Any,
+    pytestconfig: pytest.Config,
+) -> Any:
+    """Create/start PerfProbe for the session; stash on config. Returns probe or None."""
+    from questline.perf.asserts import PerfAssertContext, bind_perf_context
+    from questline.perf.session import create_probe
+
+    probe = create_probe(
+        settings,
+        bus=bus,
+        run_id=run_id,
+        driver=handle,
+        device_bundle=device_bundle,
+    )
+    pytestconfig.stash[_STASH_PERF_PROBE] = probe
+    bind_perf_context(
+        PerfAssertContext(
+            store=store,
+            bus=bus,
+            run_id=run_id,
+            test_id=None,
+        )
+    )
+    if probe is not None and settings.perf.scope == "run":
+        probe.start()
+    return probe
+
+
+def _detach_perf_from_session(probe: Any) -> None:
+    from questline.perf.asserts import clear_perf_context
+
+    if probe is not None:
+        probe.stop()
+    clear_perf_context()
+
+
+def _perf_bind_test_context(
+    *,
+    store: RunStore,
+    bus: EventBus,
+    run_id: str,
+    test_id: str,
+) -> None:
+    from questline.perf.asserts import PerfAssertContext, bind_perf_context
+
+    bind_perf_context(
+        PerfAssertContext(store=store, bus=bus, run_id=run_id, test_id=test_id)
+    )
+
+
+def _perf_on_test_start(*, item: pytest.Item, probe: Any, settings: Any) -> None:
+    if probe is None or settings is None:
+        return
+    probe.set_test_id(item.nodeid)
+    if settings.perf.scope == "test":
+        probe.start(test_id=item.nodeid)
+
+
+def _perf_on_test_finish(*, probe: Any, settings: Any) -> None:
+    if probe is not None and settings is not None and settings.perf.scope == "test":
+        probe.stop()
+
+
 @pytest.fixture(scope="session")
 def driver_handle(
     questline_settings: Settings,
     questline_run_id: str,
     questline_device: Any,
     questline_bus: EventBus,
+    questline_store: RunStore,
     pytestconfig: pytest.Config,
 ) -> Any:
     from questline.core.recovery import RecoveryPolicy
@@ -457,7 +525,20 @@ def driver_handle(
         abort_fn=_breaker_exit,
     )
     pytestconfig.stash[_STASH_RECOVERY] = recovery
+
+    probe = _attach_perf_to_session(
+        settings=questline_settings,
+        bus=questline_bus,
+        store=questline_store,
+        run_id=questline_run_id,
+        handle=handle,
+        device_bundle=questline_device,
+        pytestconfig=pytestconfig,
+    )
+
     yield handle
+
+    _detach_perf_from_session(probe)
     try:
         if handle.is_alive():
             handle.disconnect()
@@ -470,16 +551,24 @@ def questline_ctx(
     driver_handle: DriverHandle,
     questline_bus: EventBus,
     questline_run_id: str,
+    questline_store: RunStore,
     questline_settings: Settings,
     request: pytest.FixtureRequest,
 ) -> Context:
     from questline.authoring.context import Context
 
+    test_id = request.node.nodeid
+    _perf_bind_test_context(
+        store=questline_store,
+        bus=questline_bus,
+        run_id=questline_run_id,
+        test_id=test_id,
+    )
     return Context(
         driver=driver_handle,
         bus=questline_bus,
         run_id=questline_run_id,
-        test_id=request.node.nodeid,
+        test_id=test_id,
         wait_policy=questline_settings.wait_policy(),
     )
 
@@ -586,6 +675,10 @@ def pytest_runtest_setup(item: pytest.Item) -> Any:
     item._questline_started_emitted = True  # type: ignore[attr-defined]
     item._questline_t0 = time.perf_counter()  # type: ignore[attr-defined]
     item._questline_feature_id = feature_id  # type: ignore[attr-defined]
+
+    probe = item.config.stash.get(_STASH_PERF_PROBE, None)
+    settings = _fixture_value(item, "questline_settings")
+    _perf_on_test_start(item=item, probe=probe, settings=settings)
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -694,6 +787,8 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
                 watchdog.mark_progress()
 
     t0 = getattr(item, "_questline_t0", time.perf_counter())
+    probe = item.config.stash.get(_STASH_PERF_PROBE, None)
+    _perf_on_test_finish(probe=probe, settings=settings)
     bus.publish(
         TestFinished(
             run_id=run_id,

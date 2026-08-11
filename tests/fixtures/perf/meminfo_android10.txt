@@ -1,0 +1,26 @@
+Applications Memory Usage (in Kilobytes):
+Uptime: 111 Realtime: 222
+
+** MEMINFO in pid 4321 [com.example.game] **
+                   Pss  Private  Private  SwapPss     Heap     Heap     Heap
+                 Total    Dirty    Clean     Dirty     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------
+  Native Heap    45000    44000        0        0    50000    48000     2000
+  Dalvik Heap    12000    11000        0        0    16000    14000     2000
+      Unknown     3000     3000        0        0
+        TOTAL    85000    80000     2000        0    66000    62000     4000
+    Objects
+           Views:       120         ViewRootImpl:        1
+     AppContexts:         4       Assets:        8
+
+ App Summary
+                       Pss(KB)
+                        ------
+           Java Heap:    12000
+         Native Heap:    45000
+                Code:     8000
+               Stack:     1000
+       Graphics:         15000
+      Private Other:      4000
+             System:      5000
+            TOTAL PSS:    90000

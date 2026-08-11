@@ -28,8 +28,18 @@ class FakeWireTransport:
                 "causesSoftReload": False,
                 "feature": "progression",
             },
+            "GetPerfSample": {
+                "args": [],
+                "causesSoftReload": False,
+                "feature": "perf",
+            },
         }
         self._scene = "FakeWireScene"
+        self._perf_sample = {
+            "fps": 60.0,
+            "allocated_mb": 128.0,
+            "draw_calls": 42.0,
+        }
 
     def request(self, op: str, params: dict[str, Any] | None = None) -> Any:
         if self._closed:
@@ -74,6 +84,8 @@ class FakeWireTransport:
                 if not args:
                     raise AuthoringError("SetLevel requires level")
                 return {"value": None}
+            if name == "GetPerfSample":
+                return {"value": dict(self._perf_sample)}
             raise TestError(f"hook failed: {name}")
         raise AuthoringError(f"unknown op: {op}")
 

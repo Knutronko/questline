@@ -167,6 +167,38 @@ class RunStore:
             rows = self._conn.execute(sql, params).fetchall()
         return [dict(r) for r in rows]
 
+    def list_perf_samples(
+        self,
+        *,
+        run_id: str | None = None,
+        test_id: str | None = None,
+        metric: str | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """Return perf_samples rows (oldest-first) with optional filters."""
+        clauses: list[str] = []
+        params: list[Any] = []
+        if run_id:
+            clauses.append("run_id = ?")
+            params.append(run_id)
+        if test_id:
+            clauses.append("test_id = ?")
+            params.append(test_id)
+        if metric:
+            clauses.append("metric = ?")
+            params.append(metric)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = (
+            f"SELECT id, run_id, test_id, metric, value, timestamp "
+            f"FROM perf_samples {where} ORDER BY id ASC"
+        )
+        if limit is not None:
+            sql += " LIMIT ?"
+            params.append(max(0, int(limit)))
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        return [dict(r) for r in rows]
+
     def list_artifacts(
         self,
         *,

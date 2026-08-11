@@ -1,0 +1,20 @@
+Applications Graphics Acceleration Info:
+Uptime: 987654321 Realtime: 987654321
+
+** Graphics info for pid 9988 [com.example.game] **
+
+Stats since: 5000000000ns
+Total frames rendered: 2400
+Janky frames: 48 (2.00%)
+50th percentile: 8.20ms
+90th percentile: 10.10ms
+95th percentile: 12.40ms
+99th percentile: 20.00ms
+Number Missed Vsync: 3
+Number High input latency: 0
+Number Slow UI thread: 1
+Number Slow bitmap uploads: 0
+Number Slow issue draw commands: 0
+Number Frame deadline missed: 2
+HISTOGRAM: 5ms=200 6ms=400 7ms=600 8ms=500 9ms=300 10ms=150 11ms=80 12ms=40 13ms=20 14ms=10 15ms=5 16ms=2
+Pipeline=Skia (OpenGL)
