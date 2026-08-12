@@ -144,6 +144,8 @@ def meta(request: Request) -> dict[str, Any]:
         "project_root": str(_project_root(request)),
         "quarantine_path": str(_quarantine_path(request)),
         "reporters": sorted(KNOWN_REPORTERS),
+        # Bump when SPA depends on a new API shape (stale `questline hud` process).
+        "api": {"test_by_query": True, "revision": 2},
     }
 
 

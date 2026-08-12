@@ -8,7 +8,7 @@ export async function renderRun(runId: string): Promise<string> {
     .map(
       (t) => `
     <tr data-testid="test-row" data-test-id="${esc(t.id)}">
-      <td class="wrap"><a href="#/runs/${esc(runId)}/tests/${esc(t.id)}">${esc(t.nodeid)}</a></td>
+      <td class="wrap"><a href="#/runs/${encodeURIComponent(runId)}/tests/${encodeURIComponent(t.id)}">${esc(t.nodeid)}</a></td>
       <td><span class="badge ${esc(t.status)}">${esc(t.status)}</span></td>
       <td class="verdict-${esc(t.verdict ?? "")}">${esc(t.verdict ?? "—")}</td>
       <td>${esc(fmtDur(t.duration_s))}</td>
@@ -38,7 +38,14 @@ export async function renderRun(runId: string): Promise<string> {
         <thead>
           <tr><th>Test</th><th>Status</th><th>Verdict</th><th>Duration</th><th>Death step</th></tr>
         </thead>
-        <tbody>${rows || `<tr><td colspan="5">No tests.</td></tr>`}</tbody>
+        <tbody>${
+          rows ||
+          `<tr><td colspan="5">${
+            r.status === "failed" || r.status === "error"
+              ? "No tests recorded — session setup failed before any test ran (often adb device lock or Wire connect). Open <a href=\"#/launch\">Launch</a> Status → <code>error</code> / <code>log_tail</code>."
+              : "No tests."
+          }</td></tr>`
+        }</tbody>
       </table>
     </div>
   `;

@@ -125,7 +125,7 @@ empty state (not an error).
 | `#/profiles` | Edit `questline.toml` profiles (validate + diff preview); secrets = env names |
 | `#/perf` | PerfProbe series graphs + build-over-build compare |
 | `#/runs/{id}` | Tests grid + **infra vs test** banner |
-| `#/runs/{id}/tests/{tid}` | Step timeline, death-point, artifacts, history sparkline |
+| `#/runs/{id}/tests/{tid}` | Step timeline, death-point, artifacts, history sparkline (`tid` may be a pytest nodeid with `/`) |
 | `#/trends` | Pass-rate / duration charts, flakiness board, duration-vs-pass correlation |
 | `#/live` | WebSocket stream (`/live` or `/api/live`) of EventBus (+ forwarded) events |
 
@@ -139,7 +139,7 @@ empty state (not an error).
 | GET | `/api/meta` | `read_only`, paths, known reporters |
 | GET | `/api/runs` | List + `profile` / `status` filters |
 | GET | `/api/runs/{id}` | Run detail + tests + verdict banner |
-| GET | `/api/runs/{id}/tests/{tid}` | Steps, death-point, artifacts, history |
+| GET | `/api/runs/{id}/tests/{tid}` | Steps, death-point, artifacts, history (`{tid:path}` — slash-safe nodeids) |
 | GET | `/api/runs/{id}/artifacts` | Artifact list (allow-listed fields) |
 | GET | `/api/artifacts/file?path=` | File bytes — **only** under store `artifacts_dir` |
 | GET | `/api/trends` | Aggregations |

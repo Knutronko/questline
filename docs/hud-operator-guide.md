@@ -85,7 +85,7 @@ useful for Perf compare and drill-down without a live game.
 | **Trends** | `#/trends` | Pass-rate / duration charts, flakiness, duration-vs-pass |
 | **Live** | `#/live` | WebSocket stream of run events |
 | *(drill)* | `#/runs/{id}` | Tests grid + infra vs test banner |
-| *(drill)* | `#/runs/{id}/tests/{tid}` | Steps, death-point, artifacts, history |
+| *(drill)* | `#/runs/{id}/tests/{tid}` | Steps, death-point, artifacts, history (`tid` = pytest nodeid; may contain `/` — INC-0003) |
 
 Mutating nav (Launch / Quarantine / Profiles) is hidden under `--read-only`.
 
@@ -107,7 +107,14 @@ into the store. Failures are classified **infra** (session/device/transport) vs 
    tags), **artifacts** (screenshots/logcat under the store jail).
 4. History sparkline on the test page shows the same nodeid across runs.
 
+Nodeids like `examples/wire-smoke/…::test_…` are valid drill-down ids (INC-0003). If you
+see `test not found: examples`, the SPA/API build is stale — restart `questline hud` and
+hard-refresh.
+
 **Empty store?** Use **Launch** (below) or run a suite once, then refresh.
+
+**Wrong HUD?** Before dogfood, `GET /api/meta` must show `smoke: false` and your repo
+`project_root` (INC-0004 — smoke demo uses port **8742**, not 8741).
 
 ---
 
@@ -131,6 +138,9 @@ honors **device locks** (phase 05), and forwards live events into **Live**.
 3. For Wire Editor: check **QUESTLINE_LIVE_TARGET=1**, leave device on
    *(no adb pin)*, tests `examples/wire-smoke`.
 4. Click **Launch** → **Live**. Use **Stop** to cancel.
+5. Only **one** managed run at a time. If Launch is disabled or you see 409
+   “already running”, use **Open Live** or **Stop** (INC-0005 — older builds could
+   leave a wedged pytest if stdout was piped unread; restart HUD after upgrading).
 
 **Suggested first dogfood (mock, no Unity):**
 
@@ -154,10 +164,18 @@ honors **device locks** (phase 05), and forwards live events into **Live**.
 **Android device** ([android.md](android.md)):
 
 1. Device online (`adb devices`).
-2. Launch with `android_local` (or your game profile) + pick **serial** in the device
-   dropdown.
-3. Concurrent runs on the same serial are blocked by the device lock (409 / error in
-   launcher status).
+2. **Stop Unity Editor Play** (or anything else on host `:13000`). Android uses
+   `adb forward tcp:13000` — if the Editor owns that port, session setup fails in
+   &lt;1s and Live only shows `RunStarted` → `RunFinished failed` with **0 tests**.
+3. APK open on the phone with `[QuestlineWire] listening …` (or set
+   `QUESTLINE_APK_PATH` + `QUESTLINE_APP_PACKAGE=com.eljuegaso.p1` **before** starting
+   the HUD so Launch can install/cold-start).
+4. Launch with preset **Wire Android**, pick **serial**, `QUESTLINE_LIVE_TARGET=1`.
+5. If it fails again: Launch **Status** → `error` / `log_tail` (pytest traceback).
+   Concurrent runs on the same serial are blocked by the device lock.
+
+HUD Launch clears the repo’s pytest `addopts` (coverage gate) so live smokes are not
+failed by `--cov-fail-under=85` and Status is not flooded with coverage tables.
 
 ---
 

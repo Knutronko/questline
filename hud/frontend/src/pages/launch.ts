@@ -138,14 +138,26 @@ export async function renderLaunch(): Promise<string> {
   ).join("");
 
   const st = status.launcher;
+  const busy = ["starting", "running", "stopping"].includes(st.state || "");
   const deviceHint =
     devices.hint ||
     (devices.devices?.length
       ? `${devices.devices.length} adb device(s)`
       : "No adb devices — normal for Unity Editor Wire.");
 
+  const busyBanner = busy
+    ? `<div class="empty" data-testid="launch-busy">
+        A managed run is <strong>${esc(st.state || "")}</strong>
+        (job <code>${esc(st.job_id || "")}</code>, profile
+        <code>${esc(st.profile || "")}</code>).
+        <a href="#/live">Open Live</a> to watch it, or <strong>Stop</strong> below
+        before launching another.
+      </div>`
+    : "";
+
   return `
     <h1>Run launcher</h1>
+    ${busyBanner}
     <p class="meta">Profiles come from <code>questline.toml</code> (not from Unity being open).
       Unity Play + Wire = use preset <strong>Wire Editor</strong> or profile <code>editor</code>.
       Device list is <em>adb only</em> — Editor does not appear there.</p>
@@ -175,8 +187,9 @@ export async function renderLaunch(): Promise<string> {
       <label class="check"><input type="checkbox" id="launch-quarantine"/> include quarantined</label>
       <label class="check"><input type="checkbox" id="launch-live" data-testid="launch-live"/> QUESTLINE_LIVE_TARGET=1 (required for wire-smoke)</label>
       <div class="toolbar">
-        <button type="button" id="launch-start" data-testid="launch-start">Launch</button>
-        <button type="button" id="launch-stop" data-testid="launch-stop">Stop</button>
+        <button type="button" id="launch-start" data-testid="launch-start" ${busy ? "disabled" : ""}>Launch</button>
+        <button type="button" id="launch-stop" data-testid="launch-stop" ${busy ? "" : "disabled"}>Stop</button>
+        ${busy ? `<a class="button" href="#/live" data-testid="launch-open-live">Open Live</a>` : ""}
       </div>
       <p class="meta">Active project: <code>${esc(configs.project_root)}</code></p>
     </div>
@@ -272,6 +285,11 @@ export function wireLaunch(): void {
     try {
       const { launcher } = await launcherStatus();
       if (statusEl) statusEl.textContent = JSON.stringify(launcher, null, 2);
+      const busy = ["starting", "running", "stopping"].includes(launcher.state || "");
+      const startBtn = document.getElementById("launch-start") as HTMLButtonElement | null;
+      const stopBtn = document.getElementById("launch-stop") as HTMLButtonElement | null;
+      if (startBtn) startBtn.disabled = busy;
+      if (stopBtn) stopBtn.disabled = !busy;
     } catch (err) {
       if (statusEl) statusEl.textContent = String(err);
     }
@@ -306,7 +324,12 @@ export function wireLaunch(): void {
         if (statusEl) statusEl.textContent = JSON.stringify(launcher, null, 2);
         location.hash = "/live";
       } catch (err) {
-        if (statusEl) statusEl.textContent = String(err);
+        const msg = String(err);
+        if (statusEl) statusEl.textContent = msg;
+        // Already running → open Live instead of leaving the operator stuck.
+        if (/\b409\b/.test(msg) && /already/i.test(msg)) {
+          location.hash = "/live";
+        }
       }
     })();
   });

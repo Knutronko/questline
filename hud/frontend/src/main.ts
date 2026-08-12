@@ -13,6 +13,7 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 
 let readOnly = false;
 let smokeMode = false;
+let staleApi = false;
 
 function shell(active: string, body: string): string {
   const link = (href: string, label: string) =>
@@ -27,6 +28,9 @@ function shell(active: string, body: string): string {
     smokeMode
       ? `<span class="badge warn" title="Playwright smoke fixture — not real runs">SMOKE</span>`
       : "",
+    staleApi
+      ? `<span class="badge warn" title="Restart questline hud">STALE API</span>`
+      : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -35,6 +39,14 @@ function shell(active: string, body: string): string {
         <strong>SMOKE FIXTURE SERVER</strong> — fake launcher + seeded runs.
         For real Wire/mock runs stop this process and use
         <code>uv run questline hud --open</code> (port 8741).
+      </div>`
+    : "";
+  const staleBanner = staleApi
+    ? `<div class="empty" style="margin:0 0 0.75rem;border-color:var(--warn)" data-testid="stale-api">
+        <strong>STALE HUD PROCESS</strong> — SPA is newer than the Python API
+        (missing <code>/api/runs/…/test?id=</code>). Stop the old
+        <code>questline hud</code> and run <code>uv run questline hud --open</code>
+        again from the repo root, then hard-refresh.
       </div>`
     : "";
   return `
@@ -49,15 +61,23 @@ function shell(active: string, body: string): string {
       </nav>
       ${badges}
     </header>
-    <main class="main">${smokeBanner}${body}</main>
+    <main class="main">${smokeBanner}${staleBanner}${body}</main>
   `;
 }
 
 function route(): { name: string; params: Record<string, string> } {
   const hash = location.hash.replace(/^#\/?/, "") || "";
   const parts = hash.split("/").filter(Boolean);
-  if (parts[0] === "runs" && parts[1] && parts[2] === "tests" && parts[3]) {
-    return { name: "test", params: { runId: parts[1], testId: parts[3] } };
+  // test_id is pytest nodeid and may contain '/' — take the remainder after /tests/
+  if (parts[0] === "runs" && parts[1] && parts[2] === "tests" && parts.length >= 4) {
+    const raw = parts.slice(3).join("/");
+    let testId = raw;
+    try {
+      testId = decodeURIComponent(raw);
+    } catch {
+      /* keep raw */
+    }
+    return { name: "test", params: { runId: parts[1], testId } };
   }
   if (parts[0] === "runs" && parts[1]) {
     return { name: "run", params: { runId: parts[1] } };
@@ -212,10 +232,12 @@ async function boot(): Promise<void> {
     const meta = await getMeta();
     readOnly = !!meta.read_only;
     smokeMode = !!meta.smoke;
+    staleApi = !meta.api?.test_by_query;
     if (!readOnly) await ensureCsrf();
   } catch {
     readOnly = false;
     smokeMode = false;
+    staleApi = true;
   }
   await paint();
 }

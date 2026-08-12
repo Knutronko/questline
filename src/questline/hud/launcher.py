@@ -48,6 +48,8 @@ class LaunchStatus:
     returncode: int | None = None
     error: str | None = None
     device_serial: str | None = None
+    # Last pytest/console lines (drained from subprocess stdout) for HUD Status.
+    log_tail: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -84,12 +86,17 @@ class RunLauncher:
         self._held_serial: str | None = None
         self._status = LaunchStatus()
         self._waiter: threading.Thread | None = None
+        self._log_lines: list[str] = []
+        self._log_lock = threading.Lock()
+        self._log_max_lines = 80
 
     def status(self) -> LaunchStatus:
+        self._reconcile_finished()
         with self._lock:
             return LaunchStatus(**asdict(self._status))
 
     def launch(self, req: LaunchRequest) -> LaunchStatus:
+        self._reconcile_finished()
         with self._lock:
             if self._status.state in {"starting", "running", "stopping"}:
                 raise RuntimeError(
@@ -103,10 +110,11 @@ class RunLauncher:
 
             serial = req.device_serial
             if serial:
+                # Do NOT hold the adb lock across the pytest child — the plugin's
+                # setup_android_session acquires it. Holding it here caused
+                # DeviceError + 0-test failed runs (HUD lock vs pytest lock).
                 try:
-                    self._device_lock = DeviceLock(self.lock_dir)
-                    self._device_lock.acquire(serial, owner=f"hud-launcher:{job_id}")
-                    self._held_serial = serial
+                    DeviceLock(self.lock_dir).ensure_available(serial)
                 except DeviceError as exc:
                     self._status = LaunchStatus(
                         job_id=job_id,
@@ -126,6 +134,9 @@ class RunLauncher:
                 device_serial=serial,
             )
             try:
+                # PIPE + dedicated drain thread (never unread PIPE — INC-0005).
+                # Tail is surfaced on LaunchStatus.log_tail so HUD Status shows
+                # session errors that Live (EventBus only) cannot.
                 proc = self._spawn(
                     argv,
                     cwd=str(cwd),
@@ -133,6 +144,8 @@ class RunLauncher:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     # Windows: create new process group for cleaner terminate.
                     creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
                 )
@@ -150,8 +163,17 @@ class RunLauncher:
                 raise
 
             self._proc = proc
+            with self._log_lock:
+                self._log_lines = []
             self._status.state = "running"
             self._status.pid = proc.pid
+            self._status.log_tail = ""
+            threading.Thread(
+                target=self._drain_stdout,
+                args=(proc,),
+                name=f"hud-launcher-log-{job_id}",
+                daemon=True,
+            ).start()
             self._waiter = threading.Thread(
                 target=self._wait_proc,
                 name=f"hud-launcher-{job_id}",
@@ -189,6 +211,33 @@ class RunLauncher:
             self._waiter.join(timeout=grace_s + 2.0)
         return self.status()
 
+    def _drain_stdout(self, proc: subprocess.Popen[Any]) -> None:
+        stream = getattr(proc, "stdout", None)
+        if stream is None:
+            return
+        try:
+            for line in stream:
+                text = line.rstrip("\r\n")
+                with self._log_lock:
+                    self._log_lines.append(text)
+                    if len(self._log_lines) > self._log_max_lines:
+                        self._log_lines = self._log_lines[-self._log_max_lines :]
+                    tail = "\n".join(self._log_lines)
+                with self._lock:
+                    if self._status.job_id:
+                        self._status.log_tail = tail
+        except Exception:
+            logger.debug("launcher stdout drain ended", exc_info=True)
+        finally:
+            try:
+                stream.close()
+            except Exception:
+                pass
+
+    def _log_tail_snapshot(self) -> str:
+        with self._log_lock:
+            return "\n".join(self._log_lines)
+
     def _wait_proc(self) -> None:
         proc = self._proc
         if proc is None:
@@ -201,14 +250,60 @@ class RunLauncher:
             with self._lock:
                 self._status.state = "error"
                 self._status.error = str(exc)
+                self._status.log_tail = self._log_tail_snapshot()
                 self._status.finished_at = time.time()
                 self._release_device_lock()
                 self._proc = None
             return
+        tail = self._log_tail_snapshot()
         with self._lock:
             self._status.returncode = code
             self._status.finished_at = time.time()
-            self._status.state = "finished" if code == 0 else "finished"
+            self._status.state = "finished"
+            self._status.pid = None
+            self._status.log_tail = tail
+            if code not in (0, None) and not self._status.error:
+                # Surface pytest/session failures that never became EventBus tests.
+                self._status.error = self._format_exit_error(code, tail)
+            self._release_device_lock()
+            self._proc = None
+
+    @staticmethod
+    def _format_exit_error(code: int, tail: str) -> str:
+        lines = [ln.strip() for ln in tail.splitlines() if ln.strip()]
+        interesting = [
+            ln
+            for ln in lines
+            if ln.startswith(("ERROR ", "FAILED ", "E ", "E\t"))
+            or "Error:" in ln
+            or "DeviceError" in ln
+            or "InfraError" in ln
+            or "SessionLost" in ln
+            or "short test summary" in ln
+            or ln.startswith("!")
+        ]
+        # Drop coverage noise if anything actionable remains.
+        interesting = [
+            ln
+            for ln in interesting
+            if "cov-fail-under" not in ln and "Total coverage" not in ln
+        ]
+        picked = interesting[-12:] if interesting else lines[-8:]
+        detail = " | ".join(picked) if picked else "(see log_tail)"
+        return f"pytest exited {code}: {detail}"
+
+    def _reconcile_finished(self) -> None:
+        """If the child exited but the waiter has not updated yet, sync status."""
+        with self._lock:
+            proc = self._proc
+            if proc is None or self._status.state not in {"starting", "running", "stopping"}:
+                return
+            code = proc.poll()
+            if code is None:
+                return
+            self._status.returncode = code
+            self._status.finished_at = time.time()
+            self._status.state = "finished"
             self._status.pid = None
             self._release_device_lock()
             self._proc = None
@@ -236,7 +331,9 @@ class RunLauncher:
             argv.extend(req.tests)
         else:
             argv.append(".")
-        argv.extend(["-q", "--tb=short"])
+        # Clear repo pyproject addopts (``--cov --cov-fail-under=85``). Live HUD
+        # runs are not the coverage gate — cov floods logs and fails green suites.
+        argv.extend(["-o", "addopts=", "-q", "--tb=short"])
         return argv
 
     def _build_env(self, req: LaunchRequest) -> dict[str, str]:

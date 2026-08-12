@@ -45,14 +45,20 @@ Command palette / “run any CLI” (document as CLI until BACKLOG).
 Title `phase-10: HUD control center`.
 
 ## Self-review
-- **Incidents:** none (no new maintainer-visible trap beyond existing INC-0001/0002).
-- **Verified in HUD:** Launch form → start (smoke mock launcher) → Live redirect; Stop;
-  Perf series + compare `run-a`/`run-b` fixture; Quarantine add/audit/remove API+UI;
-  Profile validate rejects bad wait; CSRF/`--read-only` gates.
+- **Incidents:** INC-0003, INC-0004, INC-0005, INC-0006 (plus INC-0001 for PerfProbe env).
+- **Verified in HUD:** Launch form → start → Live; Stop; Perf compare; Quarantine;
+  Profiles validate; CSRF/`--read-only`; nodeid drill-down (INC-0003); launcher log_tail;
+  Wire Android dogfood green after device-lock fix (INC-0006).
 - **CLI-only:** full package cov gate / unit suite; Playwright needs `serve_hud_smoke.py`
-  (PowerShell to start server only).
-- **Deferred:** command palette / arbitrary CLI shell → BACKLOG (no owner phase yet;
-  not pretending HUD is a full terminal). AI HUD buttons → phase 12.
+  on **8742** (not 8741 — INC-0004).
+- **Deferred:** command palette / arbitrary CLI shell → BACKLOG. AI HUD buttons → phase 12.
 
 ## Lessons / incidents
-None new for phase 10. Continue citing INC-0001 when enabling PerfProbe beside Wire UI.
+| Id | Note |
+|----|------|
+| [INC-0003](../incidents/INC-0003-hud-nodeid-url-slash.md) | Store `test_id` = pytest nodeid; never split HUD routes on `/` inside the nodeid. |
+| [INC-0004](../incidents/INC-0004-hud-smoke-port-collision.md) | Confirm `GET /api/meta` → `smoke: false` before operator dogfood; smoke uses 8742. |
+| [INC-0005](../incidents/INC-0005-hud-launcher-stdout-pipe-deadlock.md) | Managed pytest must not use unread `PIPE` stdout — deadlocks → permanent 409. |
+| [INC-0006](../incidents/INC-0006-hud-launcher-device-lock-double-acquire.md) | HUD must not hold the adb device lock across the pytest child (0-test failed runs). |
+
+Continue citing INC-0001 when enabling PerfProbe beside Wire UI.

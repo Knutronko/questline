@@ -43,6 +43,7 @@ export type Meta = {
   project_root: string;
   quarantine_path: string;
   reporters: string[];
+  api?: { test_by_query?: boolean; revision?: number };
 };
 
 export type LauncherStatus = {
@@ -56,6 +57,7 @@ export type LauncherStatus = {
   returncode: number | null;
   error: string | null;
   device_serial: string | null;
+  log_tail?: string;
 };
 
 let csrfToken: string | null = null;
@@ -149,9 +151,10 @@ export function getTest(
   artifacts: Array<Record<string, unknown>>;
   history: Array<Record<string, unknown>>;
 }> {
-  return getJson(
-    `/api/runs/${encodeURIComponent(runId)}/tests/${encodeURIComponent(testId)}`,
-  );
+  // Prefer query param: pytest nodeids contain '/' and '::' which break naive
+  // path routing on a stale HUD process / some stacks (INC-0003).
+  const q = new URLSearchParams({ id: testId });
+  return getJson(`/api/runs/${encodeURIComponent(runId)}/test?${q.toString()}`);
 }
 
 export function getTrends(limit = 50): Promise<{

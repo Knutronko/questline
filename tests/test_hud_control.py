@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import subprocess
 import threading
 from pathlib import Path
 from typing import Any
@@ -39,17 +40,21 @@ def hud_store(hud_root: Path):
 
 
 class _FakeProc:
-    def __init__(self) -> None:
+    def __init__(self, *, lines: list[str] | None = None, exit_code: int = 0) -> None:
         self.pid = 4242
         self._code: int | None = None
+        self._exit = exit_code
         self._done = threading.Event()
+        self.stdout = iter(list(lines or []))
 
     def poll(self) -> int | None:
         return self._code
 
     def wait(self) -> int:
         self._done.wait(timeout=30)
-        return 0 if self._code is None else self._code
+        if self._code is None:
+            self._code = self._exit
+        return self._code
 
     def send_signal(self, _sig: int) -> None:
         self._code = -15
@@ -57,6 +62,10 @@ class _FakeProc:
 
     def kill(self) -> None:
         self._code = -9
+        self._done.set()
+
+    def finish(self, code: int | None = None) -> None:
+        self._code = self._exit if code is None else code
         self._done.set()
 
 
@@ -139,17 +148,124 @@ def test_read_only_blocks_mutators(hud_store, hud_root: Path) -> None:
 
 
 def test_launch_stop_mocked(client: TestClient) -> None:
+    captured: dict[str, Any] = {}
+
+    def spawn(*_a: Any, **_k: Any) -> _FakeProc:
+        captured.update(_k)
+        return client.fake_proc  # type: ignore[attr-defined]
+
+    client.app.state.launcher._spawn = spawn  # type: ignore[attr-defined]
+
     res = _mut(client, "POST", "/api/launcher/start", json={"profile": "mock", "tests": ["."]})
     assert res.status_code == 200, res.text
     body = res.json()["launcher"]
     assert body["state"] == "running"
     assert body["profile"] == "mock"
     assert "--questline-profile" in body["argv"]
+    assert "addopts=" in body["argv"]
+    assert body["argv"][body["argv"].index("-o") + 1] == "addopts="
+    assert captured.get("stdout") is subprocess.PIPE
+    assert captured.get("stderr") is subprocess.STDOUT
+
+    again = _mut(client, "POST", "/api/launcher/start", json={"profile": "mock"})
+    assert again.status_code == 409
+    assert "already" in again.json()["detail"].lower()
 
     stop = _mut(client, "POST", "/api/launcher/stop")
     assert stop.status_code == 200
     st = client.get("/api/launcher").json()["launcher"]
     assert st["state"] in {"stopping", "finished", "error", "idle"}
+
+
+def test_launch_log_tail_and_error_on_nonzero_exit(client: TestClient) -> None:
+    lines = [
+        "ERROR examples/x.py::test_a - questline.core.errors.DeviceError: boom\n",
+        "FAIL Required test coverage of 85% not reached. Total coverage: 16%\n",
+        "short test summary info\n",
+    ]
+    fake = _FakeProc(lines=lines, exit_code=1)
+
+    def spawn(*_a: Any, **_k: Any) -> _FakeProc:
+        return fake
+
+    client.app.state.launcher._spawn = spawn  # type: ignore[attr-defined]
+    res = _mut(client, "POST", "/api/launcher/start", json={"profile": "mock", "tests": ["."]})
+    assert res.status_code == 200, res.text
+    fake.finish(1)
+    import time
+
+    for _ in range(50):
+        st = client.get("/api/launcher").json()["launcher"]
+        if st["state"] == "finished":
+            break
+        time.sleep(0.05)
+    assert st["state"] == "finished"
+    assert st["returncode"] == 1
+    assert "DeviceError" in (st.get("error") or "")
+    assert "ERROR" in (st.get("log_tail") or "")
+    # Coverage noise should not dominate the error summary when ERROR lines exist.
+    assert "Total coverage" not in (st.get("error") or "")
+
+
+def test_launch_rejects_locked_device(client: TestClient, hud_root: Path) -> None:
+    from questline.devices.adb.lock import DeviceLock
+
+    lock = DeviceLock(hud_root / ".questline" / "device-locks")
+    lock.acquire("SERIAL1", owner="other-run")
+    try:
+        res = _mut(
+            client,
+            "POST",
+            "/api/launcher/start",
+            json={"profile": "mock", "tests": ["."], "device_serial": "SERIAL1"},
+        )
+        assert res.status_code == 409, res.text
+        assert "locked" in res.json()["detail"].lower()
+    finally:
+        lock.release("SERIAL1")
+
+
+def test_format_exit_error_prefers_device_errors() -> None:
+    msg = RunLauncher._format_exit_error(
+        1,
+        "TOTAL 16%\nFAIL Required test coverage\n"
+        "ERROR t::a - questline.core.errors.DeviceError: locked\n"
+        "short test summary info\n",
+    )
+    assert "DeviceError" in msg
+    assert "Total coverage" not in msg
+
+
+def test_meta_exposes_api_revision(client: TestClient) -> None:
+    meta = client.get("/api/meta").json()
+    assert meta["api"]["test_by_query"] is True
+    assert meta["api"]["revision"] >= 2
+
+
+def test_launch_spawn_failure_surfaces_500(client: TestClient) -> None:
+    def spawn(*_a: Any, **_k: Any) -> _FakeProc:
+        raise OSError("spawn failed")
+
+    client.app.state.launcher._spawn = spawn  # type: ignore[attr-defined]
+    res = _mut(client, "POST", "/api/launcher/start", json={"profile": "mock", "tests": ["."]})
+    assert res.status_code == 500
+    assert "spawn failed" in res.json()["detail"]
+
+
+def test_launcher_reconcile_when_child_already_exited(client: TestClient) -> None:
+    fake = _FakeProc(exit_code=0)
+
+    def spawn(*_a: Any, **_k: Any) -> _FakeProc:
+        return fake
+
+    client.app.state.launcher._spawn = spawn  # type: ignore[attr-defined]
+    res = _mut(client, "POST", "/api/launcher/start", json={"profile": "mock", "tests": ["."]})
+    assert res.status_code == 200
+    # Child exited but waiter not finished yet — status() reconciles via poll().
+    fake._code = 0
+    st = client.get("/api/launcher").json()["launcher"]
+    assert st["state"] == "finished"
+    assert st["returncode"] == 0
 
 
 def test_quarantine_add_remove_audit(client: TestClient, hud_root: Path) -> None:
