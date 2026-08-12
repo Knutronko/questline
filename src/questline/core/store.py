@@ -452,6 +452,94 @@ class RunStore:
             # Already in events table; no dedicated artifact table in v0 schema.
             pass
 
+    def save_balance_snapshot(
+        self,
+        *,
+        snapshot_id: str,
+        game_version: str,
+        payload: bytes | str,
+        git_commit: str | None = None,
+        feature_id: str | None = None,
+        created_at: str | None = None,
+        meta: dict[str, Any] | None = None,
+    ) -> Path:
+        """Persist a balance_snapshot.json artifact and index row (FP-G1)."""
+        data = payload.encode("utf-8") if isinstance(payload, str) else payload
+        dest_dir = self.artifacts_dir / "lens" / snapshot_id
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        path = dest_dir / "balance_snapshot.json"
+        path.write_bytes(data)
+        ts = created_at or datetime.now().astimezone().isoformat()
+        meta_json = json.dumps(meta or {}, sort_keys=True)
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                self._conn.execute(
+                    """
+                    INSERT OR REPLACE INTO balance_snapshots
+                    (id, game_version, git_commit, feature_id, artifact_path, created_at, meta)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        snapshot_id,
+                        game_version,
+                        git_commit,
+                        feature_id,
+                        str(path),
+                        ts,
+                        meta_json,
+                    ),
+                )
+                self._conn.execute("COMMIT")
+            except Exception:
+                self._conn.execute("ROLLBACK")
+                raise
+        return path
+
+    def get_balance_snapshot(self, key: str) -> dict[str, Any] | None:
+        """Resolve by snapshot id, else latest row for game_version."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT * FROM balance_snapshots WHERE id = ?", (key,)
+            ).fetchone()
+            if row is None:
+                row = self._conn.execute(
+                    """
+                    SELECT * FROM balance_snapshots
+                    WHERE game_version = ?
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT 1
+                    """,
+                    (key,),
+                ).fetchone()
+        return dict(row) if row else None
+
+    def list_balance_snapshots(
+        self,
+        *,
+        game_version: str | None = None,
+        feature_id: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if game_version:
+            clauses.append("game_version = ?")
+            params.append(game_version)
+        if feature_id:
+            clauses.append("feature_id = ?")
+            params.append(feature_id)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = (
+            f"SELECT * FROM balance_snapshots {where} "
+            f"ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?"
+        )
+        params.extend([max(0, int(limit)), max(0, int(offset))])
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        return [dict(r) for r in rows]
+
     def __enter__(self) -> RunStore:
         return self
 

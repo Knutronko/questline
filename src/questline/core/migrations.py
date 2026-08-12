@@ -115,10 +115,34 @@ def _migrate_002_tests_feature_id(conn: sqlite3.Connection) -> None:
     )
 
 
+def _migrate_003_balance_snapshots(conn: sqlite3.Connection) -> None:
+    """GameLens FP-G1: balance snapshot index (artifact JSON on disk)."""
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS balance_snapshots (
+            id TEXT PRIMARY KEY,
+            game_version TEXT NOT NULL,
+            git_commit TEXT,
+            feature_id TEXT,
+            artifact_path TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            meta TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_balance_snapshots_version
+            ON balance_snapshots(game_version);
+        CREATE INDEX IF NOT EXISTS idx_balance_snapshots_feature
+            ON balance_snapshots(feature_id);
+        CREATE INDEX IF NOT EXISTS idx_balance_snapshots_created
+            ON balance_snapshots(created_at);
+        """
+    )
+
+
 # Append-only: new modules add the next integer version here.
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_core_schema", _migrate_001_initial_core),
     Migration(2, "tests_feature_id", _migrate_002_tests_feature_id),
+    Migration(3, "balance_snapshots", _migrate_003_balance_snapshots),
 )
 
 CURRENT_SCHEMA_VERSION: int = MIGRATIONS[-1].version

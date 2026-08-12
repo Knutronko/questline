@@ -1,0 +1,10 @@
+{
+  "display_name": "Alpha",
+  "hp": 100,
+  "dps": 12.5,
+  "cost": 50,
+  "resist": {
+    "fire": 0.1,
+    "ice": 0.0
+  }
+}

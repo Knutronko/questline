@@ -1,0 +1,15 @@
+---
+description: HUD control-center rules — store-first, secrets, defer vs extend
+globs: src/questline/hud/**,hud/frontend/**,docs/hud.md,docs/hud-operator-guide.md
+alwaysApply: false
+---
+
+# HUD
+
+- Contract: `docs/hud.md` (HUD-first after phase 10). Store/bus first; no UI-only verdicts.
+- New operator capability → extend HUD API+SPA+tests **or** defer explicitly in brief +
+  `hud.md` evolution + `docs/phases/BACKLOG.md`.
+- Secrets: show env **names** only; never token/key values in Profiles JSON or API payloads.
+- Mutators: localhost + CSRF; respect `--read-only`. Artifacts only under `artifacts_dir`.
+- Rebuild SPA: `hud/frontend` → embed into `src/questline/hud/static/` when UI changes.
+- GameLens panel is deferred (CLI `questline lens` MVP) until FP-G2/G3 data is worth browsing.

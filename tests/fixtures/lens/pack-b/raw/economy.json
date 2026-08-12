@@ -1,0 +1,11 @@
+{
+  "amber_per_tick": 2.0,
+  "wave_boost": 0.1,
+  "label": "retuned",
+  "density_curve": {
+    "keys": [
+      {"time": 0.0, "value": 1.0},
+      {"time": 1.0, "value": 1.5}
+    ]
+  }
+}

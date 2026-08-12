@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "label": "ci-fixture-pack-a"
+  },
+  "entries": [
+    {
+      "id": "economy",
+      "system": "economy",
+      "asset_path": "Assets/Balance/Economy.asset",
+      "source_file": "economy.json",
+      "kind": "config"
+    },
+    {
+      "id": "unit_alpha",
+      "system": "creatures",
+      "asset_path": "Assets/Balance/UnitAlpha.asset",
+      "source_file": "unit_alpha.json",
+      "kind": "unit"
+    }
+  ],
+  "supplementary": [
+    {
+      "kind": "markdown",
+      "path": "notes.md"
+    }
+  ]
+}

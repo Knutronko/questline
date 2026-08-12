@@ -12,6 +12,11 @@ See [docs/wire-setup.md](../docs/wire-setup.md), [docs/unity-setup.md](../docs/u
 [ADR-0004](../docs/adr/ADR-0004-companion-hooks.md), [ADR-0005](../docs/adr/ADR-0005-questline-wire.md),
 and [ADR-0008](../docs/adr/ADR-0008-wire-v2-ui.md).
 
+**GameLens (FP-G1):** Editor menu **Questline → Export Balance Snapshot**
+(`QuestlineBalanceExport`) serializes ScriptableObjects listed in a game manifest
+(QL-5). See [docs/gamelens.md](../docs/gamelens.md) and
+[ADR-0009](../docs/adr/ADR-0009-gamelens-snapshot.md).
+
 ## Quick register (game code)
 
 ```csharp
