@@ -57,7 +57,7 @@ def _make_legacy_db(path: Path) -> None:
 def test_fresh_store_is_at_current_schema_version(tmp_path: Path) -> None:
     with RunStore(tmp_path / "fresh.db") as store:
         assert store.schema_version == CURRENT_SCHEMA_VERSION
-        assert CURRENT_SCHEMA_VERSION >= 2
+        assert CURRENT_SCHEMA_VERSION >= 3
 
 
 def test_v1_store_upgrades_to_feature_id_column(tmp_path: Path) -> None:
@@ -78,6 +78,41 @@ def test_v1_store_upgrades_to_feature_id_column(tmp_path: Path) -> None:
         cols = {r[1] for r in probe.execute("PRAGMA table_info(tests)").fetchall()}
         probe.close()
         assert "feature_id" in cols
+
+
+def test_v2_store_upgrades_to_balance_snapshots_table(tmp_path: Path) -> None:
+    """schema_version=2 DB gains balance_snapshots via migration 3 (FP-G1)."""
+    from questline.core.migrations import (
+        _migrate_001_initial_core,
+        _migrate_002_tests_feature_id,
+    )
+
+    db_path = tmp_path / "v2.db"
+    conn = sqlite3.connect(str(db_path))
+    conn.isolation_level = None
+    apply_migrations(
+        conn,
+        (
+            Migration(1, "initial_core_schema", _migrate_001_initial_core),
+            Migration(2, "tests_feature_id", _migrate_002_tests_feature_id),
+        ),
+    )
+    assert get_schema_version(conn) == 2
+    names = {
+        r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+    }
+    assert "balance_snapshots" not in names
+    conn.close()
+
+    with RunStore(db_path) as store:
+        assert store.schema_version == CURRENT_SCHEMA_VERSION
+        probe = sqlite3.connect(str(db_path))
+        names = {
+            r[0]
+            for r in probe.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+        }
+        probe.close()
+        assert "balance_snapshots" in names
 
 
 def test_legacy_store_upgrades_cleanly_preserving_data(tmp_path: Path) -> None:

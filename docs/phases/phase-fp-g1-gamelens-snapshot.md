@@ -73,15 +73,15 @@ report is **in scope as a stub / deferred acceptance** until phase-11 LLMPort ex
 
 ## Acceptance criteria
 
-- [ ] CI: snapshot normalize + diff unit tests (including **new entity** diffs); CLI
+- [x] CI: snapshot normalize + diff unit tests (including **new entity** diffs); CLI
       smoke on fixtures.
-- [ ] Manifest schema documented; unknown SO / missing file → clear errors.
-- [ ] `questline lens snapshot` / `diff` work against fixture pack without Unity.
-- [ ] Maintainer path: export from Editor with a sample manifest (reference game or
+- [x] Manifest schema documented; unknown SO / missing file → clear errors.
+- [x] `questline lens snapshot` / `diff` work against fixture pack without Unity.
+- [x] Maintainer path: export from Editor with a sample manifest (reference game or
       mini fixture scene) documented in PowerShell.
-- [ ] AI report: either live via LLMPort **or** explicit deferred checklist item + stub.
-- [ ] STATUS-DUAL + BALANCE-AUTOMATION date/order unchanged unless this PR advances them.
-- [ ] Self-review + `Incidents: …` in PR; no secrets in snapshots.
+- [x] AI report: either live via LLMPort **or** explicit deferred checklist item + stub.
+- [x] STATUS-DUAL + BALANCE-AUTOMATION date/order unchanged unless this PR advances them.
+- [x] Self-review + `Incidents: …` in PR; no secrets in snapshots.
 
 ## PR checklist
 
@@ -91,4 +91,8 @@ PowerShell Cómo probarlo (fixture + optional Editor export).
 
 ## Lessons / incidents
 
-_(fill on close)_
+- Shipped snapshot/diff without waiting for QL-5 contents or phase-11 LLMPort; CI uses
+  generic fixture packs (`tests/fixtures/lens/`).
+- Manifest schema locked in ADR-0009; QL-5 must match `schema_version: 1` +
+  `asset_path` (Editor) / `source_file` (Python pack).
+- **Incidents:** none.

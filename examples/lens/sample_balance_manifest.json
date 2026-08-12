@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "note": "Sample only — QL-5 owns real ElJuegaso paths/ids. Do not treat as P1 truth."
+  },
+  "entries": [
+    {
+      "id": "combat_balance",
+      "system": "economy",
+      "asset_path": "Assets/ScriptableObjects/CombatBalance.asset",
+      "source_file": "combat_balance.json",
+      "kind": "config"
+    },
+    {
+      "id": "unit_stats_example",
+      "system": "creatures",
+      "asset_path": "Assets/ScriptableObjects/Units/ExampleUnit.asset",
+      "source_file": "unit_stats_example.json",
+      "kind": "unit"
+    }
+  ],
+  "supplementary": [
+    {
+      "kind": "markdown",
+      "path": "docs/prototipos/P1/economias.md"
+    }
+  ]
+}

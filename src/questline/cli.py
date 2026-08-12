@@ -32,6 +32,13 @@ perf_app = typer.Typer(
 )
 app.add_typer(perf_app, name="perf")
 
+lens_app = typer.Typer(
+    name="lens",
+    help="GameLens balance snapshot and diff (FP-G1).",
+    no_args_is_help=True,
+)
+app.add_typer(lens_app, name="lens")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -367,6 +374,267 @@ def perf_report(
             typer.echo(str(path))
         else:
             typer.echo(render_perf_report(run_id=run_id, samples=samples, fmt="text"), nl=False)
+    finally:
+        store.close()
+
+
+@lens_app.command("snapshot")
+def lens_snapshot(
+    pack: Annotated[
+        Path | None,
+        typer.Option(
+            "--pack",
+            help="Fixture/export pack dir (manifest.json + raw/*.json)",
+        ),
+    ] = None,
+    import_file: Annotated[
+        Path | None,
+        typer.Option(
+            "--import",
+            help="Import an already-normalized balance_snapshot.json",
+        ),
+    ] = None,
+    version: Annotated[
+        str | None,
+        typer.Option("--version", "-V", help="game_version label (required with --pack)"),
+    ] = None,
+    snapshot_id: Annotated[
+        str | None,
+        typer.Option("--id", help="Snapshot id (default: game_version)"),
+    ] = None,
+    git_commit: Annotated[
+        str | None,
+        typer.Option("--git-commit", help="Optional git commit"),
+    ] = None,
+    feature_id: Annotated[
+        str | None,
+        typer.Option("--feature-id", help="Optional feature_id"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="Profile name (for store path resolution)"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store", help="Override path to store.db"),
+    ] = None,
+) -> None:
+    """Capture/import a balance snapshot into the store."""
+    import json
+    import re
+
+    from questline.core.store import RunStore
+    from questline.lens.snapshot import load_snapshot, normalize_pack, write_snapshot
+
+    if (pack is None) == (import_file is None):
+        typer.secho(
+            "provide exactly one of --pack or --import",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(code=2)
+
+    try:
+        settings = load_settings(config_path=config, profile=profile)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    try:
+        if pack is not None:
+            if not version or not version.strip():
+                typer.secho(
+                    "--version is required with --pack",
+                    fg=typer.colors.RED,
+                    err=True,
+                )
+                raise typer.Exit(code=2)
+            snap = normalize_pack(
+                Path(pack),
+                game_version=version.strip(),
+                git_commit=git_commit,
+                feature_id=feature_id,
+            )
+        else:
+            assert import_file is not None
+            snap = load_snapshot(Path(import_file))
+            if version and version.strip():
+                from dataclasses import replace
+
+                from questline.lens.snapshot import BalanceSnapshot
+
+                snap = BalanceSnapshot(
+                    schema_version=snap.schema_version,
+                    meta=replace(snap.meta, game_version=version.strip()),
+                    entities=snap.entities,
+                    supplementary=snap.supplementary,
+                )
+            if git_commit or feature_id:
+                from dataclasses import replace
+
+                from questline.lens.snapshot import BalanceSnapshot
+
+                snap = BalanceSnapshot(
+                    schema_version=snap.schema_version,
+                    meta=replace(
+                        snap.meta,
+                        git_commit=git_commit or snap.meta.git_commit,
+                        feature_id=feature_id or snap.meta.feature_id,
+                    ),
+                    entities=snap.entities,
+                    supplementary=snap.supplementary,
+                )
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+
+    sid = (snapshot_id or snap.meta.game_version).strip()
+    if not re.fullmatch(r"[A-Za-z0-9._:@+/-]+", sid):
+        typer.secho(f"invalid snapshot id: {sid!r}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2)
+
+    db_path = Path(store_db) if store_db is not None else settings.store_db
+    artifacts = (
+        settings.artifacts_dir
+        if store_db is None
+        else (db_path.parent / "artifacts")
+    )
+    store = RunStore(db_path, artifacts_dir=artifacts)
+    try:
+        payload = json.dumps(snap.to_dict(), indent=2, sort_keys=True) + "\n"
+        path = store.save_balance_snapshot(
+            snapshot_id=sid,
+            game_version=snap.meta.game_version,
+            payload=payload,
+            git_commit=snap.meta.git_commit,
+            feature_id=snap.meta.feature_id,
+            meta={
+                "entity_count": len(snap.entities),
+                "manifest_path": snap.meta.manifest_path,
+            },
+        )
+        # Keep a copy next to import for debugging when --import was used.
+        if import_file is None:
+            write_snapshot(snap, path)
+        typer.echo(f"snapshot id={sid} version={snap.meta.game_version} path={path}")
+    finally:
+        store.close()
+
+
+@lens_app.command("diff")
+def lens_diff(
+    version_a: Annotated[str, typer.Argument(help="Left snapshot id or game_version")],
+    version_b: Annotated[str, typer.Argument(help="Right snapshot id or game_version")],
+    format: Annotated[
+        str,
+        typer.Option("--format", "-f", help="Output format: text or json"),
+    ] = "text",
+    output: Annotated[
+        Path | None,
+        typer.Option("--output", "-o", help="Write report file"),
+    ] = None,
+    with_ai: Annotated[
+        bool,
+        typer.Option(
+            "--ai/--no-ai",
+            help="Include AI implications stub (pending phase-11)",
+        ),
+    ] = True,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="Profile name (for store path resolution)"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store", help="Override path to store.db"),
+    ] = None,
+) -> None:
+    """Diff two stored balance snapshots (human text or machine JSON)."""
+    import json
+    from pathlib import Path as PathLib
+
+    from questline.core.store import RunStore
+    from questline.lens.diff import diff_snapshots
+    from questline.lens.render import render_diff_text
+    from questline.lens.report import implications_stub
+    from questline.lens.snapshot import load_snapshot
+
+    fmt = format.strip().lower()
+    if fmt not in {"text", "json"}:
+        typer.secho("--format must be 'text' or 'json'", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2)
+
+    try:
+        settings = load_settings(config_path=config, profile=profile)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    db_path = Path(store_db) if store_db is not None else settings.store_db
+    if not db_path.is_file():
+        typer.secho(f"store not found: {db_path}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+
+    artifacts = (
+        settings.artifacts_dir
+        if store_db is None
+        else (db_path.parent / "artifacts")
+    )
+    store = RunStore(db_path, artifacts_dir=artifacts)
+    try:
+        row_a = store.get_balance_snapshot(version_a)
+        row_b = store.get_balance_snapshot(version_b)
+        if row_a is None:
+            typer.secho(f"unknown snapshot: {version_a}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1)
+        if row_b is None:
+            typer.secho(f"unknown snapshot: {version_b}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1)
+        path_a = PathLib(row_a["artifact_path"])
+        path_b = PathLib(row_b["artifact_path"])
+        try:
+            snap_a = load_snapshot(path_a)
+            snap_b = load_snapshot(path_b)
+        except AuthoringError as exc:
+            typer.secho(str(exc), fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=2) from exc
+
+        report = diff_snapshots(
+            snap_a,
+            snap_b,
+            snapshot_id_a=row_a["id"],
+            snapshot_id_b=row_b["id"],
+        )
+        implications = implications_stub(report) if with_ai else None
+        if fmt == "json":
+            payload = report.to_dict()
+            if implications is not None:
+                payload["implications"] = implications.to_dict()
+            text = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+        else:
+            text = render_diff_text(report, implications=implications)
+
+        if output is not None:
+            out_path = Path(output)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(text, encoding="utf-8")
+            typer.echo(str(out_path))
+        else:
+            typer.echo(text, nl=False)
     finally:
         store.close()
 

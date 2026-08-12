@@ -42,6 +42,8 @@ creature growth curves) — but the module is genre-agnostic by design.
   playtest focus. Framing: *model reasoning* vs *measured* — never mixed.
 - **Scheduling split:** ship **snapshot + diff now** (with D11/QL-5). AI report is
   **deferred acceptance** until **phase-11** (do not block G1 or bots on LLMPort).
+- **Status:** FP-G1 snapshot/diff ✅ (ADR-0009 / [`gamelens.md`](gamelens.md)); AI
+  stub pending phase-11. QL-5 still supplies real manifest contents.
 - Prereqs (MVP): phases 4 / companion path. Prereqs (AI report): phase 11 (+ ideally G2/G3 data).
 
 ### FP-G2 — Gameplay telemetry · **M · priority ALTA (immediately after G1)**

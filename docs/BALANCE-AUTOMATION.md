@@ -175,3 +175,4 @@ Every PR that changes this order must update [`STATUS-DUAL.md`](STATUS-DUAL.md) 
 | 2026-08-12 | **Maintainer lock:** phase-11 **after** first bot dataset (serial), not in parallel with G2/G3. |
 | 2026-08-12 | Wire v2 + hooks sufficient for first bots if Tap/hooks cover combat; 09c only if gesture gap blocks. |
 | 2026-08-12 | QL-6 / FP-G2 pulled forward (not only with D12); D12 still consumes richer telemetry. |
+| 2026-08-12 | **FP-G1 landed:** snapshot/diff + ADR-0009; AI report remains stub until phase-11. |

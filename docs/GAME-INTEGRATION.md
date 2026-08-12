@@ -140,3 +140,5 @@ SOs the manifest declares; it never hardcodes game structure.
 **Wire:** bots use Wire v2 + hooks; gesture extension **09c** only if the playability
 gate fails (see BALANCE-AUTOMATION §5).
 
+**FP-G1 docs:** [`gamelens.md`](gamelens.md) · [`ADR-0009`](adr/ADR-0009-gamelens-snapshot.md).
+

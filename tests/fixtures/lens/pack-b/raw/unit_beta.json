@@ -1,0 +1,10 @@
+{
+  "display_name": "Beta",
+  "hp": 80,
+  "dps": 18.0,
+  "cost": 70,
+  "resist": {
+    "fire": 0.0,
+    "ice": 0.2
+  }
+}
