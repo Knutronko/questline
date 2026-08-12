@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-12** (D11 economía código ✅; fw **FP-G1** ✅; next playtest D11 + **QL-5** → **FP-G2+QL-6** → **G3 bots** → **11** AI — see [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md)).
+> Última revisión: **2026-08-12** (QL-5 manifest ✅; D11 código ✅; fw **FP-G1** ✅; next playtest D11 + **QL-6/FP-G2** → **G3 bots** → **11** AI — see [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md)).
 
 ---
 
@@ -13,7 +13,7 @@
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
 | **questline** | v0.1 + **05b–10** + **FP-G1** | GameLens snapshot/diff ✅ (ADR-0009) | **FP-G2** (+ QL-6); luego **FP-G3**; **11** AI después de bots | AltTester Desktop fuera del happy path |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1…3** + Wire + **`automation/`** + **D10.5** + **D11 código** | Playtest D11 + **QL-5** (manifest vs ADR-0009); luego **QL-6** con FP-G2 | Poco = 2º UI (fw 14); Drag-deploy → bots usan Tap/hooks (09c solo si gate) |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1…3 + QL-5** + Wire + **`automation/`** + **D10.5** + **D11 código** | Playtest D11 + **QL-6** (con FP-G2); luego bots FP-G3 | Poco = 2º UI (fw 14); Drag-deploy → bots usan Tap/hooks (09c solo si gate); IEB-1…5 aún no son SO (hueco GameLens) |
 
 
 **Drivers (prioridad):**
@@ -95,7 +95,7 @@ Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`BALANCE-AUTOMATION.md
 | **QL-2c** | Companion Wire v2 UI ops | ✅ companion (ElJuegaso PR #41) | Rebuild Dev APK for Android UI optional |
 | **QL-3** | Perf counters companion | ✅ | `QuestlinePerfProvider` + Dev APK; Editor + Android maintainer 2026-08-11 |
 | **QL-4** | UTF C# + Poco (2º UI) | ⬜ | Trigger fw **14** |
-| **QL-5** | Manifest SOs (GameLens) | ⬜ | Alinear schema **ADR-0009** / [`gamelens.md`](gamelens.md); trigger FP-G1 ✅ format |
+| **QL-5** | Manifest SOs (GameLens) | ✅ | `balance_manifest.json` ADR-0009; companion `QuestlineBalanceExport`; IEB-1…5 no son assets |
 | **QL-6** | Telemetría | ⬜ | Trigger FP-G2 · **antes de bots** (no solo D12) |
 | exit | Scaffold `automation/` | ✅ coverage-demo | Hooks ✅; UI find/tap → **QL-2c** (fw 09b ✅; Poco = 14) |
 
@@ -146,7 +146,7 @@ flowchart TB
     QL2b --> QL3[QL-3 Perf ✅]
     QL2b --> QL2c[QL-2c Wire v2 UI ✅]
     QL2c --> D11
-    D11 -.-> QL5[QL-5 SO manifest]
+    D11 -.-> QL5[QL-5 SO manifest ✅]
     QL5 -.-> FPG1
     D11 -.-> QL6[QL-6 Telemetry thin]
     QL6 -.-> FPG2
@@ -171,7 +171,7 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | Playtest **D11** + **QL-5** (manifest; schema ADR-0009) | ElJuegaso | Economía lista; FP-G1 formato ya en questline |
+| 1 | Playtest **D11** (feel B1–B5) | ElJuegaso | Economía + sinks listos; QL-5/FP-G1 ya dan config truth |
 | 2 | **FP-G2** + **QL-6** (thin) | ambos | Sin telemetría los bots no “recaban datos” en el store |
 | 2b | Gate Wire playability → **09c** solo si hace falta | questline | Drag/gestures; prefer Tap+hooks |
 | 3 | **FP-G3** bots deterministas | ambos | Playtest automático / curvas medidas |
