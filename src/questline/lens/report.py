@@ -36,7 +36,7 @@ def implications_stub(report: DiffReport) -> ImplicationsReport:
         summary=(
             "AI implications report is deferred until phase-11 (LLMPort). "
             f"Diff has {len(report.entries)} typed entries "
-            f"({report.version_a} → {report.version_b}); "
+            f"({report.version_a} -> {report.version_b}); "
             "use measured telemetry (FP-G2/G3) before trusting narrative prioritization."
         ),
         pending="phase-11",
