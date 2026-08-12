@@ -100,7 +100,8 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | **14** | Test assembly (asmdef) + UTF C# tests + **Poco** SDK (second UI backend) | **QL-4** |
 | 15 | Nothing new | — |
 | FP-G1 | SO **export manifest** (which ScriptableObjects are balance data) | **QL-5** |
-| FP-G2 | Game code calls the telemetry API (its existing debug-event convention maps ~1:1) | **QL-6** |
+| FP-G2 | Game code calls the telemetry API (existing debug-event convention maps ~1:1) | **QL-6** (thin before FP-G3; richer with D12) |
+| FP-G3 | Bot scenarios / policies in `automation/` (hooks-first + Wire UI) | bot suite under `automation/` |
 | FP-F1+ | Game repo path configured; feature descriptions at scan time | — |
 
 **Rule for phase sessions:** if your phase's acceptance needs game-side work that is not
@@ -117,8 +118,25 @@ docs PR before the next phase starts). Do not leave the dual semáforo stale.
 The game's roadmap has an **economy/measure-tools phase** and an **infinite-mode phase
 that explicitly needs telemetry for retunes**. Questline's GameLens (FP-G1/G2/G3) is the
 intended implementation of those measuring tools — the game should NOT build ad-hoc
-balance tooling that duplicates it. When the game reaches its economy phase, the
-maintainer decides whether to schedule FP-G1/G2 so both land together. Framework
-sessions touching GameLens must read this section and keep the game's constraint in
-mind: **the game's design is still open** — GameLens consumes whatever SOs the manifest
-declares; it never hardcodes game structure.
+balance tooling that duplicates it.
+
+**Maintainer lock (2026-08-12):** automate playtest-driven balance (economy, enemies,
+difficulty curve, OP/UP units/skills, …) via the closed loop in
+[`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md):
+
+| Step | Framework | Game |
+|------|-----------|------|
+| Config knobs in SOs | — | **D11** (+ always §1 SO rule) |
+| Declare export set | **FP-G1** format | **QL-5** manifest |
+| Snapshot / diff | **FP-G1** | — |
+| Emit gameplay events | **FP-G2** API | **QL-6** (thin **before bots**, richer with D12) |
+| Seeded bot playthroughs | **FP-G3** | `automation/` bot suites |
+| AI interpretation / smarter policies | **phase-11+** | — |
+
+Framework sessions touching GameLens must read BALANCE-AUTOMATION and keep the game's
+constraint in mind: **the game's design is still open** — GameLens consumes whatever
+SOs the manifest declares; it never hardcodes game structure.
+
+**Wire:** bots use Wire v2 + hooks; gesture extension **09c** only if the playability
+gate fails (see BALANCE-AUTOMATION §5).
+

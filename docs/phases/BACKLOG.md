@@ -26,7 +26,11 @@ Format: `- [ ] (phase-NN) description`
 - [ ] (phase-14) Poco as **second** UI hierarchy adapter (+ UTF); Wire v2 UI is phase-09b.
 - [x] (phase-09b) Wire v2 find/hierarchy/tap/screenshot — FakeWire CI + companion UI ops;
       game trigger QL-2c (sync companion + Dev APK).
-- [ ] (phase-09) Companion `draw_calls` is a reserved slot (always 0 in Runtime asmdef —
+- [ ] (phase-09c) Wire swipe/drag/long-press — **parked**; schedule only if FP-G3
+      playability gate fails (BALANCE-AUTOMATION §5 / phase-09c brief).
+- [ ] (fp-g1) AI implications live report — deferred to phase-11 (snapshot/diff ships first).
+- [ ] (fp-g2) Thin telemetry before FP-G3 bots — do not wait for D12-only scheduling.
+- [ ] (fp-g3) Deterministic bots do **not** wait for phase-13; AI policies after phase-11.- [ ] (phase-09) Companion `draw_calls` is a reserved slot (always 0 in Runtime asmdef —
       no UnityEditor dependency). Optional Editor-only extension or game-injected counter.
 - [ ] (phase-09) PerfProbe anomaly detection / soak trend analysis — deferred (phase brief
       out of scope; see AI roadmap / future phases).

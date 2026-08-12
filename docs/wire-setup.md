@@ -128,9 +128,12 @@ supported” system dialog on 64-bit phones — session auto-dismisses; see
 | **Editor live** | `examples/wire-smoke` + reference game QL-2b | ✅ |
 | **Android live** | Rebuild Dev APK with Wire; `android_local` smoke | ✅ |
 | **Wire v2 UI (09b)** | find / hierarchy / tap / screenshot — [ADR-0008](adr/ADR-0008-wire-v2-ui.md) | ✅ |
+| **Play gestures (09c)** | swipe / drag / long-press — only if FP-G3 gate fails | ⬜ parked |
 
 Wire is the **happy-path** Unity transport (hooks + UI). **Poco** (14) is the
-**second** UI adapter. See [phase-09b brief](phases/phase-09b-wire-v2.md).
+**second** UI adapter. Bots/GameLens: prefer hooks + Tap; see
+[BALANCE-AUTOMATION.md](BALANCE-AUTOMATION.md) §5 and
+[phase-09c](phases/phase-09c-wire-play-gestures.md).
 
 ## Reference game (ElJuegaso) — QL-2b ✅ → **QL-2c** next
 

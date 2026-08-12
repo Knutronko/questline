@@ -4,7 +4,12 @@ Immutable briefs live as `phase-NN-*.md` (see `docs/00-MASTER-PLAN.md` §6: brie
 change after merge; scope changes get a revision commit with reasoning).
 
 Inserted bridge phases use a letter suffix (e.g. `phase-05b-questline-wire.md`,
-`phase-09b-wire-v2.md`) so 06–15 stay stable.
+`phase-09b-wire-v2.md`, `phase-09c-wire-play-gestures.md`) so 06–15 stay stable.
+Scheduled catalog FPs may use `phase-fp-*.md` (e.g. FP-G1) until numbered.
+
+**Balance automation / GameLens order:** [`BALANCE-AUTOMATION.md`](../BALANCE-AUTOMATION.md).
+**Joint D11/QL-5/FP-G1 prompts:** [`SESSION-PROMPTS-D11-QL5-FPG1.md`](SESSION-PROMPTS-D11-QL5-FPG1.md).
+
 
 ## Every phase session — living checklist
 

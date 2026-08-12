@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-11** (fw **10** HUD II control center ✅; next **11** AI foundation / game D11).
+> Última revisión: **2026-08-12** (fw **10** ✅; next **D11+QL-5+FP-G1** → **G2/G3 bots** → **11** AI — see [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md)).
 
 ---
 
@@ -12,8 +12,9 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 + **05b–10** | HUD II control center ✅ (launcher/quarantine/profiles/perf graphs) | **11** AI foundation | Ninguno crítico; AltTester Desktop **fuera** del happy path |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b/QL-2c/QL-3** + Wire + **`automation/`** + **D10.5** | **D11** (ideal); Android Dev APK rebuild optional | AltTester UPM **remoto/legacy**; Poco = 2º UI (fw 14) |
+| **questline** | v0.1 + **05b–10** | HUD II ✅ (dogfood INC-0003…0006) | **FP-G1** (con D11/QL-5); luego **FP-G2/G3**; **11** AI después de bots | AltTester Desktop fuera del happy path |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1/2/2b/QL-2c/QL-3** + Wire + **`automation/`** + **D10.5** | **D11** + **QL-5**; luego **QL-6** con FP-G2 | Poco = 2º UI (fw 14); Drag-deploy → bots usan Tap/hooks (09c solo si gate) |
+
 
 **Drivers (prioridad):**
 
@@ -49,8 +50,11 @@
 | 8 | HUD I viewer | ✅ | FastAPI + SPA; ADR-0007 |
 | 9 | PerfProbe | ✅ | Sampler + android + companion + asserts + CLI; HUD graphs ✅ in **10** |
 | **09b** | **Wire v2 UI** | ✅ | find/hierarchy/tap/screenshot; ADR-0008; trigger **QL-2c** |
-| 10 | HUD II control | ✅ | Launcher, quarantine, profiles, perf graphs, CSRF/`--read-only` |
-| 11 | AI foundation | ⬜ **next (fw)** | |
+| 10 | HUD II control | ✅ | Launcher, quarantine, profiles, perf graphs; dogfood INC-0003…0006 |
+| **FP-G1** | GameLens snapshot/diff | ⬜ **next (fw)** | Con **QL-5**; AI report → tras **11** — [`phase-fp-g1`](phases/phase-fp-g1-gamelens-snapshot.md) |
+| **FP-G2** | Telemetría | ⬜ tras G1 | Antes de bots útiles; trigger **QL-6** |
+| **FP-G3** | Bots deterministas | ⬜ tras G2 | Curvas medidas; AI policies tras **11** |
+| 11 | AI foundation | ⬜ **tras bots** | LLMPort; consume datos G2/G3 |
 | 12 | AI agents | ⬜ | |
 | 13 | AI generation + eval | ⬜ | |
 | 14 | **Poco** + UTF | ⬜ | 2º UI backend + UTF; trigger **QL-4** |
@@ -64,8 +68,9 @@
 | Editor live smoke | ✅ |
 | Android live smoke (Dev APK con Wire) | ✅ 2026-08-09 |
 | Wire v2 find/hierarchy/tap | ✅ **09b** (ADR-0008) — sync game **QL-2c** |
+| Wire play gestures (swipe/drag) | ⬜ **09c** — solo si gate FP-G3 ([`phase-09c`](phases/phase-09c-wire-play-gestures.md)) |
 
-Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-setup.md) ·
+Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md) · [`wire-setup.md`](wire-setup.md) ·
 [`ADR-0005`](adr/ADR-0005-questline-wire.md) · [`ADR-0008`](adr/ADR-0008-wire-v2-ui.md) ·
 [`phase-09b`](phases/phase-09b-wire-v2.md) · [`performance.md`](performance.md) ·
 [`resilience.md`](resilience.md) ·
@@ -91,7 +96,7 @@ Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`wire-setup.md`](wire-
 | **QL-3** | Perf counters companion | ✅ | `QuestlinePerfProvider` + Dev APK; Editor + Android maintainer 2026-08-11 |
 | **QL-4** | UTF C# + Poco (2º UI) | ⬜ | Trigger fw **14** |
 | **QL-5** | Manifest SOs (GameLens) | ⬜ | Trigger FP-G1 · encaja **D11** |
-| **QL-6** | Telemetría | ⬜ | Trigger FP-G2 · encaja **D12** |
+| **QL-6** | Telemetría | ⬜ | Trigger FP-G2 · **antes de bots** (no solo D12) |
 | exit | Scaffold `automation/` | ✅ coverage-demo | Hooks ✅; UI find/tap → **QL-2c** (fw 09b ✅; Poco = 14) |
 
 Contrato espejo: [`GAME-INTEGRATION.md`](GAME-INTEGRATION.md).
@@ -112,7 +117,12 @@ flowchart TB
     Q8 --> Q9[09 PerfProbe ✅]
     Q9 --> Q9b[09b Wire v2 UI ✅]
     Q9b --> Q10[10 HUD II ✅]
-    Q10 --> Q11[11-13 AI]
+    Q10 --> FPG1[FP-G1 snapshot/diff]
+    FPG1 --> FPG2[FP-G2 telemetry]
+    FPG2 --> FPG3[FP-G3 deterministic bots]
+    FPG3 --> Q11[11-13 AI]
+    Q9b -.-> Q09c[09c gestures if gate]
+    Q09c -.-> FPG3
     Q4 --> Q9
     Q3[03 Authoring ✅] --> Q11
     Q5b --> Q11
@@ -124,7 +134,7 @@ flowchart TB
   subgraph Game[ElJuegaso P1]
     D95[D9.5 ✅] --> D10[D10 Skills ✅]
     D10 --> D105[D10.5 IEB baseline ✅]
-    D105 --> D11[D11 Economia + GameLens]
+    D105 --> D11[D11 Economia]
     D11 --> D12[D12 Infinito]
     D12 --> D13[D13 FTUE]
     QL1[QL-1 ✅] --> QL2[QL-2 Dev APK ✅]
@@ -137,7 +147,11 @@ flowchart TB
     QL2b --> QL2c[QL-2c Wire v2 UI ✅]
     QL2c --> D11
     D11 -.-> QL5[QL-5 SO manifest]
-    D12 -.-> QL6[QL-6 Telemetry]
+    QL5 -.-> FPG1
+    D11 -.-> QL6[QL-6 Telemetry thin]
+    QL6 -.-> FPG2
+    D12 -.-> QL6
+    Auto -->|feeds| FPG3
   end
 
   Q4 -.->|trigger| QL1
@@ -150,23 +164,25 @@ flowchart TB
   Auto -->|feeds| Q7
   Auto -->|feeds| Q8
   Auto -->|feeds| Q11
-  Q9b -.->|enables UI bots| D11
+  Q9b -.->|enables UI bots| FPG3
 ```
 
 ### Orden de implementación sugerido (próximos pasos)
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | **phase-11** AI foundation | questline | Next fw phase after HUD II |
-| 2 | **D11** + **QL-5 / FP-G1** | ElJuegaso (+ fw) | Economía + GameLens; Wire UI ya disponible |
-| 3 | Rebuild Dev APK (Android Wire v2) | ElJuegaso | Opcional tras QL-2c companion |
-| 4 | **D12 ↔ QL-6 / FP-G2** | ambos | Infinito + telemetría |
-| 5 | **FP-G3** bots (cuando toque) | fw | Curvas medidas usando Wire v2 |
-| 6 | **phase-14 Poco + QL-4** | ambos | 2º UI backend + UTF |
+| 1 | **D11** + **QL-5** + **FP-G1** | ambos | Economía + manifest + snapshot/diff ([`BALANCE-AUTOMATION`](BALANCE-AUTOMATION.md)) |
+| 2 | **FP-G2** + **QL-6** (thin) | ambos | Sin telemetría los bots no “recaban datos” en el store |
+| 2b | Gate Wire playability → **09c** solo si hace falta | questline | Drag/gestures; prefer Tap+hooks |
+| 3 | **FP-G3** bots deterministas | ambos | Playtest automático / curvas medidas |
+| 4 | **phase-11** AI foundation | questline | Informe G1 + políticas AI en bots usando datos medidos |
+| 5 | Rebuild Dev APK (Android Wire v2) | ElJuegaso | Opcional |
+| 6 | **D12** infinito (telemetría más rica) | ElJuegaso | Tras bots baseline |
+| 7 | **phase-14 Poco + QL-4** | ambos | 2º UI backend + UTF |
 
 
 **Stack live:** Wire = hooks + hierarchy/find/tap (**09b** ✅). **Poco** = 2º adapter.
-**AltTester** = legacy remoto.
+**AltTester** = legacy remoto. Prompts: [`SESSION-PROMPTS-D11-QL5-FPG1.md`](phases/SESSION-PROMPTS-D11-QL5-FPG1.md).
 
 ---
 
@@ -206,6 +222,8 @@ Formalizado en: questline `GAME-INTEGRATION.md` + `00-MASTER-PLAN.md` §6 · ElJ
 | Resilience | [`resilience.md`](resilience.md) · [`ADR-0006`](adr/ADR-0006-recovery-ladder.md) |
 | Reporting | [`reporting.md`](reporting.md) |
 | HUD control center | [`hud.md`](hud.md) · [`ADR-0007`](adr/ADR-0007-hud-frontend-stack.md) · [`phase-10`](phases/phase-10-hud-control-center.md) |
+| Balance automation / GameLens loop | [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md) |
+| FP-G1 brief | [`phase-fp-g1`](phases/phase-fp-g1-gamelens-snapshot.md) · prompts [`SESSION-PROMPTS`](phases/SESSION-PROMPTS-D11-QL5-FPG1.md) |
 | Phase 05b brief | [`phase-05b-questline-wire.md`](phases/phase-05b-questline-wire.md) |
 | Android / adb | [`android.md`](android.md) |
 | Legacy AltTester setup | [`unity-setup.md`](unity-setup.md) |
