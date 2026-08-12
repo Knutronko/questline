@@ -62,7 +62,7 @@ def load_snapshot(path: Path) -> BalanceSnapshot:
     if not path.is_file():
         raise AuthoringError(f"snapshot not found: {path}")
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        raw = json.loads(path.read_text(encoding="utf-8-sig"))
     except json.JSONDecodeError as exc:
         raise AuthoringError(f"snapshot is not valid JSON: {path}: {exc}") from exc
     return parse_snapshot(raw, source=str(path))
@@ -292,7 +292,7 @@ def _load_entry_raw(pack_dir: Path, entry: ManifestEntry) -> Any:
             f"(resolved {path})"
         )
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8-sig"))
     except json.JSONDecodeError as exc:
         raise AuthoringError(
             f"invalid JSON for entry {entry.id!r} at {path}: {exc}"

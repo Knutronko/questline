@@ -226,7 +226,8 @@ namespace Questline.Companion
                 Directory.CreateDirectory(dir);
             }
 
-            File.WriteAllText(outputPath, sb.ToString(), Encoding.UTF8);
+            // Encoding.UTF8 emits a BOM; Python json.loads(utf-8) rejects it.
+            File.WriteAllText(outputPath, sb.ToString(), new UTF8Encoding(false));
         }
 
         static string SerializeObjectFields(UnityEngine.Object target)

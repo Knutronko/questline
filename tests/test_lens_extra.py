@@ -196,6 +196,35 @@ def test_manifest_invalid_json(tmp_path: Path) -> None:
         load_manifest(path)
 
 
+def test_load_snapshot_and_manifest_accept_utf8_bom(tmp_path: Path) -> None:
+    """Unity Encoding.UTF8 writes a BOM; Editor exports must still import."""
+    snap_payload = json.dumps(
+        {
+            "schema_version": 1,
+            "meta": {"game_version": "1.0.0"},
+            "entities": {},
+            "supplementary": [],
+        }
+    )
+    snap_path = tmp_path / "balance_snapshot.json"
+    snap_path.write_bytes(b"\xef\xbb\xbf" + snap_payload.encode("utf-8"))
+    snap = load_snapshot(snap_path)
+    assert snap.meta.game_version == "1.0.0"
+
+    man_payload = json.dumps(
+        {
+            "schema_version": 1,
+            "entries": [
+                {"id": "economy", "system": "economy", "source_file": "e.json"},
+            ],
+        }
+    )
+    man_path = tmp_path / "manifest.json"
+    man_path.write_bytes(b"\xef\xbb\xbf" + man_payload.encode("utf-8"))
+    man = load_manifest(man_path)
+    assert man.entry_by_id("economy") is not None
+
+
 def test_store_balance_snapshot_list_and_resolve(tmp_path: Path) -> None:
     store = RunStore(tmp_path / "store.db")
     try:

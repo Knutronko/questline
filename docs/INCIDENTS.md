@@ -48,6 +48,7 @@ brief Lessons section, and cite it in the PR Self-review.
 | [INC-0005](incidents/INC-0005-hud-launcher-stdout-pipe-deadlock.md) | HUD launcher hung on unread stdout PIPE (409 forever) | 10 | fixed | 2026-08-11 |
 | [INC-0006](incidents/INC-0006-hud-launcher-device-lock-double-acquire.md) | HUD Launch held adb lock so pytest setup failed (0 tests) | 10 | fixed | 2026-08-12 |
 | [INC-0007](incidents/INC-0007-lens-windows-console-encoding.md) | GameLens CLI text crashed on Windows cp1252 (`→`/`Δ`) | FP-G1 | fixed | 2026-08-12 |
+| [INC-0008](incidents/INC-0008-lens-utf8-bom-import.md) | Unity GameLens export UTF-8 BOM broke `lens snapshot --import` | FP-G1, QL-5 | fixed | 2026-08-12 |
 
 ## Template
 

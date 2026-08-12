@@ -79,7 +79,8 @@ Keys for `diff` resolve by snapshot **id** or **game_version** (latest).
 
 1. Sync `com.questline.companion` (includes `QuestlineBalanceExport`).
 2. Place a QL-5 `balance_manifest.json` in the game repo (see sample below).
-3. Unity menu **Questline → Export Balance Snapshot** → pick manifest → save JSON.
+3. Unity menu **Questline → Export Balance Snapshot** → pick manifest → save JSON
+   (UTF-8 **without** BOM; `lens --import` also accepts a UTF-8 BOM from older exports).
 4. `questline lens snapshot --import …` into the project store.
 
 Sample (generic; replace paths in QL-5):
