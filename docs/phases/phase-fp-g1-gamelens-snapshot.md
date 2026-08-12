@@ -98,4 +98,5 @@ PowerShell Cómo probarlo (fixture + optional Editor export).
 - HUD GameLens panel **explicitly deferred** (CLI MVP); wire after FP-G2/G3 data is
   useful to browse, AI narrative after phase-11.
 - **Incidents:** [INC-0007](../incidents/INC-0007-lens-windows-console-encoding.md)
-  (Windows cp1252 UnicodeEncodeError on `lens diff` text; artifact path vs `--store`).
+  (Windows cp1252 UnicodeEncodeError on `lens diff` text; artifact path vs `--store`);
+  [INC-0008](../incidents/INC-0008-lens-utf8-bom-import.md) (Unity UTF-8 BOM on Editor export).

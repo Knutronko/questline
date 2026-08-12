@@ -48,7 +48,7 @@ def load_manifest(path: Path) -> BalanceManifest:
     if not path.is_file():
         raise AuthoringError(f"manifest not found: {path}")
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        raw = json.loads(path.read_text(encoding="utf-8-sig"))
     except json.JSONDecodeError as exc:
         raise AuthoringError(f"manifest is not valid JSON: {path}: {exc}") from exc
     return parse_manifest(raw, source=str(path))
