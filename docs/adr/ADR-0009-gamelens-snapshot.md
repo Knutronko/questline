@@ -20,19 +20,25 @@
      - Stable key paths: entity id + dotted field path (e.g. `hp.max`)
   3. **Store (ADR-0002 migration 3):** table `balance_snapshots`
      (`id`, `game_version`, `git_commit`, `feature_id`, `artifact_path`, `created_at`,
-     `meta` JSON). Artifact file under `.questline/artifacts/lens/<id>/balance_snapshot.json`.
-     CLI keys `diff <vA> <vB>` resolve by snapshot `id` or by `game_version` (latest).
-  4. **Diff kinds (first-class):** `changed` (numeric Δ + %, string/bool),
+     `meta` JSON). Artifact file under `{artifacts_dir}/lens/<id>/balance_snapshot.json`
+     (default profile: `.questline/artifacts/lens/…`; with CLI `--store FILE`,
+     `artifacts_dir` is `FILE.parent / "artifacts"`). CLI keys `diff <vA> <vB>` resolve
+     by snapshot `id` or by `game_version` (latest).
+  4. **Diff kinds (first-class):** `changed` (numeric delta + %, string/bool),
      `added_entity`, `removed_entity`, `curve_changed` / `series_changed`. Group by
      manifest `system` tags. Optional `feature_id` on snapshots for future FP-F impact.
   5. **Capture paths:** (a) Companion Editor / `QUESTLINE_DEV` exporter writes normalized
      JSON from SOs listed in the manifest; (b) Python CLI imports a fixture pack or
      pre-exported snapshot without Unity (CI happy path).
   6. **AI report:** interface + stub returning `pending phase-11`; no live LLM in FP-G1.
+  7. **Human CLI text:** ASCII-only glyphs in rendered diffs (Windows cp1252-safe;
+     see INC-0007).
 - **Consequences:**
   - QL-5 must ship a real manifest matching this schema; FP-G1 owns format + tooling.
-  - HUD GameLens panel deferred; CLI is the MVP surface.
+  - HUD GameLens panel deferred until data from FP-G2/G3 is worth browsing (CLI MVP).
   - FP-G2/G3 reuse `game_version` / `feature_id` / snapshot id as config truth keys.
+  - phase-09c Wire gestures must **not** reuse ADR-0009 (taken); use ADR-0008 addendum
+    or next free ADR number.
 - **Alternatives considered:** Diff raw Unity YAML (rejected — unstable). Store only
   as run artifacts without a table (rejected — hard to query by version). Hardcode P1
   SO type list in core (rejected — GAME-INTEGRATION §5).

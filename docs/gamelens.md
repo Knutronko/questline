@@ -12,13 +12,25 @@
 |-------|------|
 | Manifest schema | Game lists balance SOs + `system` tags (economy, creatures, waves, …) |
 | Companion exporter | Editor menu **Questline → Export Balance Snapshot** |
-| Store | `balance_snapshots` table + artifact JSON under `.questline/artifacts/lens/` |
+| Store | `balance_snapshots` table + JSON under `{artifacts_dir}/lens/<id>/` (see `--store`) |
 | CLI | `questline lens snapshot` / `questline lens diff` |
-| Diff | Typed: numeric Δ/%, added/removed **entities**, curve/series; grouped by system |
+| Diff | Typed: numeric delta/%, added/removed **entities**, curve/series; grouped by system |
 | AI report | Stub → `pending phase-11` (framing: *model reasoning* only) |
 
-HUD GameLens panel: **deferred**.
+HUD GameLens panel: **deferred** (CLI MVP; see BACKLOG + `hud.md` evolution).
 
+## Downstream consumers (do not break these contracts)
+
+| Consumer | Needs from FP-G1 |
+|----------|------------------|
+| **QL-5** (game) | Manifest `schema_version: 1` contents; `asset_path` for Editor export |
+| **FP-G2 / QL-6** | Same `game_version` / optional `feature_id` / snapshot id as config-truth keys on telemetry sessions |
+| **FP-G3** bots | Diff + snapshot id attached to seeded runs; never invent pass/fail from AI |
+| **phase-11** | Wire `implications_stub` → live LLMPort; keep *model reasoning* vs *measured* framing |
+| **FP-F3** feature impact | Optional `feature_id` on snapshots; `added_entity` diffs first-class |
+| **HUD (later)** | Read `balance_snapshots` + artifacts; no separate store |
+
+Genre-agnostic hard rule: **no game type names in `src/questline`** — only manifest tags.
 ## Manifest contract (QL-5 fills contents)
 
 ```json

@@ -95,4 +95,7 @@ PowerShell Cómo probarlo (fixture + optional Editor export).
   generic fixture packs (`tests/fixtures/lens/`).
 - Manifest schema locked in ADR-0009; QL-5 must match `schema_version: 1` +
   `asset_path` (Editor) / `source_file` (Python pack).
-- **Incidents:** none.
+- HUD GameLens panel **explicitly deferred** (CLI MVP); wire after FP-G2/G3 data is
+  useful to browse, AI narrative after phase-11.
+- **Incidents:** [INC-0007](../incidents/INC-0007-lens-windows-console-encoding.md)
+  (Windows cp1252 UnicodeEncodeError on `lens diff` text; artifact path vs `--store`).

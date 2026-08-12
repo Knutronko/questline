@@ -24,7 +24,9 @@ the CLI uses — no UI-only code paths).
 | ✅ | **09** PerfProbe | Samples → `perf_samples` / `PerfSample` events (store) |
 | ✅ | **09b** Wire v2 | Richer live/automation runs. **HUD:** no dedicated Wire panel — screenshots via `ArtifactSaved`; launcher picks profile/device |
 | ✅ | **10** HUD II | Launcher, quarantine UI, profile editor, **perf graphs** + run comparison, CSRF + `--read-only` |
-| later | **11–13** AI | Cost per run / triage panels (read store `ai_calls`); action buttons with 12 |
+| ❌ deferred | **FP-G1** GameLens | CLI `questline lens` only — **no HUD panel yet** (see BACKLOG). Browse after FP-G2/G3 data exists |
+| later | **FP-G2** Telemetry | Session/KPI views when telemetry lands in store |
+| later | **11–13** AI | Cost per run / triage panels (read store `ai_calls`); GameLens AI implications after 11; action buttons with 12 |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
 
 ### Gap audit (05b–09b → HUD after 10)
@@ -38,6 +40,7 @@ the CLI uses — no UI-only code paths).
 | PerfProbe series | ✅ Graphs + compare two runs |
 | Wire / drivers / devices | ✅ Launcher profile + device picker (no Wire-specific chrome) |
 | Reporters | ✅ Toggles on launch |
+| GameLens snapshot / diff | ❌ Deferred — CLI (`questline lens`); HUD panel after G2/G3 (BACKLOG) |
 | Command palette / arbitrary CLI | ❌ Deferred — CLI until a future BACKLOG item; not a full terminal |
 
 If something cannot fit, defer in this evolution table + [`phases/BACKLOG.md`](phases/BACKLOG.md)

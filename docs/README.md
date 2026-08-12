@@ -25,6 +25,7 @@
 | [performance.md](performance.md) | PerfProbe: metrics, asserts, `questline perf report`, overhead notes |
 | [GAME-INTEGRATION.md](GAME-INTEGRATION.md) | Reference-game dogfood contract (phase ↔ game triggers) |
 | [BALANCE-AUTOMATION.md](BALANCE-AUTOMATION.md) | **GameLens loop:** SO → snapshot → bots → telemetry → AI |
+| [gamelens.md](gamelens.md) | **FP-G1 operator guide:** manifest, CLI `lens`, fixtures, Editor export |
 | [STATUS-DUAL.md](STATUS-DUAL.md) | **Vista de una pasada:** estado + roadmaps questline ↔ P1 + orden propuesto |
 | [INCIDENTS.md](INCIDENTS.md) | **Lessons log:** maintainer-visible traps (env/races/sync) for future AI sessions |
 | [FEATURE-PIPELINE-PLAN.md](FEATURE-PIPELINE-PLAN.md) | Feature→tests pipeline plan + phase addendums |
