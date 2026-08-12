@@ -5,9 +5,15 @@ maintainer schedules it; a scheduled FP gets a full brief in `docs/phases/` foll
 same template and rules (self-review, revision round, acceptance criteria). Sizes:
 S = 1–2 sessions, M = 3–4, L = 5+.
 
-**Maintainer's recommended first wave after v0.1:** FP-G1 → FP-T2 → FP-T1 → FP-P3 →
-FP-G2 → FP-G3 (GameLens completes) → FP-T6 → FP-T5 → FP-A2. iOS (FP-P1) whenever
-curiosity wins; the rest on demand.
+**Maintainer's recommended GameLens-first wave (2026-08-12):** see
+[`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md). Short form:
+
+**D11 + QL-5 + FP-G1** → **FP-G2 / QL-6** → **FP-G3** (deterministic bots; Wire 09c
+only if playability gate fails) → **phase-11** AI foundation → AI implications +
+AI bot policies → then other FPs (T2/T1/P3/…) as curiosity allows.
+
+Older catalog wave (FP-T* interleaved before bots) is **superseded** for the reference
+game's balance goals. iOS (FP-P1) whenever curiosity wins.
 
 ---
 
@@ -18,48 +24,58 @@ data per version, detects every changed variable, and reports the gameplay impli
 Reference genre for examples: tower defense + creature raising (towers, waves, economy,
 creature growth curves) — but the module is genre-agnostic by design.
 
+**Vision / loop / balance axes:** [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md).
+**FP-G1 brief:** [`phases/phase-fp-g1-gamelens-snapshot.md`](phases/phase-fp-g1-gamelens-snapshot.md).
+
 ### FP-G1 — Balance snapshot, diff & AI implications report · **M · priority ALTA**
 - **Extractor**: editor script in `com.questline.companion` serializes designated
   ScriptableObjects to normalized JSON (`balance_snapshot.json`) — the game marks what
-  to export via an attribute or a manifest asset; supplementary sources: JSON/CSV files
-  and Markdown design docs from the game repo (context only, not diffed numerically).
+  to export via an attribute or a manifest asset (**QL-5**); supplementary sources:
+  JSON/CSV files and Markdown design docs from the game repo (context only, not diffed
+  numerically).
 - **Snapshot store**: snapshots keyed by game version/commit in the run store; CLI
   `questline lens snapshot / diff <vA> <vB>`.
 - **Diff engine**: typed diffs (numeric deltas with %, added/removed entities, curve
-  changes rendered as series), grouped by system (towers, creatures, economy, waves).
+  changes rendered as series), grouped by system tags from the manifest.
 - **AI implications report** (via LLMPort): input = diff + design-doc context + optional
-  telemetry (post-FP-G2); output = structured report: per-change implication, cross-system
-  interactions ("tower cost −10% AND wave 5 HP +20% → early-mid difficulty spike"),
-  risk flags, suggested playtest focus. Report saved as artifact + HUD panel + optional
-  Slack digest. AI framing rule: implications are labeled *model reasoning*, telemetry
-  (when present) is labeled *measured* — never mixed.
-- Prereqs: phases 4, 11.
+  telemetry (post-FP-G2/G3); output = structured report with risk flags and suggested
+  playtest focus. Framing: *model reasoning* vs *measured* — never mixed.
+- **Scheduling split:** ship **snapshot + diff now** (with D11/QL-5). AI report is
+  **deferred acceptance** until **phase-11** (do not block G1 or bots on LLMPort).
+- Prereqs (MVP): phases 4 / companion path. Prereqs (AI report): phase 11 (+ ideally G2/G3 data).
 
-### FP-G2 — Gameplay telemetry · **M · priority ALTA (after G1)**
+### FP-G2 — Gameplay telemetry · **M · priority ALTA (immediately after G1)**
 - Companion package gains `QuestlineTelemetry`: typed event API the game calls
   (`WaveCompleted, DamageDealt, CurrencyEarned/Spent, CreatureGrown, SessionCheckpoint…`)
-  + auto-context (version, level, playtime); transport over the existing driver connection
-  during automated runs, or local file spool for manual play sessions (imported later).
+  + auto-context (version, level, playtime, **policy id** when bots run); transport over
+  the existing driver connection during automated runs, or local file spool for manual
+  play sessions (imported later).
 - Ingestion into the store (`telemetry` table); session summaries; HUD telemetry view.
 - Comparison: same scenario across versions → metric deltas (time per wave, economy
-  inflow/outflow, damage distribution per tower type, creature progression pace).
-- Prereqs: FP-G1 (shares data model), phase 8.
+  inflow/outflow, damage distribution per unit type, creature progression pace).
+- **Pull-forward:** required before meaningful FP-G3 “data extraction”; **not** only with
+  game D12. Game **QL-6** maps existing debug events → this API (thin first, richer later).
+- Prereqs: FP-G1 (shares versioning/context model), phase 8 (HUD optional for MVP).
 
-### FP-G3 — Bot playthroughs & measured difficulty curves · **L · priority MEDIA-ALTA**
-- Scripted playthrough bots (deterministic policies: "always build cheapest", "rush
-  upgrades", "balanced") run N sessions per version via the normal driver; optional
-  AI-policy bot later.
-- Metrics per version: waves survived, time-to-fail, economy curves, creature milestones
-  → the **measured** difficulty curve, laid over FP-G1's config diff so reports say
-  *cause (variable changed) → effect (measured gameplay delta)*.
-- Sits on the eval-harness comparison machinery (phase 13) — same "run matrix, compare
-  configurations" pattern applied to game versions.
-- Prereqs: FP-G1 + FP-G2, phase 13.
+### FP-G3 — Bot playthroughs & measured difficulty curves · **L · priority ALTA (after G2)**
+- Scripted playthrough bots (**deterministic policies first**: "always cheapest", "rush",
+  "balanced", skill on/off, …) run N seeded sessions per version via Wire + hooks
+  (`driver = "questline"`). Prefer hooks + Tap-deploy; see BALANCE-AUTOMATION §5.
+- Metrics per version: waves survived, time-to-fail, economy curves, unit/skill
+  contribution → **measured** difficulty / power curves, overlaid on FP-G1 config diffs
+  (*cause → effect*).
+- **AI-policy bots** are a **later add-on** after phase-11 (optional phase-12 tools):
+  compare against deterministic baselines; never the sole acceptance gate.
+- Reuses “run matrix, compare configurations” patterns; **does not require phase-13**
+  eval harness (that harness measures *agents*, not game balance).
+- Wire **09c** (gestures) only if the playability gate fails — 
+  [`phases/phase-09c-wire-play-gestures.md`](phases/phase-09c-wire-play-gestures.md).
+- Prereqs: FP-G1 + FP-G2, Wire v2 (09b); **not** phase 11/13 for deterministic bots.
 
 ### FP-G4 — Design copilot · **M · priority BAJA (visionary)**
 - Chat interface (HUD panel) over GameLens history: "what changed between 0.3 and 0.4
   that made wave 12 harder?", "which creature stat has never been touched?".
-  RAG over snapshots + telemetry + reports. Prereqs: G1–G3 mature.
+  RAG over snapshots + telemetry + reports. Prereqs: G1–G3 mature + phase-11.
 
 ---
 

@@ -143,9 +143,13 @@ Merge gate: GitHub Actions (lint + type check + unit tests + phase acceptance te
 | 14 | **Poco** + UTF | **Second** UI backend (conformance) + Unity Test Framework ingestion | Example game via Poco |
 | 15 | Integrations & release | CIPort + TeamCity adapter, farm stubs, iOS design doc, docs site, v0.1.0 | Tagged release |
 
-Dependency notes: 8→10 (HUD), 11→12→13 (AI), 2→4→5→**5b**→**9b**, 4→9, 9→9b (before GameLens bots),
-3→12/13. Phase **5b**+**9b** = €0 Unity live (hooks + UI). **Poco** (14) = second UI
-adapter — not AltTester. Phases 7, 9, 11 can start out of order if blocked elsewhere.
+Dependency notes: 8→10 (HUD), 11→12→13 (AI), 2→4→5→**5b**→**9b**, 4→9, 9→9b (before
+GameLens bots), 3→12/13. **GameLens path (2026-08-12):** FP-G1 → FP-G2 → FP-G3
+(deterministic) → **then** phase-11 for AI reports/policies — see
+[`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md). Optional **09c** Wire gestures if the
+bot playability gate fails. Phase **5b**+**9b** = €0 Unity live (hooks + UI). **Poco**
+(14) = second UI adapter — not AltTester. Phases 7, 9, 11 can start out of order if
+blocked elsewhere; for *balance automation*, prefer G2/G3 before leaning on 11.
 Inserted lettered phases do not renumber later briefs.
 
 ---

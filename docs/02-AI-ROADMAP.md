@@ -77,13 +77,18 @@ prompt-version-vs-version comparisons. Optional integration: DeepEval/Langfuse e
 *This turns "I built agents" into "I built agents and I can prove how good they are" —
 the strongest possible portfolio artifact for AI Quality / LLM Evaluation roles.*
 
-## 4. Later candidates (see `03-FUTURE-PHASES.md` for the full catalog)
+## 4. Later candidates (see `03-FUTURE-PHASES.md` + `BALANCE-AUTOMATION.md`)
 
-- **GameLens implications report (FP-G1)**: balance-config diff between game versions →
-  AI report of gameplay implications (per-change effects, cross-system interactions, risk
-  flags). Framing rule: model reasoning is labeled as such; measured telemetry (FP-G2/G3)
-  is labeled *measured* — the report never blends the two silently.
-- **Design copilot (FP-G4)**: RAG chat over balance snapshots + telemetry + reports.
+**Order vs GameLens (2026-08-12):** ship **FP-G1 snapshot/diff** and **deterministic
+bots (FP-G3)** *before* relying on this foundation for balance work. Phase-11 still
+unlocks: FP-G1 AI implications report, AI-policy bots, design copilot (FP-G4), and all
+agents below. Do **not** block bot data collection on LLMPort.
+
+- **GameLens implications report (FP-G1 AI slice)**: balance-config diff (+ measured
+  telemetry when G2/G3 exist) → AI report. Framing: model reasoning vs *measured*.
+- **AI bot policies (post FP-G3 deterministic)**: LLM chooses actions under budget;
+  always compared to deterministic baselines.
+- **Design copilot (FP-G4)**: RAG chat over snapshots + telemetry + reports.
 - **AI crash triage (FP-T6)**: dedupe + suspect-area analysis of monkey-run crashes.
 - **MCP server (FP-A1)**: expose run/query/triage/GameLens as MCP tools. High keyword value.
 - **Nightly auto-triage pipeline (FP-A2)**: scheduled run → triage digest → issues filed.

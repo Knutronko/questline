@@ -7,6 +7,12 @@
 Phases 00–10 merged (07/09/10 not strictly required — this phase depends on 01 only,
 parallelizable). No AI code exists.
 
+**Scheduling note (2026-08-12):** for *balance automation*, prefer completing
+**FP-G1 → FP-G2 → FP-G3** (deterministic bots collecting measured data) before leaning
+on this phase for GameLens AI reports or AI bot policies. See
+[`BALANCE-AUTOMATION.md`](../BALANCE-AUTOMATION.md). This brief itself remains valid
+anytime LLMPort is needed.
+
 ## Objective
 A provider-agnostic LLM layer with fallback routing, hard budget caps and per-call cost
 accounting — the substrate for every agent in Phases 12–13.
