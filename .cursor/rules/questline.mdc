@@ -1,0 +1,32 @@
+---
+description: Questline core agent rules — dual status, phase order, secrets/privacy
+alwaysApply: true
+---
+
+# Questline
+
+AI-native game test automation (Python + Unity companion). Canonical docs live in
+`docs/`. English for agent instructions; code comments English and short.
+
+## Before coding a phase / FP
+
+1. Read `docs/STATUS-DUAL.md` + the phase brief under `docs/phases/`.
+2. Balance / bots / GameLens: `docs/BALANCE-AUTOMATION.md` — order **G1 → G2/QL-6 → G3 → phase-11**. Do not invert.
+3. Game work is **not** invented here — dogfood contract `docs/GAME-INTEGRATION.md`; ElJuegaso path is `D:\Projects\ElJuegaso` (never invent commits there).
+4. Close-out: update STATUS-DUAL if status changed; Self-review + `Incidents: INC-…` or `none` (`docs/INCIDENTS.md`); HUD extend **or** explicit defer (`docs/hud.md` + BACKLOG).
+
+## Hard product rules
+
+- Genre-agnostic core: **no** reference-game type/SO names in `src/questline`.
+- AI never invents green/red verdicts; measured data owns numbers (`02-AI-ROADMAP` framing).
+- Store schema: append-only migrations (ADR-0002) — never rewrite migration 1 in place.
+- Prefer Wire (`driver = "questline"`) for live Unity; AltTester = legacy remoto.
+
+## Privacy, secrets, machine-local data
+
+- **Never** commit, paste into PRs/issues/Slack payloads, logs, fixtures, snapshots, or chat dumps: API keys, tokens, passwords, webhook URLs, private key material, `.env` values, license keys, adb auth blobs.
+- Config may store **env var names** only (`*_token`, `*_key`); values come from the environment. HUD/reporters: allow-list fields — no secret values, no raw home paths in exported off-machine reports when avoidable.
+- Do not exfiltrate maintainer PC details into the repo or public artifacts: local usernames beyond agreed paths, unrelated filesystem trees, browser cookies, OS credentials, private photos/docs.
+- Agreed local roots OK to mention: `D:\dev\questline`, `D:\Projects\ElJuegaso`. Prefer relative paths in docs/examples when possible.
+- Balance snapshots / fixtures: balance numbers only — no account IDs, device serials, or secrets.
+- If a secret may have leaked: stop, tell the human, rotate; do not amplify it in follow-up messages.

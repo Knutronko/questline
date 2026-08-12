@@ -31,6 +31,9 @@
 | [FEATURE-PIPELINE-PLAN.md](FEATURE-PIPELINE-PLAN.md) | Feature→tests pipeline plan + phase addendums |
 | [adr/](adr/) | Architecture decision records |
 
+Agent Cursor rules (always + path-scoped): `.cursor/rules/` — secrets/privacy, dual status,
+GameLens/HUD contracts. Do not put tokens or machine-private data in the repo.
+
 ## Phase Briefs
 
 | Phase | Title | Brief |

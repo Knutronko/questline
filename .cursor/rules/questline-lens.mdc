@@ -1,0 +1,15 @@
+---
+description: GameLens / FP-G1 lens + companion export conventions
+globs: src/questline/lens/**,unity-package/Runtime/QuestlineBalanceExport.cs,docs/gamelens.md,docs/adr/ADR-0009*.md,tests/test_lens*.py,tests/fixtures/lens/**
+alwaysApply: false
+---
+
+# GameLens (lens)
+
+- Schema truth: `docs/adr/ADR-0009-gamelens-snapshot.md` + operator guide `docs/gamelens.md`.
+- Manifest `schema_version: 1`: game declares WHAT (QL-5); Questline serializes/diffs HOW.
+- Diff kinds stay first-class: `changed`, `added_entity`, `removed_entity`, curve/series.
+- CLI human text: **ASCII-only** (Windows cp1252 — INC-0007). No Unicode arrows/delta in echo paths.
+- `--store FILE` → artifacts at `FILE.parent/artifacts/lens/<id>/` (not always `.questline/artifacts`).
+- AI implications remain stub/`pending phase-11` until LLMPort exists — never fake a live report.
+- No ElJuegaso/P1 type names in lens core; fixtures stay generic.
