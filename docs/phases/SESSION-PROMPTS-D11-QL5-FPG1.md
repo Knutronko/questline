@@ -12,8 +12,8 @@
 | 2 | ElJuegaso | QL-5 |
 | 3 | questline | FP-G1 |
 
-After this wave: schedule **FP-G2 + QL-6**, then **FP-G3** bots (09c only if Wire gate fails),
-**then** phase-11 AI.
+After this wave: schedule **FP-G2 + QL-6**, then **FP-G3** bots targeting **B1–B5**
+(IEB Pass B; policies TBD), **then** phase-11 AI (serial). 09c only if Wire gate fails.
 
 ---
 

@@ -168,5 +168,10 @@ Every PR that changes this order must update [`STATUS-DUAL.md`](STATUS-DUAL.md) 
 | 2026-08-12 | Order: D11+QL-5+FP-G1 → **FP-G2/QL-6** → **FP-G3 bots** → **phase-11 AI** (not AI before bots). |
 | 2026-08-12 | FP-G1 AI report deferred until phase-11; snapshot/diff ship without LLM. |
 | 2026-08-12 | FP-G3 no longer waits on phase-13; AI bot policies are a later add-on. |
+| 2026-08-12 | **Maintainer lock:** first bots use **Tap deploy + hooks** (not Drag / not 09c unless gate fails). That is the measured “normal combat loop” for GameLens; human Drag feel stays playtest/manual. |
+| 2026-08-12 | **Maintainer lock:** ship **real thin FP-G2/QL-6** before bots (no Dump-only long-term hack). |
+| 2026-08-12 | **Maintainer lock:** first bot *target levels* = **IEB Pass B presets B1–B5** (policy details TBD at FP-G3). |
+| 2026-08-12 | **Maintainer lock:** before FP-G3, add missing combat hooks if needed (`DeployAt` / select-unit / fire-skill / collect) rather than screen-Point spam. |
+| 2026-08-12 | **Maintainer lock:** phase-11 **after** first bot dataset (serial), not in parallel with G2/G3. |
 | 2026-08-12 | Wire v2 + hooks sufficient for first bots if Tap/hooks cover combat; 09c only if gesture gap blocks. |
 | 2026-08-12 | QL-6 / FP-G2 pulled forward (not only with D12); D12 still consumes richer telemetry. |
