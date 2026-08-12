@@ -50,15 +50,18 @@ class LiveBridge:
             self._clients.discard(websocket)
 
     def _on_event(self, event: Event) -> None:
+        self.broadcast_payload(event.to_dict())
+
+    def broadcast_payload(self, payload: dict[str, Any]) -> None:
+        """Fan-out a JSON-serializable event dict (bus events or HUD ingest)."""
         if not self._clients:
             return
-        payload = event.to_dict()
         loop = self._loop
         if loop is None:
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
-                logger.debug("live bridge: no event loop; drop %s", event.type_name)
+                logger.debug("live bridge: no event loop; drop %s", payload.get("type"))
                 return
         for client in list(self._clients):
             try:

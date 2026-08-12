@@ -43,6 +43,10 @@ brief Lessons section, and cite it in the PR Self-review.
 |----|-------|--------|--------|------|
 | [INC-0001](incidents/INC-0001-wire-perf-socket-race.md) | Wire NDJSON response steal when `QUESTLINE_PERF_ENABLED` left on | 09, 09b | fixed | 2026-08-11 |
 | [INC-0002](incidents/INC-0002-companion-sync-uncommitted.md) | Game companion QL-3/QL-2c sat in WT without PR | 09, 09b, QL-3/2c | fixed | 2026-08-11 |
+| [INC-0003](incidents/INC-0003-hud-nodeid-url-slash.md) | HUD test detail 404 when pytest nodeid contains `/` | 10 | fixed | 2026-08-11 |
+| [INC-0004](incidents/INC-0004-hud-smoke-port-collision.md) | Smoke HUD on :8741 shadowed real `questline hud` (Windows) | 10 | fixed | 2026-08-11 |
+| [INC-0005](incidents/INC-0005-hud-launcher-stdout-pipe-deadlock.md) | HUD launcher hung on unread stdout PIPE (409 forever) | 10 | fixed | 2026-08-11 |
+| [INC-0006](incidents/INC-0006-hud-launcher-device-lock-double-acquire.md) | HUD Launch held adb lock so pytest setup failed (0 tests) | 10 | fixed | 2026-08-12 |
 
 ## Template
 

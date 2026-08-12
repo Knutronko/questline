@@ -30,6 +30,10 @@ Format: `- [ ] (phase-NN) description`
       no UnityEditor dependency). Optional Editor-only extension or game-injected counter.
 - [ ] (phase-09) PerfProbe anomaly detection / soak trend analysis — deferred (phase brief
       out of scope; see AI roadmap / future phases).
+- [x] (phase-09) HUD graphs / compare — done in phase-10.
+- [ ] (phase-10) Command palette / “run any CLI” inside HUD — out of scope; keep
+      `questline doctor` / one-off reports as CLI until a future phase claims it.
+- [ ] (phase-12) AI action buttons in HUD (triage/maintainer triggers).
 - [ ] (phase-09) Document PowerShell clear of `QUESTLINE_PERF_*` in every live how-to that
       follows a perf dogfood (see INC-0001) — done in wire-setup + performance.md; keep
       citing INC when adding new live recipes.

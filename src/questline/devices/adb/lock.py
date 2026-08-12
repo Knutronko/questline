@@ -21,6 +21,31 @@ class DeviceLock:
         safe = "".join(c if c.isalnum() or c in "-._" else "_" for c in serial)
         return self.lock_dir / f"{safe}.lock"
 
+    def ensure_available(self, serial: str, *, stale_s: float = 0.0) -> None:
+        """Raise if *serial* is locked by a live process; remove stale lock files.
+
+        Does **not** acquire — used by the HUD launcher so pytest can still take
+        the real exclusive lock inside ``setup_android_session``.
+        """
+        path = self.path_for(serial)
+        if not path.exists():
+            return
+        if self._is_stale(path, stale_s=stale_s):
+            try:
+                path.unlink(missing_ok=True)
+            except OSError as exc:
+                raise DeviceError(
+                    f"device {serial!r} lock is stale but could not be removed "
+                    f"({path}): {exc}"
+                ) from exc
+            return
+        other = _read_lock(path)
+        raise DeviceError(
+            f"device {serial!r} is locked by another questline run "
+            f"({other.strip() or path}). Wait for that run to finish or remove "
+            f"the lock file if the process is dead: {path}"
+        )
+
     def acquire(self, serial: str, *, owner: str | None = None, stale_s: float = 0.0) -> None:
         if serial in self._held:
             return

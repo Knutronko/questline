@@ -225,13 +225,13 @@ next to Python UI tests.
 - **Viewer** (Phase 8): run history, filters, test detail (steps timeline, artifacts,
   screenshots, hierarchy snapshots, death-point report), trends, flakiness view
   (pass-rate per test over time), AI cost per run (when `ai_calls` exist).
-- **Control center** (Phase 10): launch/stop runs (profile picker, marker/test selection,
+- **Control center** (Phase 10 ✅): launch/stop runs (profile picker, marker/test selection,
   device picker), quarantine management (ledger-backed), profile/config editor with
-  validation, perf graphs (PerfProbe series from phase 09, threshold overlays), AI actions
-  (trigger triage/maintainer on a failed run).
+  validation, perf graphs (PerfProbe series from phase 09, threshold overlays). AI actions
+  (trigger triage/maintainer on a failed run) land with Phase 12.
 - **Integration rule:** new observables land in the store/bus first; each phase either
-  extends the HUD (API + SPA + `docs/hud.md`) or **explicitly defers** UI (e.g. phase 09
-  samples → phase 10 graphs). See [`docs/hud.md`](hud.md) § Evolution / Integration contract.
+  extends the HUD (API + SPA + `docs/hud.md`) or **explicitly defers** UI. After phase 10,
+  prefer HUD-first verification — see [`docs/hud.md`](hud.md) § HUD-first verification.
 
 ---
 

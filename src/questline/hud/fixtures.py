@@ -7,6 +7,7 @@ from pathlib import Path
 
 from questline.core.events import (
     EventBus,
+    PerfSample,
     RunFinished,
     RunStarted,
     StepFinished,
@@ -111,6 +112,28 @@ def seed_fixture_store(db_path: Path) -> RunStore:
         RunFinished(run_id="run-a", status="failed", timestamp=t0 + timedelta(seconds=8))
     )
 
+    # Perf samples for HUD graphs / compare (phase-10).
+    for i, fps in enumerate((58.0, 60.0, 55.0, 57.0)):
+        bus.publish(
+            PerfSample(
+                run_id="run-a",
+                test_id="t-pass",
+                metric="fps",
+                value=fps,
+                timestamp=t0 + timedelta(seconds=2 + i),
+            )
+        )
+    for i, mem in enumerate((210.0, 215.0, 220.0)):
+        bus.publish(
+            PerfSample(
+                run_id="run-a",
+                test_id="t-pass",
+                metric="memory_pss_mb",
+                value=mem,
+                timestamp=t0 + timedelta(seconds=2 + i),
+            )
+        )
+
     t1 = t0 + timedelta(hours=1)
     bus.publish(
         RunStarted(
@@ -159,6 +182,27 @@ def seed_fixture_store(db_path: Path) -> RunStore:
     bus.publish(
         RunFinished(run_id="run-b", status="passed", timestamp=t1 + timedelta(seconds=5))
     )
+
+    for i, fps in enumerate((50.0, 52.0, 49.0, 51.0)):
+        bus.publish(
+            PerfSample(
+                run_id="run-b",
+                test_id="t-shop-b",
+                metric="fps",
+                value=fps,
+                timestamp=t1 + timedelta(seconds=1 + i),
+            )
+        )
+    for i, mem in enumerate((230.0, 240.0, 235.0)):
+        bus.publish(
+            PerfSample(
+                run_id="run-b",
+                test_id="t-shop-b",
+                metric="memory_pss_mb",
+                value=mem,
+                timestamp=t1 + timedelta(seconds=1 + i),
+            )
+        )
 
     store.detach()
     return store

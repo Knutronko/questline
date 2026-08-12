@@ -92,9 +92,14 @@ questline perf report <run_id> --format html
 questline perf report <run_id> --store .questline/store.db -o perf.html
 ```
 
+**HUD (phase 10):** open `#/perf` for series graphs and build-over-build compare
+(same `perf_samples` / `summarize_perf_samples` path as the CLI). CLI report remains
+valid for scripting and CI artifacts.
+
 ## Out of scope (later)
 
-HUD graphs (phase-10), Wire v2 find/tap (09b), anomaly detection, iOS.
+Anomaly detection / soak trends (BACKLOG), Wire-specific HUD chrome (not needed —
+launcher + artifacts cover operator needs), iOS.
 
 ## Maintainer spot-check (2026-08-11, ElJuegaso P1)
 
@@ -104,5 +109,4 @@ HUD graphs (phase-10), Wire v2 find/tap (09b), anomaly detection, iOS.
 | Android SM-A346E + `source=auto` | `memory_pss_mb` / `cpu_pct` / battery / thermal OK; no FPS on short run |
 | Overhead | perf OFF ~16.9s vs ON ~19.6s on the automation suite (~+2.7s); raise `interval_s` if needed |
 
-**HUD:** samples live in the store / events; **no graphs in HUD I** — use
-`questline perf report <run_id>` until phase-10.
+**HUD:** graphs + compare in `#/perf` (phase 10). CLI `questline perf report` still valid.

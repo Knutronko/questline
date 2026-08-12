@@ -78,6 +78,29 @@ def test_test_detail_steps_death_artifacts(client: TestClient) -> None:
     assert body["history"]  # includes run-a fail + run-b pass
 
 
+def test_test_detail_nodeid_with_slashes(client: TestClient, hud_store) -> None:
+    """Plugin uses pytest nodeid as test_id (paths with /) — API must accept it."""
+    nid = "examples/wire-smoke/test_smoke.py::test_wire_v2_hierarchy_find_tap"
+    bus = client.bus  # type: ignore[attr-defined]
+    bus.publish(
+        TestStarted(
+            run_id="run-a",
+            test_id=nid,
+            nodeid=nid,
+            timestamp=datetime.now(UTC),
+        )
+    )
+    # Preferred: query param (safe for / and ::).
+    res = client.get("/api/runs/run-a/test", params={"id": nid})
+    assert res.status_code == 200, res.text
+    assert res.json()["test"]["id"] == nid
+    assert res.json()["test"]["nodeid"] == nid
+    # Path form with {test_id:path} still works.
+    res_path = client.get(f"/api/runs/run-a/tests/{nid}")
+    assert res_path.status_code == 200, res_path.text
+    assert res_path.json()["test"]["id"] == nid
+
+
 def test_trends_flaky(client: TestClient) -> None:
     res = client.get("/api/trends")
     assert res.status_code == 200
@@ -169,6 +192,13 @@ def test_spa_fallback_and_asset(client: TestClient) -> None:
     # Hashed asset from Vite build (if present).
     index = client.get("/")
     assert index.status_code == 200
+
+
+def test_missing_api_route_is_json_not_html(client: TestClient) -> None:
+    res = client.get("/api/this-route-does-not-exist")
+    assert res.status_code == 404
+    assert "application/json" in res.headers.get("content-type", "")
+    assert "<!DOCTYPE" not in res.text
 
 
 def test_create_app_export(hud_store) -> None:

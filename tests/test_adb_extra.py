@@ -168,6 +168,28 @@ def test_lock_release_all_and_reacquire(tmp_path: Path) -> None:
     lock.release("a")
 
 
+def test_lock_ensure_available_does_not_hold(tmp_path: Path) -> None:
+    lock = DeviceLock(tmp_path / "locks")
+    lock.ensure_available("phone")
+    assert not lock.path_for("phone").exists()
+    lock.acquire("phone", owner="holder")
+    with pytest.raises(DeviceError, match="locked"):
+        DeviceLock(tmp_path / "locks").ensure_available("phone")
+    lock.release("phone")
+    DeviceLock(tmp_path / "locks").ensure_available("phone")
+
+
+def test_lock_ensure_available_clears_dead_pid(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lock = DeviceLock(tmp_path / "locks")
+    path = lock.path_for("dead")
+    path.write_text("pid=99999999\nowner=gone\nacquired_at=1.0\n", encoding="utf-8")
+    monkeypatch.setattr("questline.devices.adb.lock._pid_alive", lambda _pid: False)
+    lock.ensure_available("dead")
+    assert not path.exists()
+
+
 def test_find_emulator_from_android_home(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

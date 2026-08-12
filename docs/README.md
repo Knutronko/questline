@@ -20,7 +20,8 @@
 | [android.md](android.md) | Local adb + Wire `android_local` |
 | [resilience.md](resilience.md) | Health, recovery ladder, watchdog, infra vs test verdicts |
 | [reporting.md](reporting.md) | Reporters: console, HTML, Slack, GitHub Issues; secrets; allow-list |
-| [hud.md](hud.md) | Local HUD viewer (`questline hud`): runs, detail, trends, live WS |
+| [hud.md](hud.md) | Local HUD control center (`questline hud`): APIs, flags, HUD-first contract |
+| [hud-operator-guide.md](hud-operator-guide.md) | **Operator guide:** all current capabilities and how to use them via the HUD |
 | [performance.md](performance.md) | PerfProbe: metrics, asserts, `questline perf report`, overhead notes |
 | [GAME-INTEGRATION.md](GAME-INTEGRATION.md) | Reference-game dogfood contract (phase ↔ game triggers) |
 | [STATUS-DUAL.md](STATUS-DUAL.md) | **Vista de una pasada:** estado + roadmaps questline ↔ P1 + orden propuesto |

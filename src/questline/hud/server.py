@@ -7,14 +7,17 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, WebSocket
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from questline.core.events import EventBus
 from questline.core.store import RunStore
 from questline.hud import static_dir
 from questline.hud.api import router as api_router
+from questline.hud.control import router as control_router
+from questline.hud.launcher import RunLauncher
 from questline.hud.live import LiveBridge
+from questline.hud.security import HudSecurityMiddleware, new_csrf_token
 
 logger = logging.getLogger("questline.hud")
 
@@ -42,17 +45,56 @@ def create_app(
     store: RunStore,
     bus: EventBus | None = None,
     static: Path | None = None,
+    read_only: bool = False,
+    project_root: Path | None = None,
+    config_path: Path | None = None,
+    quarantine_path: Path | None = None,
+    launcher: RunLauncher | None = None,
+    forward_base_url: str | None = None,
 ) -> FastAPI:
-    """Build the HUD app bound to *store* (and optional live *bus*)."""
+    """Build the HUD app bound to *store* (and optional live *bus*).
+
+    When *read_only* is True, mutating control APIs return 403 (phase-08 viewer mode
+    for non-localhost / remote viewing).
+    """
     app = FastAPI(title="Questline HUD", docs_url=None, redoc_url=None)
+    root = Path(project_root).resolve() if project_root else Path.cwd().resolve()
+    cfg = Path(config_path) if config_path else root / "questline.toml"
+    qpath = Path(quarantine_path) if quarantine_path else root / "quarantine.yaml"
+
     app.state.store = store
+    app.state.read_only = read_only
+    app.state.project_root = root
+    app.state.config_path = cfg
+    app.state.quarantine_path = qpath
+
     bridge = LiveBridge(bus)
     if bus is not None:
         bridge.attach(bus)
     app.state.live = bridge
     app.state.bus = bus
 
+    csrf_seed = new_csrf_token()
+    app.state.csrf_seed = csrf_seed
+    if launcher is not None:
+        app.state.launcher = launcher
+    elif not read_only:
+        fwd = (forward_base_url or "http://127.0.0.1:8741").rstrip("/") + "/api/live/ingest"
+        app.state.launcher = RunLauncher(
+            project_root=root,
+            config_path=cfg,
+            forward_url=fwd,
+            csrf_token=csrf_seed,
+            lock_dir=root / ".questline" / "device-locks",
+        )
+        # Keep launcher CSRF in sync with cookie issued later via /api/csrf when possible.
+        # Initial seed lets subprocess forward before the SPA fetches a cookie.
+    else:
+        app.state.launcher = None
+
+    app.add_middleware(HudSecurityMiddleware, read_only=read_only)
     app.include_router(api_router)
+    app.include_router(control_router)
 
     @app.websocket("/api/live")
     async def live_ws(websocket: WebSocket) -> None:
@@ -89,7 +131,13 @@ def create_app(
 
         @app.get("/{full_path:path}")
         async def spa_fallback(full_path: str) -> Any:
-            # Do not steal API / live routes (already registered).
+            # Never serve the SPA shell for API / live — return JSON 404 instead of
+            # index.html (which breaks fetch().json() with "<!DOCTYPE...").
+            if full_path == "api" or full_path.startswith("api/") or full_path == "live":
+                return JSONResponse(
+                    {"detail": f"API route not found: /{full_path}"},
+                    status_code=404,
+                )
             candidate = assets / full_path
             if candidate.is_file():
                 return FileResponse(candidate)
@@ -112,6 +160,10 @@ def serve(
     host: str = "127.0.0.1",
     port: int = 8741,
     open_browser: bool = False,
+    read_only: bool = False,
+    project_root: Path | None = None,
+    config_path: Path | None = None,
+    quarantine_path: Path | None = None,
 ) -> None:  # pragma: no cover — blocks on uvicorn; CLI unit-tests mock this
     """Block and serve the HUD (uvicorn)."""
     try:
@@ -121,7 +173,25 @@ def serve(
             "HUD requires the optional extra: pip install 'questline[hud]'"
         ) from exc
 
-    app = create_app(store=store, bus=bus)
+    forward = f"http://{host}:{port}"
+    app = create_app(
+        store=store,
+        bus=bus,
+        read_only=read_only,
+        project_root=project_root,
+        config_path=config_path,
+        quarantine_path=quarantine_path,
+        forward_base_url=forward,
+    )
+    # Align launcher CSRF with a stable token the SPA can adopt from /api/csrf;
+    # also publish seed on launcher so early forwards work if SPA sets cookie to seed.
+    launcher = getattr(app.state, "launcher", None)
+    if launcher is not None and hasattr(launcher, "csrf_token"):
+        # Prefer the seed already installed; SPA /api/csrf rotates cookie — ingest
+        # accepts either cookie match. Subprocess gets updated on each launch via
+        # launcher.csrf_token; update it when SPA fetches CSRF (see control.csrf_token).
+        pass
+
     if open_browser:
         import threading
         import webbrowser
@@ -131,5 +201,10 @@ def serve(
 
         threading.Timer(0.6, _open).start()
 
-    logger.info("HUD listening on http://%s:%s/", host, port)
+    logger.info(
+        "HUD listening on http://%s:%s/ (read_only=%s)",
+        host,
+        port,
+        read_only,
+    )
     uvicorn.run(app, host=host, port=port, log_level="info")

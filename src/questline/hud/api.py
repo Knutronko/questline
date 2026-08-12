@@ -5,6 +5,7 @@ from __future__ import annotations
 import mimetypes
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import FileResponse
@@ -66,9 +67,8 @@ def get_run(run_id: str, request: Request) -> dict[str, Any]:
     }
 
 
-@router.get("/runs/{run_id}/tests/{test_id}")
-def get_test(run_id: str, test_id: str, request: Request) -> dict[str, Any]:
-    store = _store(request)
+def _test_detail(store: RunStore, run_id: str, test_id: str) -> dict[str, Any]:
+    test_id = unquote(test_id)
     test = store.get_test(test_id)
     if test is None or str(test.get("run_id")) != run_id:
         raise HTTPException(status_code=404, detail=f"test not found: {test_id}")
@@ -87,6 +87,22 @@ def get_test(run_id: str, test_id: str, request: Request) -> dict[str, Any]:
         "artifacts": artifacts,
         "history": history,
     }
+
+
+@router.get("/runs/{run_id}/test")
+def get_test_by_id(
+    run_id: str,
+    request: Request,
+    id: str = Query(..., description="Store test id (pytest nodeid; may contain /)"),
+) -> dict[str, Any]:
+    """Preferred test detail: nodeids with ``/`` are unsafe as bare path segments."""
+    return _test_detail(_store(request), run_id, id)
+
+
+@router.get("/runs/{run_id}/tests/{test_id:path}")
+def get_test(run_id: str, test_id: str, request: Request) -> dict[str, Any]:
+    """Test detail via path (``{test_id:path}``). Prefer ``GET .../test?id=``."""
+    return _test_detail(_store(request), run_id, test_id)
 
 
 @router.get("/runs/{run_id}/artifacts")

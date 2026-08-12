@@ -22,7 +22,7 @@ def test_hud_help() -> None:
     )
     assert result.exit_code == 0
     plain = _ANSI.sub("", (result.stdout or "") + (result.stderr or ""))
-    for token in ("--port", "--open", "--host"):
+    for token in ("--port", "--open", "--host", "--read-only"):
         assert token in plain, f"missing {token!r} in help:\n{plain}"
 
 

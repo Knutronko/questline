@@ -221,6 +221,13 @@ def hud(
         bool,
         typer.Option("--open", help="Open the HUD in the default browser"),
     ] = False,
+    read_only: Annotated[
+        bool,
+        typer.Option(
+            "--read-only",
+            help="Viewer mode: disable launcher/quarantine/config mutators",
+        ),
+    ] = False,
     config: Annotated[
         Path | None,
         typer.Option("--config", "-c", help="Path to questline.toml"),
@@ -234,7 +241,7 @@ def hud(
         typer.Option("--store", help="Override path to store.db"),
     ] = None,
 ) -> None:
-    """Serve the local HUD viewer (run history, detail, live WebSocket)."""
+    """Serve the local HUD control center (viewer + launcher when not --read-only)."""
     try:
         from questline.hud.server import serve
     except ImportError as exc:
@@ -265,9 +272,20 @@ def hud(
     )
     bus = EventBus()
     store.attach(bus)
-    typer.echo(f"questline hud → http://{host}:{port}/  (store={db_path})")
+    mode = "read-only viewer" if read_only else "control center"
+    typer.echo(f"questline hud -> http://{host}:{port}/  ({mode}; store={db_path})")
     try:
-        serve(store=store, bus=bus, host=host, port=port, open_browser=open_browser)
+        serve(
+            store=store,
+            bus=bus,
+            host=host,
+            port=port,
+            open_browser=open_browser,
+            read_only=read_only,
+            project_root=settings.project_root,
+            config_path=config or (settings.project_root / "questline.toml"),
+            quarantine_path=settings.project_root / "quarantine.yaml",
+        )
     finally:
         store.close()
 
