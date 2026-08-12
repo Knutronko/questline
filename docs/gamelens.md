@@ -78,12 +78,21 @@ See `examples/lens/sample_balance_manifest.json`.
 
 ```powershell
 cd D:\dev\questline
+# If uv pip install fails with questline.exe locked: close HUD / other questline
+# terminals, then retry. pytest can still run without reinstall.
 uv pip install -e ".[dev]"
-uv run pytest tests/test_lens.py tests/test_lens_cli.py tests/test_migrations.py -q
+uv run pytest -q
+uv run pytest tests/test_lens.py tests/test_lens_cli.py tests/test_lens_extra.py tests/test_migrations.py -q --no-cov
 
+# --store FILE puts artifacts next to the DB (FILE's parent / artifacts / lens / …)
+# NOT under .questline\ unless the store itself lives there.
+Remove-Item .questline-tmp-lens.db, artifacts\lens -Recurse -Force -ErrorAction SilentlyContinue
 uv run questline lens snapshot --pack tests/fixtures/lens/pack-a --version 1.0.0 --store .questline-tmp-lens.db
 uv run questline lens snapshot --pack tests/fixtures/lens/pack-b --version 1.1.0 --store .questline-tmp-lens.db
 uv run questline lens diff 1.0.0 1.1.0 --store .questline-tmp-lens.db
+Get-Content artifacts\lens\1.0.0\balance_snapshot.json | Select-Object -First 30
+uv run questline lens snapshot --import artifacts\lens\1.1.0\balance_snapshot.json --id reimport-1.1 --store .questline-tmp-lens.db
+uv run questline lens diff 1.0.0 reimport-1.1 --store .questline-tmp-lens.db
 ```
 
 Expect: `+ entity unit_beta`, numeric Δ on `amber_per_tick` / `dps`, curve change, and

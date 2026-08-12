@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -146,7 +146,7 @@ def normalize_pack(
             game_version=game_version.strip(),
             git_commit=git_commit,
             feature_id=feature_id,
-            captured_at=datetime.now(timezone.utc).isoformat(),
+            captured_at=datetime.now(UTC).isoformat(),
             manifest_path=str(manifest_path),
         ),
         entities=entities,
