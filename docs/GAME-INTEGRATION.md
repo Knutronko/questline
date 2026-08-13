@@ -100,8 +100,8 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | **14** | Test assembly (asmdef) + UTF C# tests + **Poco** SDK (second UI backend) | **QL-4** |
 | 15 | Nothing new | — |
 | FP-G1 | SO **export manifest** (which ScriptableObjects are balance data) | **QL-5** |
-| FP-G2 | Game code calls the telemetry API (existing debug-event convention maps ~1:1) | **QL-6** (thin before FP-G3; richer with D12) |
-| FP-G3 | Bot scenarios / policies in `automation/` (hooks-first + Wire UI) | bot suite under `automation/` |
+| FP-G2 | Game code calls the telemetry API (existing debug-event convention maps ~1:1) | **QL-6** (thin before FP-G3; richer with D12). Contract: [`telemetry.md`](telemetry.md) · ADR-0010 · mapping table in [`phases/phase-fp-g2-telemetry.md`](phases/phase-fp-g2-telemetry.md). Prompt: [`SESSION-PROMPTS-QL6-FPG3.md`](phases/SESSION-PROMPTS-QL6-FPG3.md). |
+| FP-G3 | Bot scenarios / policies in `automation/` (hooks-first + Wire UI); drain via `drain_telemetry`; set `policy_id` / `seed` / `config_snapshot_id` | bot suite under `automation/` — brief [`phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md) |
 | FP-F1+ | Game repo path configured; feature descriptions at scan time | — |
 
 **Rule for phase sessions:** if your phase's acceptance needs game-side work that is not
@@ -140,5 +140,6 @@ SOs the manifest declares; it never hardcodes game structure.
 **Wire:** bots use Wire v2 + hooks; gesture extension **09c** only if the playability
 gate fails (see BALANCE-AUTOMATION §5).
 
+**FP-G2 docs:** [`telemetry.md`](telemetry.md) · [`ADR-0010`](adr/ADR-0010-gamelens-telemetry.md).
 **FP-G1 docs:** [`gamelens.md`](gamelens.md) · [`ADR-0009`](adr/ADR-0009-gamelens-snapshot.md).
 

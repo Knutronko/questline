@@ -23,8 +23,9 @@ with FakeWire CI coverage — still `#if UNITY_EDITOR || QUESTLINE_DEV`, loopbac
 1. Ops: `swipe` and/or `drag` (start/end points or element→point), `long_press` if needed.
 2. Python `DriverPort` / QuestlineDriver implementations; remove AuthoringError stubs.
 3. FakeWire + wire-smoke extension; error mapping consistent with ADR-0008.
-4. Docs: wire-setup, **ADR-0008 addendum or next free ADR** (ADR-0009 is GameLens /
-   FP-G1 — do not reuse), STATUS-DUAL, BALANCE-AUTOMATION §5.
+4. Docs: wire-setup, **ADR-0008 addendum or next free ADR after 0010** (ADR-0009 =
+   GameLens snapshots, ADR-0010 = telemetry — do not reuse), STATUS-DUAL,
+   BALANCE-AUTOMATION §5.
 5. Game trigger **QL-2d** (companion sync + optional Dev APK).
 
 ## Out of scope

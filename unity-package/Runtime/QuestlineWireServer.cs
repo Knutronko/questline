@@ -116,6 +116,15 @@ namespace Questline.Companion
             {
                 Debug.LogWarning($"[QuestlineWire] PerfProvider register failed: {ex.Message}");
             }
+
+            try
+            {
+                QuestlineTelemetry.EnsureRegistered();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[QuestlineWire] Telemetry register failed: {ex.Message}");
+            }
         }
 
         private void StopListener()

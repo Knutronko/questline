@@ -26,6 +26,7 @@
 | [GAME-INTEGRATION.md](GAME-INTEGRATION.md) | Reference-game dogfood contract (phase ↔ game triggers) |
 | [BALANCE-AUTOMATION.md](BALANCE-AUTOMATION.md) | **GameLens loop:** SO → snapshot → bots → telemetry → AI |
 | [gamelens.md](gamelens.md) | **FP-G1 operator guide:** manifest, CLI `lens`, fixtures, Editor export |
+| [telemetry.md](telemetry.md) | **FP-G2 operator guide:** thin events, CLI `telemetry`, later catalog, drain |
 | [STATUS-DUAL.md](STATUS-DUAL.md) | **Vista de una pasada:** estado + roadmaps questline ↔ P1 + orden propuesto |
 | [INCIDENTS.md](INCIDENTS.md) | **Lessons log:** maintainer-visible traps (env/races/sync) for future AI sessions |
 | [FEATURE-PIPELINE-PLAN.md](FEATURE-PIPELINE-PLAN.md) | Feature→tests pipeline plan + phase addendums |
@@ -58,6 +59,8 @@ GameLens/HUD contracts. Do not put tokens or machine-private data in the repo.
 | 14 | **Poco** / UTF (second UI backend) | [phase-14-poco-utf.md](phases/phase-14-poco-utf.md) |
 | 15 | Integrations & release | [phase-15-integrations-release.md](phases/phase-15-integrations-release.md) |
 | FP-G1 | GameLens snapshot/diff | [phase-fp-g1-gamelens-snapshot.md](phases/phase-fp-g1-gamelens-snapshot.md) |
+| FP-G2 | Thin gameplay telemetry | [phase-fp-g2-telemetry.md](phases/phase-fp-g2-telemetry.md) |
+| FP-G3 | Deterministic bots (after QL-6) | [phase-fp-g3-bots.md](phases/phase-fp-g3-bots.md) |
 
 Joint-wave prompts: [SESSION-PROMPTS-D11-QL5-FPG1.md](phases/SESSION-PROMPTS-D11-QL5-FPG1.md).
 Balance loop: [BALANCE-AUTOMATION.md](BALANCE-AUTOMATION.md).

@@ -24,9 +24,10 @@ HUD GameLens panel: **deferred** (CLI MVP; see BACKLOG + `hud.md` evolution).
 | Consumer | Needs from FP-G1 |
 |----------|------------------|
 | **QL-5** (game) | Manifest `schema_version: 1` contents; `asset_path` for Editor export |
-| **FP-G2 / QL-6** | Same `game_version` / optional `feature_id` / snapshot id as config-truth keys on telemetry sessions |
-| **FP-G3** bots | Diff + snapshot id attached to seeded runs; never invent pass/fail from AI |
-| **phase-11** | Wire `implications_stub` → live LLMPort; keep *model reasoning* vs *measured* framing |
+| **FP-G2 / QL-6** | Same `game_version` / optional `feature_id` / snapshot id as config-truth keys on telemetry sessions. Operator guide: [`telemetry.md`](telemetry.md) (ADR-0010). |
+| **FP-G3** bots | Diff + snapshot id attached to seeded runs (`config_snapshot_id` + `policy_id` + `seed`); `drain_telemetry`; never invent pass/fail from AI. Brief: [`phases/phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md). |
+| **phase-11** | Wire `implications_stub` → live LLMPort; keep *model reasoning* vs *measured* framing. Measured input = `telemetry_sessions.summary` (do not impute missing KPIs). |
+| **D12 / G2+** | Richer events: reuse reserved names in [`telemetry.md`](telemetry.md) (damage, ranch, buff, relocate, revive, projectiles). |
 | **FP-F3** feature impact | Optional `feature_id` on snapshots; `added_entity` diffs first-class |
 | **HUD (later)** | Read `balance_snapshots` + artifacts; no separate store |
 

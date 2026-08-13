@@ -39,6 +39,13 @@ lens_app = typer.Typer(
 )
 app.add_typer(lens_app, name="lens")
 
+telemetry_app = typer.Typer(
+    name="telemetry",
+    help="Gameplay telemetry import and query (FP-G2).",
+    no_args_is_help=True,
+)
+app.add_typer(telemetry_app, name="telemetry")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -635,6 +642,193 @@ def lens_diff(
             typer.echo(str(out_path))
         else:
             typer.echo(text, nl=False)
+    finally:
+        store.close()
+
+
+@telemetry_app.command("import")
+def telemetry_import(
+    spool: Annotated[Path, typer.Argument(help="Path to telemetry spool JSON")],
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="Profile name (for store path resolution)"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store", help="Override path to store.db"),
+    ] = None,
+) -> None:
+    """Import a telemetry spool JSON into the store (replaces same session id)."""
+    from questline.core.store import RunStore
+    from questline.telemetry.ingest import ingest_spool_file
+
+    try:
+        settings = load_settings(config_path=config, profile=profile)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    db_path = Path(store_db) if store_db is not None else settings.store_db
+    artifacts = (
+        settings.artifacts_dir if store_db is None else (db_path.parent / "artifacts")
+    )
+    store = RunStore(db_path, artifacts_dir=artifacts)
+    try:
+        result = ingest_spool_file(store, Path(spool), source="import", replace=True)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    finally:
+        store.close()
+    typer.echo(
+        f"session id={result['id']} version={result['game_version']} "
+        f"events={result['event_count']} path={result['artifact_path']}"
+    )
+
+
+@telemetry_app.command("query")
+def telemetry_query(
+    session_id: Annotated[
+        str | None,
+        typer.Argument(help="Session id or unique prefix (omit to list)"),
+    ] = None,
+    version: Annotated[
+        str | None,
+        typer.Option("--version", "-V", help="Filter by game_version"),
+    ] = None,
+    snapshot: Annotated[
+        str | None,
+        typer.Option("--snapshot", help="Filter by config_snapshot_id"),
+    ] = None,
+    policy: Annotated[
+        str | None,
+        typer.Option("--policy", help="Filter by policy_id"),
+    ] = None,
+    seed: Annotated[
+        str | None,
+        typer.Option("--seed", help="Filter by seed"),
+    ] = None,
+    compare: Annotated[
+        str | None,
+        typer.Option("--compare", help="Second session id (diff summaries, b-a)"),
+    ] = None,
+    format: Annotated[
+        str,
+        typer.Option("--format", "-f", help="Output format: text or json"),
+    ] = "text",
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="Profile name (for store path resolution)"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store", help="Override path to store.db"),
+    ] = None,
+) -> None:
+    """List sessions, show one session summary, or compare two summaries."""
+    import json
+
+    from questline.core.store import RunStore
+    from questline.telemetry.render import (
+        render_compare,
+        render_session_detail,
+        render_session_list,
+    )
+    from questline.telemetry.summary import diff_summaries
+
+    fmt = format.strip().lower()
+    if fmt not in {"text", "json"}:
+        typer.secho("--format must be 'text' or 'json'", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2)
+
+    try:
+        settings = load_settings(config_path=config, profile=profile)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    db_path = Path(store_db) if store_db is not None else settings.store_db
+    if not db_path.is_file():
+        typer.secho(f"store not found: {db_path}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+
+    artifacts = (
+        settings.artifacts_dir if store_db is None else (db_path.parent / "artifacts")
+    )
+    store = RunStore(db_path, artifacts_dir=artifacts)
+    try:
+        if compare:
+            if not session_id:
+                typer.secho(
+                    "query <id> --compare <idB> requires a first session id",
+                    fg=typer.colors.RED,
+                    err=True,
+                )
+                raise typer.Exit(code=2)
+            row_a = store.get_telemetry_session(session_id)
+            row_b = store.get_telemetry_session(compare)
+            if row_a is None:
+                typer.secho(f"unknown session: {session_id}", fg=typer.colors.RED, err=True)
+                raise typer.Exit(code=1)
+            if row_b is None:
+                typer.secho(f"unknown session: {compare}", fg=typer.colors.RED, err=True)
+                raise typer.Exit(code=1)
+            deltas = diff_summaries(row_a.get("summary") or {}, row_b.get("summary") or {})
+            payload = {
+                "a": row_a["id"],
+                "b": row_b["id"],
+                "deltas": deltas,
+            }
+            text = (
+                json.dumps(payload, indent=2, sort_keys=True) + "\n"
+                if fmt == "json"
+                else render_compare(row_a["id"], row_b["id"], deltas)
+            )
+            typer.echo(text, nl=False)
+            return
+
+        if session_id:
+            row = store.get_telemetry_session(session_id)
+            if row is None:
+                typer.secho(f"unknown session: {session_id}", fg=typer.colors.RED, err=True)
+                raise typer.Exit(code=1)
+            n = store.count_telemetry_events(row["id"])
+            if fmt == "json":
+                out = dict(row)
+                out["event_count"] = n
+                out["events"] = store.list_telemetry_events(row["id"])
+                typer.echo(json.dumps(out, indent=2, sort_keys=True) + "\n", nl=False)
+            else:
+                typer.echo(render_session_detail(row, n), nl=False)
+            return
+
+        rows = store.list_telemetry_sessions(
+            game_version=version,
+            config_snapshot_id=snapshot,
+            policy_id=policy,
+            seed=seed,
+        )
+        if fmt == "json":
+            typer.echo(json.dumps(rows, indent=2, sort_keys=True) + "\n", nl=False)
+        else:
+            typer.echo(render_session_list(rows), nl=False)
     finally:
         store.close()
 

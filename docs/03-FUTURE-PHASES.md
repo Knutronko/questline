@@ -25,7 +25,10 @@ Reference genre for examples: tower defense + creature raising (towers, waves, e
 creature growth curves) — but the module is genre-agnostic by design.
 
 **Vision / loop / balance axes:** [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md).
-**FP-G1 brief:** [`phases/phase-fp-g1-gamelens-snapshot.md`](phases/phase-fp-g1-gamelens-snapshot.md).
+**FP-G2 brief:** [`phases/phase-fp-g2-telemetry.md`](phases/phase-fp-g2-telemetry.md).
+**FP-G3 brief:** [`phases/phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md).
+**FP-G2 brief:** [`phases/phase-fp-g2-telemetry.md`](phases/phase-fp-g2-telemetry.md) · operator [`telemetry.md`](telemetry.md).
+**FP-G3 brief:** [`phases/phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md).
 
 ### FP-G1 — Balance snapshot, diff & AI implications report · **M · priority ALTA**
 - **Extractor**: editor script in `com.questline.companion` serializes designated
@@ -47,25 +50,33 @@ creature growth curves) — but the module is genre-agnostic by design.
 - Prereqs (MVP): phases 4 / companion path. Prereqs (AI report): phase 11 (+ ideally G2/G3 data).
 
 ### FP-G2 — Gameplay telemetry · **M · priority ALTA (immediately after G1)**
-- Companion package gains `QuestlineTelemetry`: typed event API the game calls
-  (`WaveCompleted, DamageDealt, CurrencyEarned/Spent, CreatureGrown, SessionCheckpoint…`)
-  + auto-context (version, level, playtime, **policy id** when bots run); transport over
-  the existing driver connection during automated runs, or local file spool for manual
-  play sessions (imported later).
-- Ingestion into the store (`telemetry` table); session summaries; HUD telemetry view.
+- Companion package gains `QuestlineTelemetry`: thin dotted names (`currency.earned`,
+  `unit.deployed`, `combat.leak`, `wave.completed`, … — see [`telemetry.md`](telemetry.md))
+  + session envelope (version, **policy id** when bots run, seed, snapshot id);
+  transport via existing `call_hook` drain during automated runs, or local file spool
+  for manual play (CLI import).
+- Ingestion into the store (`telemetry_sessions` + `telemetry_events`, ADR-0010);
+  session summaries; HUD telemetry view **deferred** (CLI `questline telemetry`).
 - Comparison: same scenario across versions → metric deltas (time per wave, economy
-  inflow/outflow, damage distribution per unit type, creature progression pace).
+  inflow/outflow, …) via summaries + optional `--compare`.
 - **Pull-forward:** required before meaningful FP-G3 “data extraction”; **not** only with
-  game D12. Game **QL-6** maps existing debug events → this API (thin first, richer later).
+  game D12. Game **QL-6** maps existing debug events → this API (thin first).
+- **Richer later (D12 / G2+):** reserved names in [`telemetry.md`](telemetry.md)
+  (`combat.damage`, projectile.*, `creature.grown`, buff pick/skip, relocate, revive,
+  `enemy.spawn`). Reuse those strings; new migration if summaries grow.
+- **Status:** FP-G2 thin ✅ (ADR-0010). QL-6 still maps real game events.
 - Prereqs: FP-G1 (shares versioning/context model), phase 8 (HUD optional for MVP).
 
 ### FP-G3 — Bot playthroughs & measured difficulty curves · **L · priority ALTA (after G2)**
 - Scripted playthrough bots (**deterministic policies first**: "always cheapest", "rush",
   "balanced", skill on/off, …) run N seeded sessions per version via Wire + hooks
   (`driver = "questline"`). Prefer hooks + Tap-deploy; see BALANCE-AUTOMATION §5.
+- **Must** attach `policy_id`, `seed`, `config_snapshot_id` on telemetry sessions and
+  drain with `questline.telemetry.drain.drain_telemetry` (see
+  [`phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md) + [`telemetry.md`](telemetry.md)).
 - Metrics per version: waves survived, time-to-fail, economy curves, unit/skill
   contribution → **measured** difficulty / power curves, overlaid on FP-G1 config diffs
-  (*cause → effect*).
+  (*cause → effect*). Thin events only until D12; do not invent damage/ranch KPIs.
 - **AI-policy bots** are a **later add-on** after phase-11 (optional phase-12 tools):
   compare against deterministic baselines; never the sole acceptance gate.
 - Reuses “run matrix, compare configurations” patterns; **does not require phase-13**
@@ -77,7 +88,8 @@ creature growth curves) — but the module is genre-agnostic by design.
 ### FP-G4 — Design copilot · **M · priority BAJA (visionary)**
 - Chat interface (HUD panel) over GameLens history: "what changed between 0.3 and 0.4
   that made wave 12 harder?", "which creature stat has never been touched?".
-  RAG over snapshots + telemetry + reports. Prereqs: G1–G3 mature + phase-11.
+  RAG over snapshots + `telemetry_sessions` + reports. Prereqs: G1–G3 mature + phase-11.
+  Event names: thin catalog now; D12 reserved names when present — do not invent aliases.
 
 ---
 

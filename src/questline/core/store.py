@@ -35,6 +35,15 @@ def _ts(value: datetime | str) -> str:
     return value
 
 
+def _json_obj(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str) and value.strip():
+        parsed = json.loads(value)
+        return parsed if isinstance(parsed, dict) else {}
+    return {}
+
+
 class RunStore:
     """Incremental transactional persistence driven by the event bus."""
 
@@ -539,6 +548,194 @@ class RunStore:
         with self._lock:
             rows = self._conn.execute(sql, params).fetchall()
         return [dict(r) for r in rows]
+
+    def save_telemetry_session(
+        self,
+        *,
+        session: dict[str, Any],
+        events: list[dict[str, Any]],
+        summary: dict[str, Any] | None = None,
+        replace: bool = True,
+        created_at: str | None = None,
+        meta: dict[str, Any] | None = None,
+    ) -> Path:
+        """Persist a telemetry session, events, and spool artifact (FP-G2)."""
+        session_id = str(session["id"])
+        dest_dir = self.artifacts_dir / "telemetry" / session_id
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        path = dest_dir / "spool.json"
+        ts = created_at or datetime.now().astimezone().isoformat()
+        summary_json = json.dumps(summary or {}, sort_keys=True)
+        meta_json = json.dumps(meta or {}, sort_keys=True)
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                existing = self._conn.execute(
+                    "SELECT id FROM telemetry_sessions WHERE id = ?",
+                    (session_id,),
+                ).fetchone()
+                if existing is not None:
+                    if not replace:
+                        raise ValueError(
+                            f"telemetry session already exists: {session_id}"
+                        )
+                    self._conn.execute(
+                        "DELETE FROM telemetry_events WHERE session_id = ?",
+                        (session_id,),
+                    )
+                    self._conn.execute(
+                        "DELETE FROM telemetry_sessions WHERE id = ?",
+                        (session_id,),
+                    )
+                self._conn.execute(
+                    """
+                    INSERT INTO telemetry_sessions (
+                        id, game_version, git_commit, feature_id,
+                        config_snapshot_id, policy_id, seed, started_at,
+                        finished_at, outcome, source, run_id, artifact_path,
+                        summary, meta, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        session_id,
+                        session["game_version"],
+                        session.get("git_commit"),
+                        session.get("feature_id"),
+                        session.get("config_snapshot_id"),
+                        session.get("policy_id"),
+                        session.get("seed"),
+                        session["started_at"],
+                        session.get("finished_at"),
+                        session.get("outcome"),
+                        session["source"],
+                        session.get("run_id"),
+                        str(path),
+                        summary_json,
+                        meta_json,
+                        ts,
+                    ),
+                )
+                rows = [
+                    (
+                        session_id,
+                        int(ev["seq"]),
+                        float(ev["t"]),
+                        str(ev["name"]),
+                        json.dumps(ev.get("payload") or {}, sort_keys=True),
+                    )
+                    for ev in events
+                ]
+                self._conn.executemany(
+                    """
+                    INSERT INTO telemetry_events
+                    (session_id, seq, t, name, payload)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    rows,
+                )
+                self._conn.execute("COMMIT")
+            except Exception:
+                self._conn.execute("ROLLBACK")
+                raise
+        return path
+
+    def get_telemetry_session(self, session_id: str) -> dict[str, Any] | None:
+        """Resolve by exact id, else unique prefix match."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT * FROM telemetry_sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+            if row is None and session_id:
+                matches = self._conn.execute(
+                    """
+                    SELECT * FROM telemetry_sessions
+                    WHERE id LIKE ? ESCAPE '\\'
+                    ORDER BY created_at DESC, id DESC
+                    """,
+                    (session_id.replace("%", "\\%").replace("_", "\\_") + "%",),
+                ).fetchall()
+                if len(matches) == 1:
+                    row = matches[0]
+        if row is None:
+            return None
+        data = dict(row)
+        data["summary"] = _json_obj(data.get("summary"))
+        data["meta"] = _json_obj(data.get("meta"))
+        return data
+
+    def list_telemetry_sessions(
+        self,
+        *,
+        game_version: str | None = None,
+        config_snapshot_id: str | None = None,
+        policy_id: str | None = None,
+        feature_id: str | None = None,
+        seed: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if game_version:
+            clauses.append("game_version = ?")
+            params.append(game_version)
+        if config_snapshot_id:
+            clauses.append("config_snapshot_id = ?")
+            params.append(config_snapshot_id)
+        if policy_id:
+            clauses.append("policy_id = ?")
+            params.append(policy_id)
+        if feature_id:
+            clauses.append("feature_id = ?")
+            params.append(feature_id)
+        if seed:
+            clauses.append("seed = ?")
+            params.append(seed)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = (
+            f"SELECT * FROM telemetry_sessions {where} "
+            f"ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?"
+        )
+        params.extend([max(0, int(limit)), max(0, int(offset))])
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            data["summary"] = _json_obj(data.get("summary"))
+            data["meta"] = _json_obj(data.get("meta"))
+            out.append(data)
+        return out
+
+    def list_telemetry_events(self, session_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT seq, t, name, payload FROM telemetry_events
+                WHERE session_id = ? ORDER BY seq ASC
+                """,
+                (session_id,),
+            ).fetchall()
+        events: list[dict[str, Any]] = []
+        for row in rows:
+            events.append(
+                {
+                    "seq": int(row["seq"]),
+                    "t": float(row["t"]),
+                    "name": row["name"],
+                    "payload": _json_obj(row["payload"]),
+                }
+            )
+        return events
+
+    def count_telemetry_events(self, session_id: str) -> int:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT COUNT(*) AS n FROM telemetry_events WHERE session_id = ?",
+                (session_id,),
+            ).fetchone()
+        return int(row["n"]) if row is not None else 0
 
     def __enter__(self) -> RunStore:
         return self

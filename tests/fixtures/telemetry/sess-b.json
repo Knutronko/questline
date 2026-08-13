@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "session": {
+    "id": "sess-b",
+    "game_version": "1.1.0",
+    "git_commit": "bbb222",
+    "feature_id": null,
+    "config_snapshot_id": "1.1.0",
+    "policy_id": "cheapest",
+    "seed": "42",
+    "started_at": "2026-08-13T13:00:00+00:00",
+    "finished_at": "2026-08-13T13:01:10+00:00",
+    "outcome": "win",
+    "source": "spool",
+    "dropped_count": 0
+  },
+  "events": [
+    {"seq": 1, "t": 0.0, "name": "session.start", "payload": {"mode": "ieb"}},
+    {"seq": 2, "t": 1.0, "name": "currency.earned", "payload": {"currency_id": "soft", "amount": 40, "balance_after": 140, "source": "tick"}},
+    {"seq": 3, "t": 4.0, "name": "unit.deployed", "payload": {"unit_id": "unit_a", "cost": 50, "currency_id": "soft"}},
+    {"seq": 4, "t": 4.0, "name": "currency.spent", "payload": {"currency_id": "soft", "amount": 50, "balance_after": 90, "sink": "deploy"}},
+    {"seq": 5, "t": 8.0, "name": "wave.started", "payload": {"wave_index": 0}},
+    {"seq": 6, "t": 28.0, "name": "wave.completed", "payload": {"wave_index": 0, "cleared": true}},
+    {"seq": 7, "t": 70.0, "name": "session.end", "payload": {"outcome": "win", "duration_s": 70.0}}
+  ]
+}

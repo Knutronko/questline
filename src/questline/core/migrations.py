@@ -138,11 +138,62 @@ def _migrate_003_balance_snapshots(conn: sqlite3.Connection) -> None:
     )
 
 
+def _migrate_004_telemetry(conn: sqlite3.Connection) -> None:
+    """FP-G2: gameplay telemetry sessions + events (measured truth)."""
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS telemetry_sessions (
+            id TEXT PRIMARY KEY,
+            game_version TEXT NOT NULL,
+            git_commit TEXT,
+            feature_id TEXT,
+            config_snapshot_id TEXT,
+            policy_id TEXT,
+            seed TEXT,
+            started_at TEXT NOT NULL,
+            finished_at TEXT,
+            outcome TEXT,
+            source TEXT NOT NULL,
+            run_id TEXT,
+            artifact_path TEXT,
+            summary TEXT,
+            meta TEXT,
+            created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_tel_sessions_version
+            ON telemetry_sessions(game_version);
+        CREATE INDEX IF NOT EXISTS idx_tel_sessions_snapshot
+            ON telemetry_sessions(config_snapshot_id);
+        CREATE INDEX IF NOT EXISTS idx_tel_sessions_policy
+            ON telemetry_sessions(policy_id);
+        CREATE INDEX IF NOT EXISTS idx_tel_sessions_feature
+            ON telemetry_sessions(feature_id);
+        CREATE INDEX IF NOT EXISTS idx_tel_sessions_created
+            ON telemetry_sessions(created_at);
+
+        CREATE TABLE IF NOT EXISTS telemetry_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT NOT NULL REFERENCES telemetry_sessions(id),
+            seq INTEGER NOT NULL,
+            t REAL NOT NULL,
+            name TEXT NOT NULL,
+            payload TEXT NOT NULL,
+            UNIQUE(session_id, seq)
+        );
+        CREATE INDEX IF NOT EXISTS idx_tel_events_session
+            ON telemetry_events(session_id);
+        CREATE INDEX IF NOT EXISTS idx_tel_events_name
+            ON telemetry_events(name);
+        """
+    )
+
+
 # Append-only: new modules add the next integer version here.
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_core_schema", _migrate_001_initial_core),
     Migration(2, "tests_feature_id", _migrate_002_tests_feature_id),
     Migration(3, "balance_snapshots", _migrate_003_balance_snapshots),
+    Migration(4, "telemetry", _migrate_004_telemetry),
 )
 
 CURRENT_SCHEMA_VERSION: int = MIGRATIONS[-1].version

@@ -19,6 +19,8 @@ questline/
 │   ├── reporters/            # ReporterPort + adapters (slack/, github_issues/, notion/, console/)
 │   ├── ci/                   # CIPort + adapters (github_actions/, teamcity/)
 │   ├── perf/                 # PerfProbe: samplers, series, threshold assertions
+│   ├── lens/                 # GameLens snapshot/diff (FP-G1)
+│   ├── telemetry/            # Gameplay telemetry ingest/query (FP-G2)
 │   ├── ai/                   # LLMPort + providers, agents/, evalharness/
 │   ├── hud/                  # FastAPI app + built frontend assets
 │   └── cli.py                # `questline` entrypoint (typer)

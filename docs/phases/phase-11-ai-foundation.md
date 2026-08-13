@@ -7,11 +7,22 @@
 Phases 00–10 merged (07/09/10 not strictly required — this phase depends on 01 only,
 parallelizable). No AI code exists.
 
-**Scheduling note (2026-08-12):** for *balance automation*, prefer completing
-**FP-G1 → FP-G2 → FP-G3** (deterministic bots collecting measured data) before leaning
-on this phase for GameLens AI reports or AI bot policies. See
-[`BALANCE-AUTOMATION.md`](../BALANCE-AUTOMATION.md). This brief itself remains valid
-anytime LLMPort is needed.
+**Scheduling note (2026-08-12, telemetry contract 2026-08-13):** for *balance
+automation*, prefer completing **FP-G1 → FP-G2 → FP-G3** before leaning on this
+phase for GameLens AI reports or AI bot policies. See
+[`BALANCE-AUTOMATION.md`](../BALANCE-AUTOMATION.md).
+
+**Measured data (when wiring GameLens implications / later agents):**
+
+- Read `telemetry_sessions.summary` and optional event series (ADR-0010 /
+  [`telemetry.md`](../telemetry.md)). Label every figure *measured*.
+- If a KPI is absent (no checkpoint, no `combat.damage` yet), say so — **never
+  fill gaps** with model estimates presented as data.
+- Join keys: `game_version`, `config_snapshot_id`, `policy_id`, `seed`.
+- Thin catalog only until D12; reserved future names must not be treated as
+  present.
+
+This brief itself remains valid anytime LLMPort is needed.
 
 ## Objective
 A provider-agnostic LLM layer with fallback routing, hard budget caps and per-call cost
