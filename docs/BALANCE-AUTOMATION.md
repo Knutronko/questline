@@ -85,15 +85,15 @@ hooks + telemetry, not an LLM.
 | 1∥ | **QL-5** SO export manifest | ElJuegaso | Feeds FP-G1 |
 | 1∥ | **FP-G1** snapshot + diff (**AI report deferred**) | questline | Config truth |
 | 2 | **FP-G2** thin telemetry + **QL-6** event map | both | Without this, bots only leave dumps/screenshots |
-| 2b | **Wire playability gate** (see §5) — **09c** only if needed | questline (+ game) | Confirm bots can complete a normal combat loop |
-| 3 | **FP-G3** deterministic bots + measured curves | questline + game `automation/` | Playtest automation |
+| 2b | **QL-7** combat hooks (`DeployAt` / collect / `BoardState` / skill-by-cell / finite `LoadIeb`) | ElJuegaso | Unblocks G3; do not Point-spam |
+| 2c | **Wire playability gate** (see §5) — **09c** only if needed | questline (+ game) | Confirm bots can complete a normal combat loop |
+| 3 | **FP-G3** deterministic bots + measured curves | questline + game `automation/` | After **QL-7**. Playtest automation |
 | 4 | **phase-11** AI foundation | questline | LLMPort + budget |
 | 5 | FP-G1 AI implications + AI-assisted bot policies + design copilot path | questline | Use *measured* data; never replace it |
 | later | phase-12/13 agents/eval; FP-G4; D12 infinite (richer G2); FP-G3 soak matrices | both | Scale |
 
-**Immediate post D11+QL-5+FP-G1 target:** bots can play seeded sessions and **write
-telemetry into the store**. That requires **FP-G2/QL-6 in the critical path**, not
-“after D12” only.
+**Immediate next:** **QL-7** combat hooks, then bots write telemetry into the store.
+FP-G2/QL-6 is done; do not skip QL-7.
 
 ---
 
@@ -142,7 +142,7 @@ Track: [`phases/phase-09c-wire-play-gestures.md`](phases/phase-09c-wire-play-ges
 
 | Bot class | When | Behavior | Data use |
 |-----------|------|----------|----------|
-| **Deterministic policies** | FP-G3 (now path) | Fixed rules: cheapest deploy, rush, balanced, never-skill, always-skill… | Primary measured curves |
+| **Deterministic policies** | FP-G3 (now path) | Locked catalog (game §11): `balanced`, `cheapest`, `rush`, `never_skill`, `always_skill` + collector-first kernel | Primary measured curves |
 | **AI policies** | After phase-11 (+ optional 12) | LLM/tool loop chooses actions under budget | Compare vs deterministic baseline; never sole acceptance |
 | **Hybrid** | Later | Deterministic scaffold + AI only on ambiguous choices | Same framing rules |
 
@@ -154,8 +154,9 @@ Always: fixed `SetSeed`, fixed policy id in telemetry context, N repeats, store
 ## 7. Session prompts & dual updates
 
 Starter prompts for the joint wave live in
-[`phases/SESSION-PROMPTS-D11-QL5-FPG1.md`](phases/SESSION-PROMPTS-D11-QL5-FPG1.md).
-Every PR that changes this order must update [`STATUS-DUAL.md`](STATUS-DUAL.md) §4
+[`phases/SESSION-PROMPTS-D11-QL5-FPG1.md`](phases/SESSION-PROMPTS-D11-QL5-FPG1.md)
+(historical) and [`phases/SESSION-PROMPTS-QL6-FPG3.md`](phases/SESSION-PROMPTS-QL6-FPG3.md)
+(QL-7 then G3). Every PR that changes this order must update [`STATUS-DUAL.md`](STATUS-DUAL.md) §4
 (Mermaid + suggested order table).
 
 ---
@@ -177,3 +178,4 @@ Every PR that changes this order must update [`STATUS-DUAL.md`](STATUS-DUAL.md) 
 | 2026-08-12 | QL-6 / FP-G2 pulled forward (not only with D12); D12 still consumes richer telemetry. |
 | 2026-08-13 | **FP-G2 landed:** thin telemetry + ADR-0010; HUD view deferred. Later event names reserved in `FUTURE_EVENT_NAMES` (D12 / G2+). |
 | 2026-08-13 | **QL-6 landed (game):** thin emit + Editor spool import. Checkpoints actually emitted: `post_3_deploy`, `between_wave`, `prep_end`, `end` (no `mid_w*`). IEB does not auto-seed `P1Rng`. ∞Ám omits spends. Mapping: ElJuegaso `integracion-questline.md` §10. |
+| 2026-08-13 | **G3 policies locked** (game §11): shared kernel (collector-first, finite amber, collect pickups) + `balanced` / `cheapest` / `rush` / `never_skill` / `always_skill`. `balanced` = if/then on `BoardState` getters, not LLM, not extra telemetry. Buff pick **per policy**. Repair off in v1. Matrix DoD = B1–B5 × 5 policies × N=3. **QL-7 before FP-G3.** Do not add `enemy.spawn` for bots (D12). |

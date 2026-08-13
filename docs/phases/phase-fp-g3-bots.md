@@ -8,8 +8,9 @@
 > [`wire-setup.md`](../wire-setup.md), [`phase-09c`](phase-09c-wire-play-gestures.md) (parked),
 > [`STATUS-DUAL.md`](../STATUS-DUAL.md).
 >
-> **Scheduled:** after FP-G2 ✅ and game **QL-6 ✅** (Editor combat spool imported 2026-08-13).
-> **Size:** L. Game mapping / labels / gaps: ElJuegaso `docs/prototipos/P1/integracion-questline.md` **§10.4–10.5** (read before planning policies).
+> **Scheduled:** after FP-G2 ✅, game **QL-6 ✅**, and game **QL-7 ✅** (combat hooks).
+> **Size:** L. Policies + hook contract: ElJuegaso `integracion-questline.md` **§11**.
+> Mapping / labels / gaps: same doc **§10.4–10.5**. **Do not start this phase until QL-7 is merged.**
 >
 > **Does not wait on** phase-11, phase-13, or 09c (09c only if the playability gate fails).
 
@@ -19,9 +20,9 @@ FP-G1 is config truth; FP-G2 is measured truth (store + drain). This phase **exe
 the game with deterministic policies so summaries become comparable curves
 (version × policy × seed × snapshot).
 
-Reference-game target levels: **IEB Pass B presets B1–B5** (policy details decided
-here). Bots live in the **game** `automation/` suite (GAME-INTEGRATION §2), not in
-questline core.
+Reference-game target levels: **IEB Pass B presets B1–B5**. Policy catalog is **locked**
+in the game doc §11 (not reinvented here). Bots live in the **game** `automation/` suite
+(GAME-INTEGRATION §2), not in questline core.
 
 ## Objective
 
@@ -31,8 +32,10 @@ Run N seeded sessions per (game_version, policy_id, snapshot) via Wire + hooks
 
 ## In scope
 
-1. **Policies (deterministic):** at least cheapest-deploy, rush, balanced,
-   never-skill, always-skill (names are `policy_id` strings stored on the session).
+1. **Policies (deterministic, locked):** implement the catalog in game §11 — shared
+   kernel (collector-first, finite amber, collect pickups) plus `balanced`, `cheapest`,
+   `rush`, `never_skill`, `always_skill`. `balanced` is **if/then on `BoardState`**, not
+   an LLM. Do **not** invent extra `policy_id`s in v1. Names are stored on the session.
 2. **Session wiring (mandatory G2 contract):**
    - Before play (or immediately after combat start):
      `SetTelemetryContext` / `BeginTelemetrySession` JSON with
@@ -43,7 +46,9 @@ Run N seeded sessions per (game_version, policy_id, snapshot) via Wire + hooks
    - After the loop: `drain_telemetry(driver, store, end_outcome=..., run_id=...)`
      from `questline.telemetry.drain`.
    - Fixed `SetSeed` hook; same seed → same policy decisions.
-3. **N repeats** per cell of the matrix (document N; start small, e.g. 3).
+3. **N repeats** per cell. Locked: **N = 3**. DoD = **full** matrix B1–B5 × 5 policies × N
+   seeds. PRs may land incrementally (fake-driver + one-policy smoke → Editor one cell →
+   full matrix) but the phase is not done until the full matrix writes sessions.
 4. **Measured outputs:** use stored summaries (`deploy_count`, currency net,
    `time_to_first_leak`, waves, checkpoint labels). Do **not** invent KPIs in
    Python that the events cannot support. Amber-at-moment curves use QL-6
@@ -56,9 +61,11 @@ Run N seeded sessions per (game_version, policy_id, snapshot) via Wire + hooks
    with G2 HUD.
 6. **Playability gate:** hooks + Tap first. If Drag/gestures are required on the
    measured path, **stop and schedule 09c** (do not silently Point-spam).
-7. Missing combat hooks (`DeployAt`, select-unit, fire-skill, collect): add on
-   the **game** side (not questline core names). Document hook names in
-   `automation/` only.
+7. Combat hooks (`DeployAt`, `CollectPickups`, `BoardState`, `CastSkill`, `RelocateAt`,
+   finite `LoadIeb`) are **QL-7** (game). This phase **consumes** them; do not reimplement
+   in `src/questline` and do not edit Unity unless the maintainer explicitly allows it
+   (default: **no** — QL-7 is a separate ElJuegaso chat). Document hook names only in
+   `automation/`.
 8. Tests: matrix runner unit tests with FakeWire / mock driver + fixture spools
    (no Unity in CI). Live Editor dogfood is maintainer-checked.
 9. Docs: STATUS-DUAL, BALANCE-AUTOMATION decision log, telemetry.md consumer
@@ -78,8 +85,9 @@ Run N seeded sessions per (game_version, policy_id, snapshot) via Wire + hooks
 - FP-G2 ingest + `drain_telemetry` + companion hooks.
 - QL-6 ✅: game emits thin events (Editor spool imported). **Bots must**
   `SetSeed` + `SetTelemetryContext.seed` — IEB start does not call
-  `P1Rng.ApplyLevelDefaultSeed`. Play **finite amber** if currency sinks
-  matter (∞Ám emits `cost: 0` and no `currency.spent`).
+  `P1Rng.ApplyLevelDefaultSeed`. Play **finite amber** (`LoadIeb` `infiniteAmber: false`).
+- **QL-7 ✅:** combat hooks in game §11.2. **Hard gate** — without them this phase
+  cannot measure sinks or run `balanced`.
 - Wire v2 (09b) + Tap/hooks path.
 - FP-G1 snapshot id for the build under test (import snapshot before the matrix).
 
@@ -87,7 +95,7 @@ Run N seeded sessions per (game_version, policy_id, snapshot) via Wire + hooks
 
 | Framework | Game |
 |-----------|------|
-| **FP-G3** | Bot suite under `automation/` (policies, locators, hooks). QL-6 must already emit. |
+| **FP-G3** | Bot suite under `automation/` (policies §11, locators, hooks). **QL-7 must already exist.** |
 
 ## G2 API cheat-sheet (do not rediscover)
 
@@ -112,12 +120,12 @@ flag, not a pass/fail of the game.
 
 ## Acceptance criteria
 
-- [ ] N seeded runs × documented policies × B1–B5 (or a documented subset) write
+- [ ] N=3 seeded runs × 5 policies × B1–B5 write
       `telemetry_sessions` with `policy_id` + `seed` + `config_snapshot_id` set.
 - [ ] CI: fake-driver matrix + fixture ingest; no Unity.
 - [ ] Live Editor: at least one policy completes a combat loop and a session
-      appears in `questline telemetry query` (`pending` if QL-6 missing — then
-      this phase does not merge as done).
+      appears in `questline telemetry query` (`pending` if QL-6 or QL-7 missing —
+      then this phase does not merge as done).
 - [ ] Playability gate recorded: hooks+Tap sufficient **or** 09c scheduled.
 - [ ] No AI verdicts. Summaries are measured.
 - [ ] STATUS-DUAL + Self-review + `Incidents: …`. HUD: extend **or** explicit defer.
@@ -125,4 +133,4 @@ flag, not a pass/fail of the game.
 ## PR checklist
 
 Title `fp-g3: deterministic bots and measured curves`.
-Link QL-6. PowerShell Cómo probarlo (fake + optional Editor).
+Link QL-7 (and QL-6). PowerShell how-to-test (fake + optional Editor). Docs/PRs/commits in **English**.

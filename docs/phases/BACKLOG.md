@@ -44,7 +44,8 @@ Format: `- [ ] (phase-NN) description`
       parallel names. Remaining P1Debug (spawn, KO, projectiles, ranch) → D12 /
       `FUTURE_EVENT_NAMES`. QL-6 thin mapping is done.
 - [ ] (fp-g3) Deterministic bots do **not** wait for phase-13; AI policies after phase-11.
-      Brief: [`phase-fp-g3-bots.md`](phase-fp-g3-bots.md). Requires QL-6 emit.
+      Brief: [`phase-fp-g3-bots.md`](phase-fp-g3-bots.md). Requires **QL-7** combat hooks
+      (and QL-6 emit). Policies locked: game `integracion-questline.md` §11.
 - [ ] (phase-09) Companion `draw_calls` is a reserved slot (always 0 in Runtime asmdef —
       no UnityEditor dependency). Optional Editor-only extension or game-injected counter.
 - [ ] (phase-09) PerfProbe anomaly detection / soak trend analysis — deferred (phase brief
