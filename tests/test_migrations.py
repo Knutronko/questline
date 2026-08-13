@@ -115,6 +115,44 @@ def test_v2_store_upgrades_to_balance_snapshots_table(tmp_path: Path) -> None:
         assert "balance_snapshots" in names
 
 
+def test_v3_store_upgrades_to_telemetry_tables(tmp_path: Path) -> None:
+    """schema_version=3 DB gains telemetry_* via migration 4 (FP-G2)."""
+    from questline.core.migrations import (
+        _migrate_001_initial_core,
+        _migrate_002_tests_feature_id,
+        _migrate_003_balance_snapshots,
+    )
+
+    db_path = tmp_path / "v3.db"
+    conn = sqlite3.connect(str(db_path))
+    conn.isolation_level = None
+    apply_migrations(
+        conn,
+        (
+            Migration(1, "initial_core_schema", _migrate_001_initial_core),
+            Migration(2, "tests_feature_id", _migrate_002_tests_feature_id),
+            Migration(3, "balance_snapshots", _migrate_003_balance_snapshots),
+        ),
+    )
+    assert get_schema_version(conn) == 3
+    names = {
+        r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+    }
+    assert "telemetry_sessions" not in names
+    conn.close()
+
+    with RunStore(db_path) as store:
+        assert store.schema_version == CURRENT_SCHEMA_VERSION
+        probe = sqlite3.connect(str(db_path))
+        names = {
+            r[0]
+            for r in probe.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+        }
+        probe.close()
+        assert "telemetry_sessions" in names
+        assert "telemetry_events" in names
+
+
 def test_legacy_store_upgrades_cleanly_preserving_data(tmp_path: Path) -> None:
     """Old store (tables, no schema_version) upgrades on open; data survives."""
     db_path = tmp_path / "legacy.db"

@@ -17,6 +17,11 @@ and [ADR-0008](../docs/adr/ADR-0008-wire-v2-ui.md).
 (QL-5). See [docs/gamelens.md](../docs/gamelens.md) and
 [ADR-0009](../docs/adr/ADR-0009-gamelens-snapshot.md).
 
+**Telemetry (FP-G2):** `QuestlineTelemetry` typed emit + spool + drain hooks
+(`DrainTelemetry`, `SetTelemetryContext`, …). See [docs/telemetry.md](../docs/telemetry.md)
+and [ADR-0010](../docs/adr/ADR-0010-gamelens-telemetry.md). Call only under
+`UNITY_EDITOR || QUESTLINE_DEV`. Wire bootstrap registers the hooks.
+
 ## Quick register (game code)
 
 ```csharp
@@ -39,6 +44,7 @@ void Awake()
     // Wire bootstrap also registers GetPerfSample (PerfProbe / QL-3).
     // Explicit call is safe if you start Wire later or use AltTester only:
     QuestlinePerfProvider.EnsureRegistered();
+    QuestlineTelemetry.EnsureRegistered();
 #endif
 }
 ```
@@ -53,6 +59,10 @@ driver.hooks_manifest()  # serializable registry dump
 driver.call_game_method(GameHook("SetLevel"), 3)
 driver.call_game_method(GameHook("ReloadActiveScene", causes_soft_reload=True))
 driver.call_game_method(GameHook("GetPerfSample"))  # fps / allocated_mb / draw_calls
+
+# FP-G2 telemetry drain (after QL-6 emit)
+from questline.telemetry import drain_telemetry
+drain_telemetry(driver, store, end_outcome="lose")
 
 # Wire v2 UI (after companion refresh / QL-2c)
 el = driver.find(Locator(by=LocatorStrategy.NAME, value="OkButton"))

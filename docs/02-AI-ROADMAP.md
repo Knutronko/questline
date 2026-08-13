@@ -86,6 +86,7 @@ agents below. Do **not** block bot data collection on LLMPort.
 
 - **GameLens implications report (FP-G1 AI slice)**: balance-config diff (+ measured
   telemetry when G2/G3 exist) → AI report. Framing: model reasoning vs *measured*.
+  Measured input = `telemetry_sessions.summary` (ADR-0010); never impute missing KPIs.
 - **AI bot policies (post FP-G3 deterministic)**: LLM chooses actions under budget;
   always compared to deterministic baselines.
 - **Design copilot (FP-G4)**: RAG chat over snapshots + telemetry + reports.

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "session": {
+    "id": "sess-a",
+    "game_version": "1.0.0",
+    "git_commit": "aaa111",
+    "feature_id": null,
+    "config_snapshot_id": "1.0.0",
+    "policy_id": null,
+    "seed": "42",
+    "started_at": "2026-08-13T12:00:00+00:00",
+    "finished_at": "2026-08-13T12:01:30+00:00",
+    "outcome": "lose",
+    "source": "spool",
+    "dropped_count": 0
+  },
+  "events": [
+    {"seq": 1, "t": 0.0, "name": "session.start", "payload": {"mode": "ieb"}},
+    {"seq": 2, "t": 1.0, "name": "session.checkpoint", "payload": {"label": "prep_end", "wave_index": 0, "currencies": {"soft": 100}}},
+    {"seq": 3, "t": 2.0, "name": "currency.earned", "payload": {"currency_id": "soft", "amount": 25, "balance_after": 125, "source": "tick"}},
+    {"seq": 4, "t": 5.0, "name": "unit.deployed", "payload": {"unit_id": "unit_a", "cost": 50, "currency_id": "soft", "lane": 1, "tags": ["fighter"]}},
+    {"seq": 5, "t": 5.0, "name": "currency.spent", "payload": {"currency_id": "soft", "amount": 50, "balance_after": 75, "sink": "deploy"}},
+    {"seq": 6, "t": 8.0, "name": "wave.started", "payload": {"wave_index": 0}},
+    {"seq": 7, "t": 20.0, "name": "skill.cast", "payload": {"skill_id": "skill_a", "cost": 80, "currency_id": "soft", "wave_index": 0}},
+    {"seq": 8, "t": 21.0, "name": "currency.spent", "payload": {"currency_id": "soft", "amount": 80, "balance_after": 20, "sink": "skill"}},
+    {"seq": 9, "t": 30.0, "name": "wave.completed", "payload": {"wave_index": 0, "duration_s": 22, "cleared": true}},
+    {"seq": 10, "t": 31.0, "name": "wave.started", "payload": {"wave_index": 1}},
+    {"seq": 11, "t": 40.0, "name": "repair.applied", "payload": {"cost": 40, "currency_id": "soft"}},
+    {"seq": 12, "t": 42.5, "name": "combat.leak", "payload": {"wave_index": 1, "lane": 0}},
+    {"seq": 13, "t": 43.0, "name": "combat.damage", "payload": {"amount": 12}},
+    {"seq": 14, "t": 90.0, "name": "session.end", "payload": {"outcome": "lose", "duration_s": 90.0, "wave_index": 1}}
+  ]
+}

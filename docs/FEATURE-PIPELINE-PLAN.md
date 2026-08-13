@@ -118,6 +118,9 @@ para la pata API (degrada con aviso si no está).
 - Con FP-G3 disponible: opción de lanzar bots pre/post feature y añadir la curva medida.
 
 **Prerequisitos:** FP-F1 + FP-G1 (y opcionalmente G2/G3 para la parte medida).
+Telemetría medida: `telemetry_sessions.summary` (ADR-0010); no imputar KPIs ausentes.
+Eventos ricos (daño, ranch, buff, …) solo cuando existan los nombres reservados de
+[`telemetry.md`](telemetry.md) — no inventar aliases.
 
 **Orden recomendado del grupo:** FP-F1 → (FP-G1 si no está) → FP-F3 → FP-F2.
 F1 da valor sin IA desde el primer día (registry + scan); F3 es tu mayor dolor declarado
