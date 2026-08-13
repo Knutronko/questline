@@ -101,8 +101,8 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | 15 | Nothing new | — |
 | FP-G1 | SO **export manifest** (which ScriptableObjects are balance data) | **QL-5** |
 | FP-G2 | Game code calls the telemetry API (existing debug-event convention maps ~1:1) | **QL-6 ✅** (2026-08-13 Editor dogfood). Mapping/labels/gaps: game `integracion-questline.md` §10. Contract: [`telemetry.md`](telemetry.md) · ADR-0010. |
-| — | Combat hooks for bots (`DeployAt`, collect, `BoardState`, skill-by-cell, finite `LoadIeb`) | **QL-7** (blocks FP-G3). Spec: game `integracion-questline.md` §11 |
-| FP-G3 | Bot scenarios / policies in `automation/` (hooks-first); drain via `drain_telemetry`; set `policy_id` / `seed` / `config_snapshot_id` | bot suite under `automation/` **after QL-7** — brief [`phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md); policies game §11 |
+| — | Combat hooks for bots (`DeployAt`, collect, `BoardState`, skill-by-cell, finite `LoadIeb`) | **QL-7 ✅** (2026-08-13). Spec: game `integracion-questline.md` §11 |
+| FP-G3 | Bot scenarios / policies in `automation/` (hooks-first); drain via `drain_telemetry`; set `policy_id` / `seed` / `config_snapshot_id` | bot suite under `automation/` **next** — brief [`phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md); policies game §11 |
 | FP-F1+ | Game repo path configured; feature descriptions at scan time | — |
 
 **Rule for phase sessions:** if your phase's acceptance needs game-side work that is not
