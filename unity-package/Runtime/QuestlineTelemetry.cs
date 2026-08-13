@@ -97,7 +97,7 @@ namespace Questline.Companion
 
         public static void SetContext(TelemetryContext patch)
         {
-            if (patch == None)
+            if (patch == null)
             {
                 return;
             }

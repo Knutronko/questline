@@ -41,7 +41,8 @@ Format: `- [ ] (phase-NN) description`
       `combat.damage`, `projectile.spawn|hit|dissipate`, `creature.grown`,
       `buff.picked|skipped`, `unit.relocated`, `session.revive`, `enemy.spawn`.
       New migration if summaries grow; do not rewrite migration 4; do not invent
-      parallel names. Game maps remaining P1Debug events in a QL-6 follow-up / D12.
+      parallel names. Remaining P1Debug (spawn, KO, projectiles, ranch) → D12 /
+      `FUTURE_EVENT_NAMES`. QL-6 thin mapping is done.
 - [ ] (fp-g3) Deterministic bots do **not** wait for phase-13; AI policies after phase-11.
       Brief: [`phase-fp-g3-bots.md`](phase-fp-g3-bots.md). Requires QL-6 emit.
 - [ ] (phase-09) Companion `draw_calls` is a reserved slot (always 0 in Runtime asmdef —

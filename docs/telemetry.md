@@ -98,11 +98,11 @@ Hooks: `BeginTelemetrySession` / `SetTelemetryContext` (JSON string),
 
 | Consumer | How to use this |
 |----------|-----------------|
-| **QL-6** | Map game debug events → thin names. Mapping table is docs-only (not in `src/questline`). Prompt: [`phases/SESSION-PROMPTS-QL6-FPG3.md`](phases/SESSION-PROMPTS-QL6-FPG3.md). |
-| **FP-G3** | Set `policy_id` + `seed` + `config_snapshot_id` via `SetTelemetryContext`; `drain_telemetry(driver, store)` after the session. Brief: [`phases/phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md). |
-| **phase-11** | Read `telemetry_sessions.summary` as *measured*. Never invent missing KPIs. |
+| **QL-6** | Map done (2026-08-13). Game mapping + dogfood labels/gaps live in ElJuegaso `docs/prototipos/P1/integracion-questline.md` §10 (not in `src/questline`). |
+| **FP-G3** | Set `policy_id` + `seed` + `config_snapshot_id` via `SetTelemetryContext`; `drain_telemetry(driver, store)` after the session. IEB play does **not** set `P1Rng` unless the bot calls `SetSeed`. Checkpoints the game actually emits: `post_3_deploy`, `between_wave`, `prep_end`, `end` — **not** `mid_w1`/`mid_w2`. ∞Ám sessions omit `currency.spent`. Brief: [`phases/phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md). |
+| **phase-11** | Read `telemetry_sessions.summary` as *measured*. Never invent missing KPIs (no `enemy.spawn` / ally KO / DPS until D12). |
 | **HUD (later)** | Read the same tables; no second store. BACKLOG owner. |
-| **D12 / G2+** | Append reserved names above; new migration if summary columns/JSON keys grow. |
+| **D12 / G2+** | Append reserved names above; new migration if summary columns/JSON keys grow. Game note: `diseno-modo-infinito.md`. |
 
 Python drain (automated runs):
 

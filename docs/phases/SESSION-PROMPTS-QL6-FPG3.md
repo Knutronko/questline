@@ -6,15 +6,14 @@
 > [`adr/ADR-0010-gamelens-telemetry.md`](../adr/ADR-0010-gamelens-telemetry.md),
 > [`phases/phase-fp-g2-telemetry.md`](phase-fp-g2-telemetry.md) (QL-6 mapping table),
 > [`phases/phase-fp-g3-bots.md`](phase-fp-g3-bots.md).
-> Order: **QL-6 (game) → FP-G3 (both)**. Do not start G3 until an Editor combat
-> session imports or drains into the store.
+> Order: **QL-6 ✅ (game, 2026-08-13) → FP-G3 (both)**. G3 prompt 2 is the next chat.
 
 **Chats:** **2** (do not merge QL-6 into G3).
 
 | Chat | Workspace | Phase |
 |------|-----------|-------|
-| 1 | ElJuegaso | QL-6 |
-| 2 | questline (+ game `automation/` in the G3 chat as needed) | FP-G3 |
+| 1 | ElJuegaso | QL-6 ✅ (2026-08-13) |
+| 2 | questline (+ game `automation/` in the G3 chat as needed) | FP-G3 **next** |
 
 ---
 
@@ -57,7 +56,9 @@ Contexto obligatorio:
 - docs/telemetry.md + ADR-0010 (drain_telemetry, SetTelemetryContext, policy_id/seed/config_snapshot_id)
 - docs/BALANCE-AUTOMATION.md §5 (Tap+hooks; 09c solo si gate)
 - docs/GAME-INTEGRATION.md §2 (bots en ElJuegaso automation/, no en core)
-- Target niveles: IEB B1–B5. QL-6 debe estar emitiendo (si no, pending game QL-6).
+- Target niveles: IEB B1–B5. **QL-6 ✅** (Editor dogfood 2026-08-13).
+  Leer ElJuegaso `docs/prototipos/P1/integracion-questline.md` §10.4–10.5
+  (checkpoints reales, seed IEB, ∞Ám, leak ≠ spawn).
 
 Alcance: policies deterministas, matrix N seeds, drain al store, compare summaries.
 Fuera: AI policies, 09c salvo gate, eventos ricos D12, HUD salvo defer explícito.

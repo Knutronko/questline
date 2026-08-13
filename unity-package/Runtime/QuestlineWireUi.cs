@@ -31,7 +31,7 @@ namespace Questline.Companion
             var scene = SceneManager.GetActiveScene().name ?? "";
             var counter = new Counter();
             var roots = new List<string>();
-            var rootsGo = UnityEngine.Object.FindObjectsOfType<Transform>();
+            var rootsGo = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsSortMode.None);
             // Prefer scene roots (no parent) to avoid duplicating the whole tree.
             var seen = new HashSet<int>();
             foreach (var t in rootsGo)
@@ -134,7 +134,7 @@ namespace Questline.Companion
         private static List<Transform> Query(string by, string value, string scope)
         {
             var results = new List<Transform>();
-            var all = UnityEngine.Object.FindObjectsOfType<Transform>();
+            var all = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsSortMode.None);
             foreach (var t in all)
             {
                 if (t == null || !t.gameObject.activeInHierarchy) continue;
@@ -339,7 +339,7 @@ namespace Questline.Companion
         {
             go = null;
             if (!int.TryParse(eid, out var instanceId)) return false;
-            var all = UnityEngine.Object.FindObjectsOfType<Transform>();
+            var all = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsSortMode.None);
             foreach (var t in all)
             {
                 if (t != null && t.gameObject.GetInstanceID() == instanceId)

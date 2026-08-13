@@ -100,7 +100,7 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | **14** | Test assembly (asmdef) + UTF C# tests + **Poco** SDK (second UI backend) | **QL-4** |
 | 15 | Nothing new | — |
 | FP-G1 | SO **export manifest** (which ScriptableObjects are balance data) | **QL-5** |
-| FP-G2 | Game code calls the telemetry API (existing debug-event convention maps ~1:1) | **QL-6** (thin before FP-G3; richer with D12). Contract: [`telemetry.md`](telemetry.md) · ADR-0010 · mapping table in [`phases/phase-fp-g2-telemetry.md`](phases/phase-fp-g2-telemetry.md). Prompt: [`SESSION-PROMPTS-QL6-FPG3.md`](phases/SESSION-PROMPTS-QL6-FPG3.md). |
+| FP-G2 | Game code calls the telemetry API (existing debug-event convention maps ~1:1) | **QL-6 ✅** (2026-08-13 Editor dogfood). Mapping/labels/gaps: game `integracion-questline.md` §10. Contract: [`telemetry.md`](telemetry.md) · ADR-0010. |
 | FP-G3 | Bot scenarios / policies in `automation/` (hooks-first + Wire UI); drain via `drain_telemetry`; set `policy_id` / `seed` / `config_snapshot_id` | bot suite under `automation/` — brief [`phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md) |
 | FP-F1+ | Game repo path configured; feature descriptions at scan time | — |
 
