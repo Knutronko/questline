@@ -93,7 +93,7 @@ checkpoints). AI never invents numbers.
 |-----------|------|
 | **FP-G2** | **QL-6** — map debug events → `QuestlineTelemetry` (thin). Pending until this API exists in the companion the game embeds. |
 
-Mark live dogfood `pending game QL-6`. Finish everything fixture/CI-checkable in this PR.
+Mark live dogfood **QL-6 ✅** (2026-08-13). Finish everything fixture/CI-checkable in this PR.
 
 ---
 
@@ -316,8 +316,10 @@ session meta is version/seed/ids only.
 
 ## QL-6 mapping (reference game — documentation only)
 
-**Not implemented in this FP.** When QL-6 runs in ElJuegaso, map ~1:1. Core tests must
-not import this table.
+**Implemented 2026-08-13** in ElJuegaso (`P1QuestlineTelemetry`). Canonical table +
+dogfood: game `integracion-questline.md` §10. Core tests must **not** import this
+table. Labels the game **emits:** `prep_end`, `post_3_deploy`, `between_wave`, `end`
+(not `mid_w1`/`mid_w2`). `Fossil.Tick` is **not** `currency.earned` (pickup only).
 
 | P1Debug.Event | Thin `name` | Notes |
 |---------------|-------------|-------|

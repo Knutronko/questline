@@ -8,9 +8,8 @@
 > [`wire-setup.md`](../wire-setup.md), [`phase-09c`](phase-09c-wire-play-gestures.md) (parked),
 > [`STATUS-DUAL.md`](../STATUS-DUAL.md).
 >
-> **Scheduled:** after FP-G2 ✅ and game **QL-6** (events actually emit).
-> **Size:** L. Do **not** start until QL-6 dogfood produces at least one imported
-> session from a live combat loop (Editor).
+> **Scheduled:** after FP-G2 ✅ and game **QL-6 ✅** (Editor combat spool imported 2026-08-13).
+> **Size:** L. Game mapping / labels / gaps: ElJuegaso `docs/prototipos/P1/integracion-questline.md` **§10.4–10.5** (read before planning policies).
 >
 > **Does not wait on** phase-11, phase-13, or 09c (09c only if the playability gate fails).
 
@@ -47,9 +46,11 @@ Run N seeded sessions per (game_version, policy_id, snapshot) via Wire + hooks
 3. **N repeats** per cell of the matrix (document N; start small, e.g. 3).
 4. **Measured outputs:** use stored summaries (`deploy_count`, currency net,
    `time_to_first_leak`, waves, checkpoint labels). Do **not** invent KPIs in
-   Python that the events cannot support. Amber-at-moment curves need QL-6
-   `session.checkpoint` labels — if missing, list them as `pending QL-6 labels`,
-   do not approximate from guesses.
+   Python that the events cannot support. Amber-at-moment curves use QL-6
+   labels the game **actually emits:** `post_3_deploy`, `between_wave`,
+   `prep_end` (between-wave prep only), `end`. **Do not** expect `mid_w1` /
+   `mid_w2` (no such moment in the combat flow). `combat.leak` is base-reach,
+   not spawn count. Ally KO / `enemy.spawn` are D12.
 5. **Compare:** `questline telemetry query <idA> --compare <idB>` and/or a small
    report (text/JSON) grouping by policy × version. Full HUD overlay is deferred
    with G2 HUD.
@@ -75,7 +76,10 @@ Run N seeded sessions per (game_version, policy_id, snapshot) via Wire + hooks
 ## Prerequisites
 
 - FP-G2 ingest + `drain_telemetry` + companion hooks.
-- QL-6: game emits thin events in a real combat session (Editor spool or drain).
+- QL-6 ✅: game emits thin events (Editor spool imported). **Bots must**
+  `SetSeed` + `SetTelemetryContext.seed` — IEB start does not call
+  `P1Rng.ApplyLevelDefaultSeed`. Play **finite amber** if currency sinks
+  matter (∞Ám emits `cost: 0` and no `currency.spent`).
 - Wire v2 (09b) + Tap/hooks path.
 - FP-G1 snapshot id for the build under test (import snapshot before the matrix).
 

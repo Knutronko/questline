@@ -175,4 +175,5 @@ Every PR that changes this order must update [`STATUS-DUAL.md`](STATUS-DUAL.md) 
 | 2026-08-12 | **Maintainer lock:** phase-11 **after** first bot dataset (serial), not in parallel with G2/G3. |
 | 2026-08-12 | Wire v2 + hooks sufficient for first bots if Tap/hooks cover combat; 09c only if gesture gap blocks. |
 | 2026-08-12 | QL-6 / FP-G2 pulled forward (not only with D12); D12 still consumes richer telemetry. |
-| 2026-08-13 | **FP-G2 landed:** thin telemetry + ADR-0010; HUD view deferred; QL-6 next. Later event names reserved in `FUTURE_EVENT_NAMES` (D12 / G2+). |
+| 2026-08-13 | **FP-G2 landed:** thin telemetry + ADR-0010; HUD view deferred. Later event names reserved in `FUTURE_EVENT_NAMES` (D12 / G2+). |
+| 2026-08-13 | **QL-6 landed (game):** thin emit + Editor spool import. Checkpoints actually emitted: `post_3_deploy`, `between_wave`, `prep_end`, `end` (no `mid_w*`). IEB does not auto-seed `P1Rng`. ∞Ám omits spends. Mapping: ElJuegaso `integracion-questline.md` §10. |

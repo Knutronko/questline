@@ -20,7 +20,8 @@ phase for GameLens AI reports or AI bot policies. See
   fill gaps** with model estimates presented as data.
 - Join keys: `game_version`, `config_snapshot_id`, `policy_id`, `seed`.
 - Thin catalog only until D12; reserved future names must not be treated as
-  present.
+  present. Game checkpoints that exist today: `post_3_deploy`, `between_wave`,
+  `prep_end`, `end` (see ElJuegaso `integracion-questline.md` §10.4).
 
 This brief itself remains valid anytime LLMPort is needed.
 
