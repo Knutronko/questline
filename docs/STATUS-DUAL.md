@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-08-13** (fw **FP-G2** ✅ ADR-0010; game **QL-6** thin emit ✅; **QL-7** combat hooks **next** then **FP-G3**; policies locked game `integracion-questline.md` §11; **11** AI after G3 — see [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md)).
+> Última revisión: **2026-08-13** (fw **FP-G2** ✅ ADR-0010; game **QL-6** thin emit ✅ + **QL-7** combat hooks ✅; **FP-G3** next; policies locked game `integracion-questline.md` §11; **11** AI after G3 — see [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md)).
 
 ---
 
@@ -12,8 +12,8 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 + **05b–10** + **FP-G1** + **FP-G2** | Thin telemetry ingest + companion API ✅ (ADR-0010) | **FP-G3** after game **QL-7**; then **11** AI | AltTester Desktop fuera del happy path; G2 HUD diferido; G3 blocked on QL-7 hooks |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1…3 + QL-5 + QL-6** + Wire + **`automation/`** + **D10.5** + **D11 código** | **QL-7** combat hooks; playtest D11 in parallel; then FP-G3 | Poco = 2º UI (fw 14); Drag-deploy → bots usan Tap/hooks (09c solo si gate); IEB-1…5 aún no son SO (hueco GameLens); Wire `LoadIeb` still forces ∞Ám |
+| **questline** | v0.1 + **05b–10** + **FP-G1** + **FP-G2** | Thin telemetry ingest + companion API ✅ (ADR-0010) | **FP-G3** bots; then **11** AI | AltTester Desktop fuera del happy path; G2 HUD diferido; G3 unblocked (game QL-7 hooks) |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1…3 + QL-5 + QL-6 + QL-7** + Wire + **`automation/`** + **D10.5** + **D11 código** | **FP-G3** bots; playtest D11 in parallel | Poco = 2º UI (fw 14); Drag-deploy → bots usan Tap/hooks (09c solo si gate); IEB-1…5 aún no son SO (hueco GameLens) |
 
 
 **Drivers (prioridad):**
@@ -53,7 +53,7 @@
 | 10 | HUD II control | ✅ | Launcher, quarantine, profiles, perf graphs; dogfood INC-0003…0006 |
 | **FP-G1** | GameLens snapshot/diff | ✅ | ADR-0009; CLI `lens`; AI report → tras **11** — [`gamelens.md`](gamelens.md) · [`phase-fp-g1`](phases/phase-fp-g1-gamelens-snapshot.md) |
 | **FP-G2** | Telemetría thin | ✅ | ADR-0010; CLI `telemetry`; HUD diferido — [`telemetry.md`](telemetry.md) · [`phase-fp-g2`](phases/phase-fp-g2-telemetry.md); trigger **QL-6** |
-| **FP-G3** | Bots deterministas | ⬜ **after QL-7** | Curvas medidas; brief [`phase-fp-g3`](phases/phase-fp-g3-bots.md); policies locked game `integracion-questline.md` §11. AI policies tras **11**. |
+| **FP-G3** | Bots deterministas | ⬜ **next** | Curvas medidas; brief [`phase-fp-g3`](phases/phase-fp-g3-bots.md); policies locked game `integracion-questline.md` §11. Game **QL-7 ✅**. AI policies tras **11**. |
 | 11 | AI foundation | ⬜ **tras bots** | LLMPort; consume datos G2/G3; desbloquea informe G1 |
 | 12 | AI agents | ⬜ | |
 | 13 | AI generation + eval | ⬜ | |
@@ -97,7 +97,7 @@ Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`BALANCE-AUTOMATION.md
 | **QL-4** | UTF C# + Poco (2º UI) | ⬜ | Trigger fw **14** |
 | **QL-5** | Manifest SOs (GameLens) | ✅ | `balance_manifest.json` ADR-0009; companion `QuestlineBalanceExport`; IEB-1…5 no son assets |
 | **QL-6** | Telemetría | ✅ | `P1QuestlineTelemetry` → ADR-0010; Editor spool importado 2026-08-13. Labels reales + gaps: game `integracion-questline.md` §10.4 · **antes de bots** |
-| **QL-7** | Combat hooks for bots | ⬜ **next (game)** | `DeployAt` / `CollectPickups` / `BoardState` / CastSkill+Relocate; finite `LoadIeb`. Spec game §11. **Blocks FP-G3.** |
+| **QL-7** | Combat hooks for bots | ✅ **game** | `DeployAt` / `CollectPickups` / `BoardState` / CastSkill+Relocate; finite `LoadIeb`. Spec game §11. Unblocks FP-G3. |
 | exit | Scaffold `automation/` | ✅ coverage-demo | Hooks ✅; UI find/tap → **QL-2c** (fw 09b ✅; Poco = 14) |
 
 Contrato espejo: [`GAME-INTEGRATION.md`](GAME-INTEGRATION.md).
@@ -174,10 +174,9 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | **QL-7** combat hooks (`DeployAt`, collect, `BoardState`, skills-by-cell, finite `LoadIeb`) | ElJuegaso | Unblocks measured G3; Wire `LoadIeb` still forces ∞Ám. Spec game §11 |
-| 1∥ | Playtest **D11** (feel B1–B5) | ElJuegaso | Código D11 + QL-6 emit listos; feel humano (no bloquea QL-7) |
-| 2 | **FP-G3** deterministic bots | ambos (`automation/` + fw docs/CI fakes) | After QL-7 merge. Policies + matrix: game §11 · brief [`phase-fp-g3`](phases/phase-fp-g3-bots.md) |
-| 2b | Gate Wire playability → **09c** solo si hace falta | questline | Drag/gestures; prefer Tap+hooks |
+| 1 | **FP-G3** deterministic bots | ambos (`automation/` + fw docs/CI fakes) | Game QL-7 hooks landed. Policies + matrix: game §11 · brief [`phase-fp-g3`](phases/phase-fp-g3-bots.md) |
+| 1∥ | Playtest **D11** (feel B1–B5) | ElJuegaso | Código D11 + QL-6 emit + QL-7 hooks listos; feel humano (no bloquea G3) |
+| 2 | Gate Wire playability → **09c** solo si hace falta | questline | Drag/gestures; prefer Tap+hooks |
 | 3 | **phase-11** AI foundation | questline | Informe G1 + políticas AI en bots usando datos medidos |
 | 4 | Rebuild Dev APK (Android Wire v2) | ElJuegaso | Opcional |
 | 5 | **D12** infinito (telemetría más rica: `FUTURE_EVENT_NAMES` en [`telemetry.md`](telemetry.md)) | ElJuegaso | Tras bots baseline; no reinventar nombres; **do not** add `enemy.spawn` “for bots” (they use `BoardState`) |
