@@ -51,6 +51,10 @@ relative paths that escape the folder except the configured game-repo/APK paths 
 = feature + its tests) and split-repo tests (industry teams) are the SAME layout —
 this convention is documented for framework users, not just the reference game.
 
+If `automation/` pins questline from a git URL, `uv run` (without `--no-sync`) rebuilds
+that pin as a wheel. Dogfood a local clone with `uv pip install -e <questline>` then
+`uv run --no-sync pytest …` (INC-0009: duplicate HUD static used to break the git wheel).
+
 ## 3. ⚠️ First green live smoke → then create the real suite (do not skip)
 
 **Status (2026-08-09):** Editor **and Android** live smoke via `driver = "questline"`
@@ -102,7 +106,7 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | FP-G1 | SO **export manifest** (which ScriptableObjects are balance data) | **QL-5** |
 | FP-G2 | Game code calls the telemetry API (existing debug-event convention maps ~1:1) | **QL-6 ✅** (2026-08-13 Editor dogfood). Mapping/labels/gaps: game `integracion-questline.md` §10. Contract: [`telemetry.md`](telemetry.md) · ADR-0010. |
 | — | Combat hooks for bots (`DeployAt`, collect, `BoardState`, skill-by-cell, finite `LoadIeb`) | **QL-7 ✅** (2026-08-13). Spec: game `integracion-questline.md` §11 |
-| FP-G3 | Bot scenarios / policies in `automation/` (hooks-first); drain via `drain_telemetry`; set `policy_id` / `seed` / `config_snapshot_id` | bot suite under `automation/` **next** — brief [`phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md); policies game §11 |
+| FP-G3 | Bot scenarios / policies in `automation/` (hooks-first); drain via `drain_telemetry`; set `policy_id` / `seed` / `config_snapshot_id` | ElJuegaso `automation/bots` 🟡 (fake CI ✅; live Editor maintainer) — brief [`phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md); policies game §11 |
 | FP-F1+ | Game repo path configured; feature descriptions at scan time | — |
 
 **Rule for phase sessions:** if your phase's acceptance needs game-side work that is not

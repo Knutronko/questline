@@ -64,7 +64,7 @@ creature growth curves) — but the module is genre-agnostic by design.
 - **Richer later (D12 / G2+):** reserved names in [`telemetry.md`](telemetry.md)
   (`combat.damage`, projectile.*, `creature.grown`, buff pick/skip, relocate, revive,
   `enemy.spawn`). Reuse those strings; new migration if summaries grow.
-- **Status:** FP-G2 thin ✅ (ADR-0010). **QL-6 ✅** (game emit + Editor import 2026-08-13). Next: FP-G3.
+- **Status:** FP-G2 thin ✅ (ADR-0010). **QL-6 ✅**. FP-G3 suite 🟡 (fake CI; live Editor pending).
 - Prereqs: FP-G1 (shares versioning/context model), phase 8 (HUD optional for MVP).
 
 ### FP-G3 — Bot playthroughs & measured difficulty curves · **L · priority ALTA (after G2)**
@@ -84,6 +84,9 @@ creature growth curves) — but the module is genre-agnostic by design.
 - Wire **09c** (gestures) only if the playability gate fails — 
   [`phases/phase-09c-wire-play-gestures.md`](phases/phase-09c-wire-play-gestures.md).
 - Prereqs: FP-G1 + FP-G2, Wire v2 (09b); **not** phase 11/13 for deterministic bots.
+- **Status (2026-08-14):** suite in ElJuegaso `automation/bots`; fake-driver CI ✅.
+  Playability = hooks (09c parked). HUD telemetry still deferred. Live Editor matrix
+  maintainer-checked DoD.
 
 ### FP-G4 — Design copilot · **M · priority BAJA (visionary)**
 - Chat interface (HUD panel) over GameLens history: "what changed between 0.3 and 0.4

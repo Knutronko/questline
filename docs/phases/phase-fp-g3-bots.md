@@ -122,15 +122,37 @@ flag, not a pass/fail of the game.
 
 - [ ] N=3 seeded runs × 5 policies × B1–B5 write
       `telemetry_sessions` with `policy_id` + `seed` + `config_snapshot_id` set.
-- [ ] CI: fake-driver matrix + fixture ingest; no Unity.
+      (Fake matrix ✅ in `automation/tests`. Live `@pytest.mark.g3_matrix` maintainer.)
+- [x] CI: fake-driver matrix + fixture ingest; no Unity.
 - [ ] Live Editor: at least one policy completes a combat loop and a session
-      appears in `questline telemetry query` (`pending` if QL-6 or QL-7 missing —
-      then this phase does not merge as done).
-- [ ] Playability gate recorded: hooks+Tap sufficient **or** 09c scheduled.
-- [ ] No AI verdicts. Summaries are measured.
-- [ ] STATUS-DUAL + Self-review + `Incidents: …`. HUD: extend **or** explicit defer.
+      appears in `questline telemetry query` (maintainer-checked; `suites/test_g3_cheapest.py`).
+- [x] Playability gate recorded: hooks+Tap sufficient (**09c parked**).
+- [x] No AI verdicts. Summaries are measured.
+- [x] STATUS-DUAL + Self-review + `Incidents: none`. HUD: **explicit defer**.
 
 ## PR checklist
 
 Title `fp-g3: deterministic bots and measured curves`.
-Link QL-7 (and QL-6). PowerShell how-to-test (fake + optional Editor). Docs/PRs/commits in **English**.
+Link QL-7 ([ElJuegaso #47](https://github.com/Knutronko/ElJuegaso/pull/47)) and QL-6.
+PowerShell how-to-test (fake + optional Editor). Docs/PRs/commits in **English**.
+
+## Self-review
+
+- Fake CI: `cd D:\Projects\ElJuegaso\automation` → `uv run --no-sync pytest tests -q -o addopts=` (19 passed).
+- Live: `QUESTLINE_LIVE_TARGET=1` + `suites/test_g3_smoke.py` then `test_g3_cheapest.py`;
+  full matrix `-m g3_matrix`. Optional `QUESTLINE_SNAPSHOT_ID`.
+- `Verified in HUD: n/a (telemetry view deferred)`.
+- **Incidents: INC-0009**.
+- JSON hook args are Python strings (`json.dumps`); companion `ParseArgsArray` is scalars-only.
+
+## Lessons / incidents
+
+- `SetTelemetryContext` must run **after** `LoadIeb` / combat `BeginSession` or the game
+  wipes `policy_id`. Buff v1 is `SkipBuffDraft` (no offer list on `BoardState`).
+- Live `uv run pytest` from ElJuegaso `automation/` rebuilds the questline git pin;
+  hatch `force-include` of HUD static duplicated `index.html` in the wheel
+  ([INC-0009](../incidents/INC-0009-hatch-hud-static-duplicate.md)). Use
+  `uv pip install -e D:\dev\questline` then `uv run --no-sync pytest …`.
+- Live cheapest treated Support as lane cover (cost 65 < Cuello 75). Lock: Support/Trampero
+  do not cover; Support deploys behind Armadura or a damaged cover ally.
+- **Incidents:** INC-0009 (this PR).
