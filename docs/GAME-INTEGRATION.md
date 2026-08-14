@@ -51,6 +51,10 @@ relative paths that escape the folder except the configured game-repo/APK paths 
 = feature + its tests) and split-repo tests (industry teams) are the SAME layout —
 this convention is documented for framework users, not just the reference game.
 
+If `automation/` pins questline from a git URL, `uv run` (without `--no-sync`) rebuilds
+that pin as a wheel. Dogfood a local clone with `uv pip install -e <questline>` then
+`uv run --no-sync pytest …` (INC-0009: duplicate HUD static used to break the git wheel).
+
 ## 3. ⚠️ First green live smoke → then create the real suite (do not skip)
 
 **Status (2026-08-09):** Editor **and Android** live smoke via `driver = "questline"`

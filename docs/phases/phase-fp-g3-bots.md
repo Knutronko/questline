@@ -138,15 +138,19 @@ PowerShell how-to-test (fake + optional Editor). Docs/PRs/commits in **English**
 
 ## Self-review
 
-- Fake CI: `cd D:\Projects\ElJuegaso\automation` → `uv run pytest tests -q -o addopts=` (19 passed).
+- Fake CI: `cd D:\Projects\ElJuegaso\automation` → `uv run --no-sync pytest tests -q -o addopts=` (19 passed).
 - Live: `QUESTLINE_LIVE_TARGET=1` + `suites/test_g3_smoke.py` then `test_g3_cheapest.py`;
   full matrix `-m g3_matrix`. Optional `QUESTLINE_SNAPSHOT_ID`.
 - `Verified in HUD: n/a (telemetry view deferred)`.
-- **Incidents: none**.
+- **Incidents: INC-0009**.
 - JSON hook args are Python strings (`json.dumps`); companion `ParseArgsArray` is scalars-only.
 
 ## Lessons / incidents
 
 - `SetTelemetryContext` must run **after** `LoadIeb` / combat `BeginSession` or the game
   wipes `policy_id`. Buff v1 is `SkipBuffDraft` (no offer list on `BoardState`).
-- **Incidents:** none (this PR).
+- Live `uv run pytest` from ElJuegaso `automation/` rebuilds the questline git pin;
+  hatch `force-include` of HUD static duplicated `index.html` in the wheel
+  ([INC-0009](../incidents/INC-0009-hatch-hud-static-duplicate.md)). Use
+  `uv pip install -e D:\dev\questline` then `uv run --no-sync pytest …`.
+- **Incidents:** INC-0009 (this PR).

@@ -46,9 +46,9 @@ questline = "questline.cli:app"
 # Name sorts after pytest_cov so coverage starts before this plugin imports package code.
 zzz_questline = "questline.authoring.plugin"
 
-[tool.hatch.build.targets.wheel.force-include]
-"src/questline/reporters/slack/templates" = "questline/reporters/slack/templates"
-"src/questline/hud/static" = "questline/hud/static"
+# HUD static + Slack templates already live under src/questline/; hatch src-layout
+# packs them. force-include of the same paths duplicated files in the wheel
+# (INC-0009) and broke `pip`/`uv` installs from a git URL.
 
 [tool.ruff]
 target-version = "py311"
