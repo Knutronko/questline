@@ -153,4 +153,6 @@ PowerShell how-to-test (fake + optional Editor). Docs/PRs/commits in **English**
   hatch `force-include` of HUD static duplicated `index.html` in the wheel
   ([INC-0009](../incidents/INC-0009-hatch-hud-static-duplicate.md)). Use
   `uv pip install -e D:\dev\questline` then `uv run --no-sync pytest …`.
+- Live cheapest treated Support as lane cover (cost 65 < Cuello 75). Lock: Support/Trampero
+  do not cover; Support deploys behind Armadura or a damaged cover ally.
 - **Incidents:** INC-0009 (this PR).
