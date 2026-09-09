@@ -59,14 +59,36 @@ accounting — the substrate for every agent in Phases 12–13.
 Agents, tool-use loop (Phase 12), eval harness (Phase 13).
 
 ## Acceptance criteria
-- [ ] CI: adapters green against recorded/fake transports; router fallback + budget-cap
+- [x] CI: adapters green against recorded/fake transports; router fallback + budget-cap
       unit tests; no live keys in CI.
 - [ ] Maintainer-checked: live smoke — same `LlmRequest` answered via Mistral, Groq,
       Ollama by flipping profile only; costs ledgered for all three (Ollama = 0).
-- [ ] Rate-limit simulation: primary 429s → router falls to secondary → call succeeds,
+      How-to: [`ai-setup.md`](../ai-setup.md).
+- [x] Rate-limit simulation: primary 429s → router falls to secondary → call succeeds,
       both attempts ledgered.
-- [ ] `BudgetExceededError` fires at the configured ceiling in a scripted loop.
-- [ ] Import-linter rule: `ai/providers/cursor_cli` imported by nothing in core/agents.
+- [x] `BudgetExceededError` fires at the configured ceiling in a scripted loop.
+- [x] Import-linter rule: `ai/providers/cursor_cli` imported by nothing in core
+      (`.importlinter`; `questline.agents` does not exist yet — phase 12).
 
 ## PR checklist
-Title `phase-11: ai foundation`. ADR-0007 (provider-agnostic design + budget policy).
+Title `phase-11: ai foundation`. **ADR-0011** (not 0007 — HUD). Python 3.11+ (`pyproject`).
+
+## Self-review
+
+- Substrate only: port, adapters, router, hard budgets, `ai_calls` migration 5,
+  versioned prompts, doctor ping, HUD cost table, thin GameLens `--ai` consumer.
+  **Not** shipped: phase-12 tool loop, phase-13 eval, AI bot policies, design copilot.
+- CI: fake transports; no live keys. Import-linter isolates `cursor_cli`.
+- HUD: run-detail AI calls table (`Verified in HUD:` Playwright smoke + API tests).
+- **Incidents: none** (INC-0010 remains open from G3; out of scope).
+- Accepted risk: live Mistral/Groq/Ollama smoke is maintainer-checked (same
+  `questline ai complete` prompt, profile flip). Pricing file is an estimate.
+
+## Lessons / incidents
+
+- Brief said ADR-0007 for this design — that id is HUD. Landed **ADR-0011**.
+- `ai_calls` already existed in migration 1; phase-11 **appends** migration 5
+  (cached / outcome / pricing_version) — never rewrite v1.
+- Nested `api_key_env` must not be treated as a secret value (`*_key` rejector
+  would false-positive without an `_env` exception).
+- **Incidents:** none.

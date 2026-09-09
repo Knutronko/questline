@@ -1,0 +1,18 @@
+{
+  "version": "1",
+  "note": "Estimates only — free tiers churn; recheck docs/ai-setup.md. Ollama is always 0.",
+  "models": {
+    "mistral-small-latest": {"input_per_mtok": 0.10, "output_per_mtok": 0.30},
+    "mistral-large-latest": {"input_per_mtok": 2.00, "output_per_mtok": 6.00},
+    "llama-3.3-70b-versatile": {"input_per_mtok": 0.59, "output_per_mtok": 0.79},
+    "llama-3.1-8b-instant": {"input_per_mtok": 0.05, "output_per_mtok": 0.08},
+    "claude-sonnet-4-0": {"input_per_mtok": 3.00, "output_per_mtok": 15.00},
+    "fake-test": {"input_per_mtok": 1000.0, "output_per_mtok": 1000.0}
+  },
+  "kind_defaults": {
+    "ollama": {"input_per_mtok": 0.0, "output_per_mtok": 0.0},
+    "cursor_cli": {"input_per_mtok": 0.0, "output_per_mtok": 0.0},
+    "fake": {"input_per_mtok": 1000.0, "output_per_mtok": 1000.0}
+  },
+  "unknown": {"input_per_mtok": 1.00, "output_per_mtok": 3.00, "cached_input_factor": 0.5}
+}

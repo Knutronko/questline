@@ -208,6 +208,35 @@ class RunStore:
             rows = self._conn.execute(sql, params).fetchall()
         return [dict(r) for r in rows]
 
+    def list_ai_calls(
+        self,
+        *,
+        run_id: str | None = None,
+        limit: int = 500,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        """Return ai_calls rows (oldest-first) with optional run filter."""
+        clauses: list[str] = []
+        params: list[Any] = []
+        if run_id:
+            clauses.append("run_id = ?")
+            params.append(run_id)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = (
+            "SELECT id, run_id, provider, model, tokens_in, tokens_out, cost, "
+            "purpose, duration_ms, timestamp, cached, outcome, pricing_version "
+            f"FROM ai_calls {where} ORDER BY id ASC LIMIT ? OFFSET ?"
+        )
+        params.extend([max(0, int(limit)), max(0, int(offset))])
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            data["cached"] = bool(data.get("cached"))
+            out.append(data)
+        return out
+
     def list_artifacts(
         self,
         *,
@@ -441,10 +470,10 @@ class RunStore:
         elif isinstance(event, AiCallMade):
             cols = (
                 "run_id, provider, model, tokens_in, tokens_out, "
-                "cost, purpose, duration_ms, timestamp"
+                "cost, purpose, duration_ms, timestamp, cached, outcome, pricing_version"
             )
             self._conn.execute(
-                f"INSERT INTO ai_calls ({cols}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                f"INSERT INTO ai_calls ({cols}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     event.run_id,
                     event.provider,
@@ -455,6 +484,9 @@ class RunStore:
                     event.purpose,
                     event.duration_ms,
                     _ts(event.timestamp),
+                    1 if event.cached else 0,
+                    event.outcome or "ok",
+                    event.pricing_version or "",
                 ),
             )
         elif isinstance(event, ArtifactSaved):

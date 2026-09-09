@@ -46,6 +46,13 @@ telemetry_app = typer.Typer(
 )
 app.add_typer(telemetry_app, name="telemetry")
 
+ai_app = typer.Typer(
+    name="ai",
+    help="LLMPort cost ledger and live smoke (phase-11).",
+    no_args_is_help=True,
+)
+app.add_typer(ai_app, name="ai")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -73,6 +80,10 @@ def doctor(
         Path | None,
         typer.Option("--config", "-c", help="Path to questline.toml"),
     ] = None,
+    ping: Annotated[
+        bool,
+        typer.Option("--ping/--no-ping", help="1-token ping of configured LLM providers"),
+    ] = True,
 ) -> None:
     """Print the resolved profile and key settings (no secrets)."""
     try:
@@ -108,8 +119,32 @@ def doctor(
             f"interval={settings.perf.interval_s}s "
             f"scope={settings.perf.scope} source={settings.perf.source}"
         ),
+        (
+            f"ai:          candidates={', '.join(settings.ai.candidates) or '(none)'} "
+            f"budget_call={settings.ai.budget_per_call_usd} "
+            f"budget_run={settings.ai.budget_per_run_usd}"
+        ),
     ]
     typer.echo("\n".join(lines))
+
+    if settings.ai.candidates or settings.ai.providers:
+        from questline.ai.doctor import ping_providers
+        from questline.ai.factory import provider_statuses
+
+        typer.echo("")
+        for st in provider_statuses(settings):
+            key = f" env={st.api_key_env}" if st.api_key_env else ""
+            typer.echo(
+                f"ai provider: {st.name} kind={st.kind} model={st.model or '-'} "
+                f"{'usable' if st.usable else 'skip'} ({st.detail}){key}"
+            )
+        if ping:
+            typer.echo("ai ping:     (1-token; values never printed)")
+            for result in ping_providers(settings):
+                flag = "OK" if result.usable else "FAIL"
+                typer.echo(f"  {flag:4} {result.name}: {result.detail}")
+        else:
+            typer.echo("ai ping:     skipped (--no-ping)")
 
 
 def _ledger_path(path: Path | None) -> Path:
@@ -551,7 +586,7 @@ def lens_diff(
         bool,
         typer.Option(
             "--ai/--no-ai",
-            help="Include AI implications stub (pending phase-11)",
+            help="Include AI implications (LLMPort; stub if no provider)",
         ),
     ] = True,
     config: Annotated[
@@ -574,7 +609,7 @@ def lens_diff(
     from questline.core.store import RunStore
     from questline.lens.diff import diff_snapshots
     from questline.lens.render import render_diff_text
-    from questline.lens.report import implications_stub
+    from questline.lens.report import build_implications
     from questline.lens.snapshot import load_snapshot
 
     fmt = format.strip().lower()
@@ -626,7 +661,12 @@ def lens_diff(
             snapshot_id_a=row_a["id"],
             snapshot_id_b=row_b["id"],
         )
-        implications = implications_stub(report) if with_ai else None
+        implications = None
+        if with_ai:
+            from questline.ai.factory import build_router
+
+            router = build_router(settings, store=store, run_id="lens")
+            implications = build_implications(report, store=store, router=router)
         if fmt == "json":
             payload = report.to_dict()
             if implications is not None:
@@ -829,6 +869,127 @@ def telemetry_query(
             typer.echo(json.dumps(rows, indent=2, sort_keys=True) + "\n", nl=False)
         else:
             typer.echo(render_session_list(rows), nl=False)
+    finally:
+        store.close()
+
+
+@ai_app.command("complete")
+def ai_complete(
+    prompt: Annotated[str, typer.Argument(help="User prompt (same text across profile flips)")],
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="Profile name (ai_mistral / ai_groq / ai_ollama)"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+    run_id: Annotated[
+        str,
+        typer.Option("--run", help="run_id stored on ai_calls rows"),
+    ] = "cli",
+    purpose: Annotated[
+        str,
+        typer.Option("--purpose", help="purpose_tag for the ledger"),
+    ] = "cli.complete",
+    max_tokens: Annotated[int, typer.Option("--max-tokens", help="max_tokens")] = 64,
+) -> None:
+    """Send one LlmRequest via the profile router (maintainer live smoke)."""
+    from questline.ai.factory import build_router
+    from questline.ai.port import LlmMessage, LlmRequest
+    from questline.core.store import RunStore
+
+    try:
+        settings = load_settings(config_path=config, profile=profile)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    store = RunStore(settings.store_db, artifacts_dir=settings.artifacts_dir)
+    try:
+        router = build_router(settings, store=store, run_id=run_id)
+        if router is None:
+            typer.secho(
+                "No usable LLM provider (check ai.candidates, api_key_env, docs/ai-setup.md).",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            raise typer.Exit(code=1)
+        resp = router.complete(
+            LlmRequest(
+                messages=(LlmMessage(role="user", content=prompt),),
+                max_tokens=max_tokens,
+                temperature=0.0,
+                purpose_tag=purpose,
+            )
+        )
+        typer.echo(f"provider: {resp.provider}")
+        typer.echo(f"model:    {resp.model}")
+        typer.echo(f"tokens:   in={resp.usage.tokens_in} out={resp.usage.tokens_out}")
+        typer.echo(f"text:\n{resp.text}")
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    finally:
+        store.close()
+
+
+@ai_app.command("costs")
+def ai_costs(
+    run_id: Annotated[
+        str | None,
+        typer.Option("--run", help="Filter by run_id"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="Profile name (for store path)"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store", help="Override path to store.db"),
+    ] = None,
+) -> None:
+    """Print ai_calls ledger rows and USD totals (ASCII)."""
+    from questline.core.store import RunStore
+
+    try:
+        settings = load_settings(config_path=config, profile=profile)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    db_path = Path(store_db) if store_db is not None else settings.store_db
+    if not db_path.is_file():
+        typer.secho(f"store not found: {db_path}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    artifacts = (
+        settings.artifacts_dir if store_db is None else (db_path.parent / "artifacts")
+    )
+    store = RunStore(db_path, artifacts_dir=artifacts)
+    try:
+        rows = store.list_ai_calls(run_id=run_id)
+        total = 0.0
+        typer.echo("provider\tmodel\ttokens_in\ttokens_out\tcost\toutcome\tpurpose")
+        for row in rows:
+            cost = float(row.get("cost") or 0.0)
+            total += cost
+            typer.echo(
+                f"{row.get('provider')}\t{row.get('model')}\t{row.get('tokens_in')}\t"
+                f"{row.get('tokens_out')}\t{cost:.6f}\t{row.get('outcome')}\t"
+                f"{row.get('purpose')}"
+            )
+        typer.echo(f"rows: {len(rows)}")
+        typer.echo(f"total_usd: {total:.6f}")
     finally:
         store.close()
 

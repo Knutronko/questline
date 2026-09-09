@@ -7,6 +7,8 @@ test("HUD smoke: runs → test → steps", async ({ page }) => {
   await expect(first).toBeVisible();
   await first.locator("a").first().click();
   await expect(page.getByTestId("verdict-banner")).toBeVisible();
+  await expect(page.getByTestId("ai-calls-table")).toBeVisible();
+  await expect(page.getByTestId("ai-call-row").first()).toBeVisible();
   await expect(page.getByTestId("tests-table")).toBeVisible();
   await page.getByTestId("test-row").first().locator("a").click();
   await expect(page.getByTestId("test-title")).toBeVisible();

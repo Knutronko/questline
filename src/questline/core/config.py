@@ -53,6 +53,51 @@ class ResilienceSettings(BaseModel):
         return v
 
 
+class AiProviderSettings(BaseModel):
+    """One named LLM backend. ``api_key_env`` is an env var *name*, never a secret."""
+
+    kind: str = "openai_compat"
+    base_url: str | None = None
+    model: str | None = None
+    api_key_env: str | None = None
+    timeout_s: float = 30.0
+
+    @field_validator("kind")
+    @classmethod
+    def _kind_ok(cls, v: str) -> str:
+        lowered = v.strip().lower()
+        allowed = {"openai_compat", "ollama", "anthropic", "cursor_cli", "fake"}
+        if lowered not in allowed:
+            raise ValueError(
+                "ai provider kind must be openai_compat, ollama, anthropic, cursor_cli, or fake"
+            )
+        return lowered
+
+    @field_validator("timeout_s")
+    @classmethod
+    def _positive_timeout(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("ai provider timeout_s must be > 0")
+        return v
+
+
+class AiSettings(BaseModel):
+    """LLMPort router knobs. Secrets stay in the environment."""
+
+    candidates: list[str] = Field(default_factory=list)
+    budget_per_call_usd: float = 0.50
+    budget_per_run_usd: float = 5.00
+    models: dict[str, str] = Field(default_factory=dict)
+    providers: dict[str, AiProviderSettings] = Field(default_factory=dict)
+
+    @field_validator("budget_per_call_usd", "budget_per_run_usd")
+    @classmethod
+    def _nonneg_budget(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError("AI budget ceilings must be >= 0")
+        return v
+
+
 class PerfSettings(BaseModel):
     """Opt-in PerfProbe knobs (phase-09). Off by default."""
 
@@ -98,6 +143,7 @@ class Settings(BaseModel):
     wait: WaitSettings = Field(default_factory=WaitSettings)
     resilience: ResilienceSettings = Field(default_factory=ResilienceSettings)
     perf: PerfSettings = Field(default_factory=PerfSettings)
+    ai: AiSettings = Field(default_factory=AiSettings)
     log_json: bool = False
     project_root: Path = Field(default_factory=Path.cwd)
     store_dir: Path | None = None
@@ -231,6 +277,13 @@ def _defaults() -> dict[str, Any]:
             "source": "auto",
             "metrics": [],
         },
+        "ai": {
+            "candidates": [],
+            "budget_per_call_usd": 0.50,
+            "budget_per_run_usd": 5.00,
+            "models": {},
+            "providers": {},
+        },
         "log_json": False,
         "target_host": "127.0.0.1",
         "target_port": 13000,
@@ -276,8 +329,8 @@ def _parse_profiles(path: Path) -> dict[str, Any]:
     return profiles
 
 
-def _reject_secrets_in_toml(path: Path, profiles: dict[str, Any]) -> None:
-    secret_field_names = {
+_SECRET_FIELD_NAMES = frozenset(
+    {
         "api_key",
         "slack_token",
         "slack_webhook",
@@ -288,19 +341,39 @@ def _reject_secrets_in_toml(path: Path, profiles: dict[str, Any]) -> None:
         "secret",
         "token",
     }
+)
+
+
+def _is_secret_field_name(key: str) -> bool:
+    """True for secret *values*. ``api_key_env`` (an env var name) is allowed."""
+    lowered = key.lower()
+    if lowered.endswith("_env"):
+        return False
+    return (
+        lowered in _SECRET_FIELD_NAMES
+        or lowered.endswith("_token")
+        or lowered.endswith("_key")
+    )
+
+
+def _reject_secrets_in_toml(path: Path, profiles: dict[str, Any]) -> None:
     for name, table in profiles.items():
-        for key in table:
-            lowered = key.lower()
-            if (
-                lowered in secret_field_names
-                or lowered.endswith("_token")
-                or lowered.endswith("_key")
-            ):
-                raise AuthoringError(
-                    f"Secret field '{key}' found in [profile.{name}] of {path}. "
-                    f"Secrets must be provided via environment variables "
-                    f"(e.g. QUESTLINE_{key.upper()}), never in questline.toml."
-                )
+        _reject_secrets_nested(table, path=path, profile=name)
+
+
+def _reject_secrets_nested(table: dict[str, Any], *, path: Path, profile: str) -> None:
+    if not isinstance(table, dict):
+        return
+    for key, value in table.items():
+        if _is_secret_field_name(str(key)):
+            raise AuthoringError(
+                f"Secret field '{key}' found in [profile.{profile}] of {path}. "
+                f"Secrets must be provided via environment variables "
+                f"(e.g. QUESTLINE_{str(key).upper()}), never in questline.toml. "
+                "Use api_key_env = \"ENV_VAR_NAME\" for LLM providers."
+            )
+        if isinstance(value, dict):
+            _reject_secrets_nested(value, path=path, profile=profile)
 
 
 def _resolve_profile_name(
@@ -362,6 +435,12 @@ def _profile_table(
         raise AuthoringError(
             f"[profile.{name}].perf must be a table "
             f"(e.g. perf.enabled = true), got {type(perf).__name__}."
+        )
+    ai = table.get("ai")
+    if ai is not None and not isinstance(ai, dict):
+        raise AuthoringError(
+            f"[profile.{name}].ai must be a table "
+            f"(e.g. ai.candidates = [\"mistral\"]), got {type(ai).__name__}."
         )
     return table
 
@@ -507,6 +586,26 @@ def _env_overrides(env: dict[str, str]) -> dict[str, Any]:
         perf["metrics"] = [p.strip() for p in raw_m.split(",") if p.strip()] if raw_m else []
     if perf:
         mapping["perf"] = perf
+
+    ai: dict[str, Any] = {}
+    call_b = f"{_ENV_PREFIX}AI_BUDGET_PER_CALL_USD"
+    if call_b in env and env[call_b] != "":
+        try:
+            ai["budget_per_call_usd"] = float(env[call_b])
+        except ValueError as exc:
+            raise AuthoringError(
+                f"Environment variable {call_b}={env[call_b]!r} is not a number."
+            ) from exc
+    run_b = f"{_ENV_PREFIX}AI_BUDGET_PER_RUN_USD"
+    if run_b in env and env[run_b] != "":
+        try:
+            ai["budget_per_run_usd"] = float(env[run_b])
+        except ValueError as exc:
+            raise AuthoringError(
+                f"Environment variable {run_b}={env[run_b]!r} is not a number."
+            ) from exc
+    if ai:
+        mapping["ai"] = ai
     return mapping
 
 

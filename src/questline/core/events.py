@@ -134,6 +134,9 @@ class AiCallMade(Event):
     cost: float = 0.0
     purpose: str = ""
     duration_ms: float = 0.0
+    cached: bool = False
+    outcome: str = "ok"
+    pricing_version: str = ""
 
 
 @dataclass(frozen=True, slots=True)

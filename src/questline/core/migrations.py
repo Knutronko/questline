@@ -185,7 +185,39 @@ def _migrate_004_telemetry(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_tel_events_name
             ON telemetry_events(name);
         """
-    )
+        )
+
+
+def _migrate_005_ai_calls_ledger(conn: sqlite3.Connection) -> None:
+    """Phase-11: extend ai_calls (created in v1) without rewriting migration 1."""
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(ai_calls)").fetchall()}
+    if not cols:
+        # Extremely old / truncated DB — recreate the v1 shape then extend.
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS ai_calls (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id TEXT,
+                provider TEXT,
+                model TEXT,
+                tokens_in INTEGER,
+                tokens_out INTEGER,
+                cost REAL,
+                purpose TEXT,
+                duration_ms REAL,
+                timestamp TEXT NOT NULL
+            )
+            """
+        )
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(ai_calls)").fetchall()}
+    if "cached" not in cols:
+        conn.execute("ALTER TABLE ai_calls ADD COLUMN cached INTEGER NOT NULL DEFAULT 0")
+    if "outcome" not in cols:
+        conn.execute("ALTER TABLE ai_calls ADD COLUMN outcome TEXT NOT NULL DEFAULT 'ok'")
+    if "pricing_version" not in cols:
+        conn.execute("ALTER TABLE ai_calls ADD COLUMN pricing_version TEXT")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_ai_calls_run ON ai_calls(run_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_ai_calls_ts ON ai_calls(timestamp)")
 
 
 # Append-only: new modules add the next integer version here.
@@ -194,6 +226,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(2, "tests_feature_id", _migrate_002_tests_feature_id),
     Migration(3, "balance_snapshots", _migrate_003_balance_snapshots),
     Migration(4, "telemetry", _migrate_004_telemetry),
+    Migration(5, "ai_calls_ledger", _migrate_005_ai_calls_ledger),
 )
 
 CURRENT_SCHEMA_VERSION: int = MIGRATIONS[-1].version

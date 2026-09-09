@@ -47,11 +47,13 @@ def get_profile_public(config_path: Path, name: str) -> dict[str, Any]:
             f"Profile '{name}' not found in {config_path}. Available: {available}."
         )
     table = _strip_secrets(dict(profiles[name]))
+    env_names = list(_SECRET_ENV_NAMES)
+    env_names.extend(_api_key_env_names(table))
     return {
         "name": name,
         "path": str(config_path),
         "fields": table,
-        "secret_env_names": list(_SECRET_ENV_NAMES),
+        "secret_env_names": list(dict.fromkeys(env_names)),
     }
 
 
@@ -175,6 +177,9 @@ def _strip_secrets(table: dict[str, Any]) -> dict[str, Any]:
     out: dict[str, Any] = {}
     for key, value in table.items():
         lowered = key.lower()
+        if lowered.endswith("_env"):
+            out[key] = value
+            continue
         if (
             lowered in _SECRET_TOML_KEYS
             or lowered.endswith("_token")
@@ -186,6 +191,16 @@ def _strip_secrets(table: dict[str, Any]) -> dict[str, Any]:
         else:
             out[key] = value
     return out
+
+
+def _api_key_env_names(table: dict[str, Any]) -> list[str]:
+    names: list[str] = []
+    for key, value in table.items():
+        if key == "api_key_env" and isinstance(value, str) and value.strip():
+            names.append(value.strip())
+        elif isinstance(value, dict):
+            names.extend(_api_key_env_names(value))
+    return names
 
 
 def _reject_secret_keys(fields: dict[str, Any]) -> None:
@@ -216,6 +231,9 @@ def _settings_public_summary(settings: Settings) -> dict[str, Any]:
         "target_platform": settings.target_platform,
         "device_serial": settings.device_serial,
         "perf_enabled": settings.perf.enabled,
+        "ai_candidates": list(settings.ai.candidates),
+        "ai_budget_per_call_usd": settings.ai.budget_per_call_usd,
+        "ai_budget_per_run_usd": settings.ai.budget_per_run_usd,
         "secret_env_names": list(_SECRET_ENV_NAMES),
     }
 

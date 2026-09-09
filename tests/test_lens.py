@@ -63,8 +63,8 @@ def test_diff_includes_new_entity_and_numeric_pct() -> None:
     assert "economy" in by_system
 
     stub = implications_stub(report)
-    assert stub.status == "pending"
-    assert stub.pending == "phase-11"
+    assert stub.status == "skipped"
+    assert stub.pending == "no-provider"
     assert stub.framing == "model reasoning"
 
 

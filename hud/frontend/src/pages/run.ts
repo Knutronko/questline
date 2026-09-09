@@ -17,6 +17,23 @@ export async function renderRun(runId: string): Promise<string> {
     )
     .join("");
 
+  const aiCalls = data.ai_calls || [];
+  const aiRows =
+    aiCalls
+      .map(
+        (c) => `
+    <tr data-testid="ai-call-row">
+      <td>${esc(c.provider ?? "—")}</td>
+      <td class="wrap">${esc(c.model ?? "—")}</td>
+      <td>${esc(c.tokens_in ?? 0)}</td>
+      <td>${esc(c.tokens_out ?? 0)}</td>
+      <td>${esc(fmtUsd(c.cost))}</td>
+      <td>${esc(c.outcome ?? "—")}</td>
+      <td class="wrap">${esc(c.purpose ?? "")}</td>
+    </tr>`,
+      )
+      .join("") || `<tr><td colspan="7">No AI calls for this run.</td></tr>`;
+
   return `
     <p class="meta"><a href="#/">← Runs</a> · ${esc(r.id)}</p>
     <h1>Run detail</h1>
@@ -31,6 +48,19 @@ export async function renderRun(runId: string): Promise<string> {
       <div class="stat infra"><span>infra</span><b>${b.infra_failures}</b></div>
       <div class="stat test"><span>test</span><b>${b.test_failures}</b></div>
       <div class="stat"><span>authoring</span><b>${b.authoring_failures}</b></div>
+    </div>
+    <h2>AI calls</h2>
+    <div class="meta">total_usd=${esc(fmtUsd(data.ai_cost_total))}</div>
+    <div class="table-wrap">
+      <table data-testid="ai-calls-table">
+        <thead>
+          <tr>
+            <th>Provider</th><th>Model</th><th>In</th><th>Out</th>
+            <th>Cost</th><th>Outcome</th><th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>${aiRows}</tbody>
+      </table>
     </div>
     <h2>Tests</h2>
     <div class="table-wrap">
@@ -49,4 +79,9 @@ export async function renderRun(runId: string): Promise<string> {
       </table>
     </div>
   `;
+}
+
+function fmtUsd(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(n)) return "0.000000";
+  return n.toFixed(6);
 }

@@ -1,9 +1,12 @@
 # GameLens (FP-G1)
 
 > Balance **config truth**: snapshot + typed diff driven by a game-declared manifest
-> (QL-5). AI implications report is **deferred** until phase-11. See
+> (QL-5). AI implications: **thin LLMPort consumer in phase-11** (not the full
+> design-copilot report). See
 > [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md),
 > [`adr/ADR-0009-gamelens-snapshot.md`](adr/ADR-0009-gamelens-snapshot.md),
+> [`adr/ADR-0011-llmport-budget.md`](adr/ADR-0011-llmport-budget.md),
+> [`ai-setup.md`](ai-setup.md),
 > [`phases/phase-fp-g1-gamelens-snapshot.md`](phases/phase-fp-g1-gamelens-snapshot.md).
 
 ## What ships in FP-G1
@@ -15,7 +18,7 @@
 | Store | `balance_snapshots` table + JSON under `{artifacts_dir}/lens/<id>/` (see `--store`) |
 | CLI | `questline lens snapshot` / `questline lens diff` |
 | Diff | Typed: numeric delta/%, added/removed **entities**, curve/series; grouped by system |
-| AI report | Stub → `pending phase-11` (framing: *model reasoning* only) |
+| AI report | **phase-11:** `build_implications` via LLMPort when the profile has providers; otherwise skipped/`no-provider`. Framing: *model reasoning*. Numbers from `telemetry_sessions.summary` only; gaps (e.g. `combat.damage`, `snap-unset`) are stated, never imputed. Full design-copilot / retune proposal remains a follow-up. |
 
 HUD GameLens panel: **deferred** (CLI MVP; see BACKLOG + `hud.md` evolution).
 
@@ -26,7 +29,7 @@ HUD GameLens panel: **deferred** (CLI MVP; see BACKLOG + `hud.md` evolution).
 | **QL-5** (game) | Manifest `schema_version: 1` contents; `asset_path` for Editor export |
 | **FP-G2 / QL-6** | Same versioning keys on telemetry sessions. **QL-6 ✅.** Labels/gaps: game `integracion-questline.md` §10. Operator: [`telemetry.md`](telemetry.md). |
 | **FP-G3** bots | Diff + snapshot id attached to seeded runs (`config_snapshot_id` + `policy_id` + `seed`); `drain_telemetry`; never invent pass/fail from AI. Brief: [`phases/phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md). |
-| **phase-11** | Wire `implications_stub` → live LLMPort; keep *model reasoning* vs *measured* framing. Measured input = `telemetry_sessions.summary` (do not impute missing KPIs). |
+| **phase-11** | Thin `build_implications` → live LLMPort. *Model reasoning* vs *measured*. Measured input = `telemetry_sessions.summary` (do not impute missing KPIs). Not the full copilot report. |
 | **D12 / G2+** | Richer events: reuse reserved names in [`telemetry.md`](telemetry.md) (damage, ranch, buff, relocate, revive, projectiles). |
 | **FP-F3** feature impact | Optional `feature_id` on snapshots; `added_entity` diffs first-class |
 | **HUD (later)** | Read `balance_snapshots` + artifacts; no separate store |
@@ -66,7 +69,7 @@ Normalized snapshot field types: `number` | `string` | `bool` | `curve` | `serie
 uv run questline lens snapshot --pack tests/fixtures/lens/pack-a --version 1.0.0 --store .questline/store.db
 uv run questline lens snapshot --pack tests/fixtures/lens/pack-b --version 1.1.0 --store .questline/store.db
 
-# Diff (text includes AI stub; JSON machine-readable)
+# Diff (text includes AI implications when --ai; JSON machine-readable)
 uv run questline lens diff 1.0.0 1.1.0 --store .questline/store.db
 uv run questline lens diff 1.0.0 1.1.0 --format json --no-ai --store .questline/store.db
 
