@@ -92,7 +92,7 @@ hooks + telemetry, not an LLM.
 | 5 | FP-G1 AI implications + AI-assisted bot policies + design copilot path | questline | Use *measured* data; never replace it |
 | later | phase-12/13 agents/eval; FP-G4; D12 infinite (richer G2); FP-G3 soak matrices | both | Scale |
 
-**Immediate next:** maintainer Editor FP-G3 smoke → cheapest IEB-1 → full matrix. Fake CI is in. Do not skip the live matrix DoD.
+**Immediate next:** **phase-11** AI foundation (G3 live matrix is in). Optional: attach a G1 `QUESTLINE_SNAPSHOT_ID` on later bot runs. Do not invert G1 → G2/G3 → 11.
 
 ---
 
@@ -181,3 +181,4 @@ Starter prompts for the joint wave live in
 | 2026-08-14 | **FP-G3 suite landed** in ElJuegaso `automation/bots` (fake-driver CI + live markers). Buff v1 = `SkipBuffDraft` for all policies (`BoardState` has no offer list). Playability gate: **hooks sufficient**; 09c stays parked. HUD telemetry view still **deferred** (CLI `questline telemetry`). Live Editor matrix remains maintainer-checked DoD. |
 | 2026-08-14 | **INC-0009:** hatch `force-include` of HUD static duplicated `index.html` in the wheel; `uv run` from ElJuegaso `automation/` (git pin) failed before pytest. Drop the duplicate include; live commands use `uv run --no-sync` after `uv pip install -e D:\dev\questline`. |
 | 2026-08-14 | **G3 live lock:** Support/Trampero are not lane cover. Cover = Dientes/Veloz/Armadura/Volador/Cuello. Support only behind Armadura (else most-damaged cover). Trampero may sit on an already-covered lane. Cheapest never uses skills. |
+| 2026-09-09 | **FP-G3 live DoD:** Editor matrix 75/75 passed (~1h48). All sessions `outcome=lose`, `snapshot=snap-unset`. Watchdog thread warning on `3-balanced-44` (INC-0010, run still green). Next = phase-11. |

@@ -50,6 +50,7 @@ brief Lessons section, and cite it in the PR Self-review.
 | [INC-0007](incidents/INC-0007-lens-windows-console-encoding.md) | GameLens CLI text crashed on Windows cp1252 (`→`/`Δ`) | FP-G1 | fixed | 2026-08-12 |
 | [INC-0008](incidents/INC-0008-lens-utf8-bom-import.md) | Unity GameLens export UTF-8 BOM broke `lens snapshot --import` | FP-G1, QL-5 | fixed | 2026-08-12 |
 | [INC-0009](incidents/INC-0009-hatch-hud-static-duplicate.md) | Hatch `force-include` duplicated HUD static; git wheel installs fail | FP-G3 | fixed | 2026-08-14 |
+| [INC-0010](incidents/INC-0010-watchdog-thread-exit-during-matrix.md) | Watchdog `pytest.exit` from a thread mid live matrix (warning, 75 still passed) | FP-G3 | open | 2026-09-09 |
 
 ## Template
 

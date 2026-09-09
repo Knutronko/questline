@@ -64,7 +64,7 @@ creature growth curves) — but the module is genre-agnostic by design.
 - **Richer later (D12 / G2+):** reserved names in [`telemetry.md`](telemetry.md)
   (`combat.damage`, projectile.*, `creature.grown`, buff pick/skip, relocate, revive,
   `enemy.spawn`). Reuse those strings; new migration if summaries grow.
-- **Status:** FP-G2 thin ✅ (ADR-0010). **QL-6 ✅**. FP-G3 suite 🟡 (fake CI; live Editor pending).
+- **Status:** FP-G2 thin ✅ (ADR-0010). **QL-6 ✅**. FP-G3 live Editor matrix ✅ (75/75, 2026-09-09).
 - Prereqs: FP-G1 (shares versioning/context model), phase 8 (HUD optional for MVP).
 
 ### FP-G3 — Bot playthroughs & measured difficulty curves · **L · priority ALTA (after G2)**
