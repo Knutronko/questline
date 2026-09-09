@@ -25,7 +25,8 @@ the CLI uses — no UI-only code paths).
 | ✅ | **09b** Wire v2 | Richer live/automation runs. **HUD:** no dedicated Wire panel — screenshots via `ArtifactSaved`; launcher picks profile/device |
 | ✅ | **10** HUD II | Launcher, quarantine UI, profile editor, **perf graphs** + run comparison, CSRF + `--read-only` |
 | ❌ deferred | **FP-G1** GameLens | CLI `questline lens` only — **no HUD panel yet** (see BACKLOG). Browse after FP-G2/G3 data exists |
-| ❌ deferred | **FP-G2** Telemetry | CLI `questline telemetry` only — **no HUD panel yet** (see BACKLOG). Browse after FP-G3 sessions exist |
+| ❌ deferred | **FP-G2** Telemetry | CLI `questline telemetry` only — **no HUD panel** (BACKLOG). G3 bots did not add one. |
+| ❌ deferred | **FP-G3** bots | Same telemetry CLI; **no HUD panel** (explicit defer). |
 | later | **11–13** AI | Cost per run / triage panels (read store `ai_calls`); GameLens AI implications after 11; action buttons with 12 |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
 
@@ -41,7 +42,7 @@ the CLI uses — no UI-only code paths).
 | Wire / drivers / devices | ✅ Launcher profile + device picker (no Wire-specific chrome) |
 | Reporters | ✅ Toggles on launch |
 | GameLens snapshot / diff | ❌ Deferred — CLI (`questline lens`); HUD panel after G2/G3 (BACKLOG) |
-| Telemetry sessions / KPIs | ❌ Deferred — CLI (`questline telemetry`); HUD panel after G3 (BACKLOG) |
+| Telemetry sessions / KPIs | ❌ Deferred — CLI (`questline telemetry`); G3 bots did not add a HUD panel (BACKLOG) |
 | Command palette / arbitrary CLI | ❌ Deferred — CLI until a future BACKLOG item; not a full terminal |
 
 If something cannot fit, defer in this evolution table + [`phases/BACKLOG.md`](phases/BACKLOG.md)

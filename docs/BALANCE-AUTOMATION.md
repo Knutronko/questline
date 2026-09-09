@@ -92,8 +92,7 @@ hooks + telemetry, not an LLM.
 | 5 | FP-G1 AI implications + AI-assisted bot policies + design copilot path | questline | Use *measured* data; never replace it |
 | later | phase-12/13 agents/eval; FP-G4; D12 infinite (richer G2); FP-G3 soak matrices | both | Scale |
 
-**Immediate next:** **QL-7** combat hooks, then bots write telemetry into the store.
-FP-G2/QL-6 is done; do not skip QL-7.
+**Immediate next:** **phase-11** AI foundation (G3 live matrix is in). Optional: attach a G1 `QUESTLINE_SNAPSHOT_ID` on later bot runs. Do not invert G1 → G2/G3 → 11.
 
 ---
 
@@ -179,3 +178,7 @@ Starter prompts for the joint wave live in
 | 2026-08-13 | **FP-G2 landed:** thin telemetry + ADR-0010; HUD view deferred. Later event names reserved in `FUTURE_EVENT_NAMES` (D12 / G2+). |
 | 2026-08-13 | **QL-6 landed (game):** thin emit + Editor spool import. Checkpoints actually emitted: `post_3_deploy`, `between_wave`, `prep_end`, `end` (no `mid_w*`). IEB does not auto-seed `P1Rng`. ∞Ám omits spends. Mapping: ElJuegaso `integracion-questline.md` §10. |
 | 2026-08-13 | **G3 policies locked** (game §11): shared kernel (collector-first, finite amber, collect pickups) + `balanced` / `cheapest` / `rush` / `never_skill` / `always_skill`. `balanced` = if/then on `BoardState` getters, not LLM, not extra telemetry. Buff pick **per policy**. Repair off in v1. Matrix DoD = B1–B5 × 5 policies × N=3. **QL-7 before FP-G3.** Do not add `enemy.spawn` for bots (D12). |
+| 2026-08-14 | **FP-G3 suite landed** in ElJuegaso `automation/bots` (fake-driver CI + live markers). Buff v1 = `SkipBuffDraft` for all policies (`BoardState` has no offer list). Playability gate: **hooks sufficient**; 09c stays parked. HUD telemetry view still **deferred** (CLI `questline telemetry`). Live Editor matrix remains maintainer-checked DoD. |
+| 2026-08-14 | **INC-0009:** hatch `force-include` of HUD static duplicated `index.html` in the wheel; `uv run` from ElJuegaso `automation/` (git pin) failed before pytest. Drop the duplicate include; live commands use `uv run --no-sync` after `uv pip install -e D:\dev\questline`. |
+| 2026-08-14 | **G3 live lock:** Support/Trampero are not lane cover. Cover = Dientes/Veloz/Armadura/Volador/Cuello. Support only behind Armadura (else most-damaged cover). Trampero may sit on an already-covered lane. Cheapest never uses skills. |
+| 2026-09-09 | **FP-G3 live DoD:** Editor matrix 75/75 passed (~1h48). All sessions `outcome=lose`, `snapshot=snap-unset`. Watchdog thread warning on `3-balanced-44` (INC-0010, run still green). Next = phase-11. |

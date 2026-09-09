@@ -15,10 +15,12 @@
      `hud/frontend/`; production build emits to `src/questline/hud/static/`. Hash or
      History routing with FastAPI SPA fallback. Dark game-HUD CSS (dense tables, muted
      chrome, infra-vs-test color split matching the HTML reporter).
-  3. **Wheel embedding:** hatch `force-include` of `src/questline/hud/static/**` into
-     the wheel. CI builds the frontend before tests that need assets; maintainers rebuild
-     with `npm ci && npm run build` under `hud/frontend/` before release. Runtime only
-     needs Python + `[hud]` — never Node.
+  3. **Wheel embedding:** built `src/questline/hud/static/**` ships inside the
+     package via hatch **src-layout** (files already under `src/questline/`). Do **not**
+     also `force-include` that directory — hatch then adds `index.html` twice and
+     git-URL installs fail (INC-0009). CI builds the frontend before tests that need
+     assets; maintainers rebuild with `npm ci && npm run build` under `hud/frontend/`
+     before release. Runtime only needs Python + `[hud]` — never Node.
   4. **Empty store:** API returns empty lists; SPA shows a clear empty state (not an
      error).
 - **Consequences:**

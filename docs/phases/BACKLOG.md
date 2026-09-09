@@ -26,16 +26,16 @@ Format: `- [ ] (phase-NN) description`
 - [ ] (phase-14) Poco as **second** UI hierarchy adapter (+ UTF); Wire v2 UI is phase-09b.
 - [x] (phase-09b) Wire v2 find/hierarchy/tap/screenshot — FakeWire CI + companion UI ops;
       game trigger QL-2c (sync companion + Dev APK).
-- [ ] (phase-09c) Wire swipe/drag/long-press — **parked**; schedule only if FP-G3
-      playability gate fails (BALANCE-AUTOMATION §5 / phase-09c brief).
+- [ ] (phase-09c) Wire swipe/drag/long-press — **parked**; FP-G3 playability gate =
+      hooks sufficient (BALANCE-AUTOMATION §5 / phase-09c brief). Do not schedule unless
+      live G3 cannot finish combat without gestures.
 - [ ] (fp-g1) AI implications live report — deferred to phase-11 (snapshot/diff ships first).
 - [ ] (fp-g1) HUD GameLens panel (list snapshots / show typed diff) — deferred until
       FP-G2/G3 produce measured data worth browsing beside config diffs; CLI is MVP.
 - [x] (fp-g2) Thin telemetry before FP-G3 bots — do not wait for D12-only scheduling.
-- [ ] (fp-g2) HUD telemetry view (list sessions / summary / compare) — deferred until
-      FP-G3 produces several sessions worth browsing; CLI `questline telemetry` is MVP.
-      Store: `telemetry_sessions` + `telemetry_events` (ADR-0010). Same HUD-first
-      contract as GameLens panel.
+- [ ] (fp-g2) HUD telemetry view (list sessions / summary / compare) — **still deferred
+      after FP-G3**. CLI `questline telemetry` is MVP. G3 bots write sessions; no HUD
+      panel in this phase. Store: `telemetry_sessions` + `telemetry_events` (ADR-0010).
 - [ ] (fp-g2+ / D12) Richer events — reuse `FUTURE_EVENT_NAMES` in
       `questline.telemetry.schema` / [`telemetry.md`](../telemetry.md):
       `combat.damage`, `projectile.spawn|hit|dissipate`, `creature.grown`,
@@ -43,9 +43,9 @@ Format: `- [ ] (phase-NN) description`
       New migration if summaries grow; do not rewrite migration 4; do not invent
       parallel names. Remaining P1Debug (spawn, KO, projectiles, ranch) → D12 /
       `FUTURE_EVENT_NAMES`. QL-6 thin mapping is done.
-- [ ] (fp-g3) Deterministic bots do **not** wait for phase-13; AI policies after phase-11.
-      Brief: [`phase-fp-g3-bots.md`](phase-fp-g3-bots.md). Requires **QL-7** combat hooks
-      (and QL-6 emit). Policies locked: game `integracion-questline.md` §11.
+- [x] (fp-g3) Deterministic bots (fake-driver + `automation/bots`). Live Editor matrix
+      is maintainer-checked DoD. AI policies after phase-11. HUD: explicit defer (CLI).
+      Brief: [`phase-fp-g3-bots.md`](phase-fp-g3-bots.md). Policies: game §11.
 - [ ] (phase-09) Companion `draw_calls` is a reserved slot (always 0 in Runtime asmdef —
       no UnityEditor dependency). Optional Editor-only extension or game-injected counter.
 - [ ] (phase-09) PerfProbe anomaly detection / soak trend analysis — deferred (phase brief

@@ -199,7 +199,8 @@ def test_no_reference_game_names_in_core() -> None:
         "Deploy.Dino",
         "Amber.Gain",
         "Fossil.Tick",
-        "Wave.Cleared",
+        "Dientes",
+        "ieb-",
     )
     hits: list[str] = []
     for path in root.rglob("*.py"):
