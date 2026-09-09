@@ -91,4 +91,8 @@ Title `phase-11: ai foundation`. **ADR-0011** (not 0007 — HUD). Python 3.11+ (
   (cached / outcome / pricing_version) — never rewrite v1.
 - Nested `api_key_env` must not be treated as a secret value (`*_key` rejector
   would false-positive without an `_env` exception).
+- HUD Playwright must open fixture `run-a` (AI calls live there); the runs
+  table is newest-first so `.first()` is `run-b`.
+- Router `models.fast|strong` applies to the **primary** only; fallbacks keep
+  each provider's vendor model id (do not send `mistral-small-latest` to Groq).
 - **Incidents:** none.

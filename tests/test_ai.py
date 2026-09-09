@@ -170,6 +170,33 @@ def test_router_429_falls_back_both_ledgered(tmp_path: Path) -> None:
         store.close()
 
 
+def test_router_fallback_keeps_each_provider_model(tmp_path: Path) -> None:
+    """Profile models.fast must not stamp the primary vendor id onto Groq/Ollama."""
+    primary = FakeProvider(name="mistral", model="mistral-small-latest")
+    primary.enqueue(RateLimitedError("429"))
+    secondary = FakeProvider(name="groq", model="llama-3.3-70b-versatile")
+    secondary.enqueue("recovered")
+    store = RunStore(tmp_path / "s.db")
+    try:
+        router = ProviderRouter(
+            [primary, secondary],
+            budget_per_call_usd=10.0,
+            budget_per_run_usd=10.0,
+            store=store,
+            run_id="r1",
+            models={"fast": "mistral-small-latest", "strong": "mistral-large-latest"},
+        )
+        resp = router.complete(_REQ)
+        assert resp.text == "recovered"
+        assert secondary.last_request is not None
+        assert secondary.last_request.model == "llama-3.3-70b-versatile"
+        rows = store.list_ai_calls(run_id="r1")
+        assert rows[0]["model"] == "mistral-small-latest"
+        assert rows[1]["model"] == "llama-3.3-70b-versatile"
+    finally:
+        store.close()
+
+
 def test_budget_exceeded_in_loop(tmp_path: Path) -> None:
     fake = FakeProvider(usage=TokenUsage(tokens_in=1000, tokens_out=1000))
     store = RunStore(tmp_path / "s.db")

@@ -25,9 +25,11 @@ Repo `questline.toml` ships:
 | `ai_ollama` | local Ollama | — | **0** |
 
 ```powershell
-# PowerShell — session only, do not commit
-$env:MISTRAL_API_KEY = "..."   # La Plateforme
-$env:GROQ_API_KEY = "..."
+# PowerShell — session only, do not commit.
+# Replace with real keys from La Plateforme / Groq console.
+# The literal string "..." is not a key (Mistral 401 / Groq 403 follow).
+$env:MISTRAL_API_KEY = "paste-real-key"
+$env:GROQ_API_KEY = "paste-real-key"
 
 uv run questline doctor -p ai_mistral
 # 1-token ping; prints env *names* and OK/FAIL, never key values

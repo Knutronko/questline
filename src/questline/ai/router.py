@@ -60,18 +60,18 @@ class ProviderRouter:
                 kind="run",
             )
 
-        resolved = self._resolve_model(req)
         errors: list[str] = []
         last_exc: BaseException | None = None
 
-        for provider in self._providers:
+        for index, provider in enumerate(self._providers):
+            call_req = self._bind_model(provider, req, primary=index == 0)
             started = time.perf_counter()
             try:
-                response = provider.complete(resolved)
+                response = provider.complete(call_req)
             except _RETRYABLE as exc:
                 duration_ms = (time.perf_counter() - started) * 1000.0
                 outcome = "rate_limited" if isinstance(exc, RateLimitedError) else "error"
-                self._ledger_failure(provider, resolved, duration_ms, outcome)
+                self._ledger_failure(provider, call_req, duration_ms, outcome)
                 errors.append(f"{provider.name}: {exc}")
                 last_exc = exc
                 continue
@@ -79,7 +79,7 @@ class ProviderRouter:
                 raise
             except Exception as exc:
                 duration_ms = (time.perf_counter() - started) * 1000.0
-                self._ledger_failure(provider, resolved, duration_ms, "error")
+                self._ledger_failure(provider, call_req, duration_ms, "error")
                 errors.append(f"{provider.name}: {exc}")
                 last_exc = exc
                 continue
@@ -103,7 +103,7 @@ class ProviderRouter:
                 tokens_in=usage.tokens_in,
                 tokens_out=usage.tokens_out,
                 cost=cost,
-                purpose=resolved.purpose_tag,
+                purpose=call_req.purpose_tag,
                 duration_ms=duration_ms,
                 cached=usage.cached,
                 outcome="ok",
@@ -137,10 +137,15 @@ class ProviderRouter:
         detail = "; ".join(errors) or "no providers"
         raise ProviderError(f"all LLM providers failed ({detail})") from last_exc
 
-    def _resolve_model(self, req: LlmRequest) -> LlmRequest:
+    def _bind_model(self, provider: LLMProvider, req: LlmRequest, *, primary: bool) -> LlmRequest:
+        """Caller pin wins. Else primary uses models.fast|strong; fallbacks keep vendor id."""
         if req.model:
             return req
         mapped = self._models.get(req.model_class) or self._models.get("fast")
+        if primary and mapped:
+            return replace(req, model=mapped)
+        if provider.model:
+            return replace(req, model=provider.model)
         if mapped:
             return replace(req, model=mapped)
         return req
