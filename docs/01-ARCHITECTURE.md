@@ -182,8 +182,9 @@ class LLMProvider(Protocol):
   Operator guide: [`ai-setup.md`](ai-setup.md). ADR: [`ADR-0011`](adr/ADR-0011-llmport-budget.md).
 - Prompts: versioned files in `questline.ai.prompts`; stable-prefix composition.
 - GameLens: `build_implications` may call LLMPort — *model reasoning* vs *measured*
-  `telemetry_sessions.summary`; missing KPIs are gaps (never imputed). Not the full
-  design-copilot report.
+  `telemetry_sessions.summary`; missing KPIs are gaps (never imputed). Live report
+  persists `implications.json` / `.md` + `lens_implications` (migration 6). Design
+  copilot remains FP-G4.
 
 ---
 

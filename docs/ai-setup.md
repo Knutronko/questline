@@ -104,8 +104,20 @@ overrides: `QUESTLINE_AI_BUDGET_PER_CALL_USD`, `QUESTLINE_AI_BUDGET_PER_RUN_USD`
 `questline lens diff A B` (default `--ai`) calls LLMPort when the profile has
 usable providers; otherwise a **skipped / no-provider** stub. The narrative is
 *model reasoning*. Numbers come from `telemetry_sessions.summary`. Missing KPIs
-(`combat.damage`, `config_snapshot_id=snap-unset`, …) are listed as gaps and
-**must not be imputed**. This is not the full design-copilot report.
+(`combat.damage`, other `FUTURE_EVENT_NAMES`, `config_snapshot_id=snap-unset`) are
+listed as gaps and **must not be imputed**. Sessions that cannot join land in
+`measured.unjoined`. The report is **persisted** to
+`artifacts/lens/<a>__<b>/implications.json` (+ `.md`) and indexed in
+`lens_implications`. This is not the design-copilot report (FP-G4).
+
+```powershell
+# After snapshots exist in the store (see gamelens.md).
+uv run questline lens diff 1.0.0 1.1.0 -p ai_groq --store .questline-tmp-lens.db
+uv run questline lens diff 1.0.0 1.1.0 -p ai_ollama --store .questline-tmp-lens.db
+Get-Content artifacts\lens\1.0.0__1.1.0\implications.json | Select-Object -First 40
+```
+
+Mistral (`-p ai_mistral`) remains deferred until a La Plateforme key exists.
 
 ## HUD
 

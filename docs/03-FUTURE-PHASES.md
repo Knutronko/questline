@@ -9,8 +9,9 @@ S = 1–2 sessions, M = 3–4, L = 5+.
 [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md). Short form:
 
 **D11 + QL-5 + FP-G1** → **FP-G2 / QL-6** → **FP-G3** (deterministic bots; Wire 09c
-only if playability gate fails) → **phase-11** AI foundation → AI implications +
-AI bot policies → then other FPs (T2/T1/P3/…) as curiosity allows.
+only if playability gate fails) → **phase-11** AI foundation → **G1 implications live
+report** ✅ → AI bot policies / FP-G4 / phase-12 → then other FPs (T2/T1/P3/…) as
+curiosity allows.
 
 Older catalog wave (FP-T* interleaved before bots) is **superseded** for the reference
 game's balance goals. iOS (FP-P1) whenever curiosity wins.
@@ -40,14 +41,15 @@ creature growth curves) — but the module is genre-agnostic by design.
   `questline lens snapshot / diff <vA> <vB>`.
 - **Diff engine**: typed diffs (numeric deltas with %, added/removed entities, curve
   changes rendered as series), grouped by system tags from the manifest.
-- **AI implications report** (via LLMPort): input = diff + design-doc context + optional
-  telemetry (post-FP-G2/G3); output = structured report with risk flags and suggested
-  playtest focus. Framing: *model reasoning* vs *measured* — never mixed.
-- **Scheduling split:** ship **snapshot + diff now** (with D11/QL-5). AI report is
-  **deferred acceptance** until **phase-11** (do not block G1 or bots on LLMPort).
+- **AI implications report** (via LLMPort): input = typed diff + `telemetry_sessions.summary`;
+  output = persisted *model reasoning* (JSON/MD + `lens_implications` index). Never mixed
+  with measured numbers; `snap-unset` and reserved KPIs are gaps.
+- **Scheduling split:** snapshot + diff shipped with D11/QL-5; thin `--ai` consumer in
+  phase-11; **live report** (persist + join) follows phase-11.
 - **Status:** FP-G1 snapshot/diff ✅ (ADR-0009 / [`gamelens.md`](gamelens.md)); AI
-  stub pending phase-11. QL-5 still supplies real manifest contents.
-- Prereqs (MVP): phases 4 / companion path. Prereqs (AI report): phase 11 (+ ideally G2/G3 data).
+  implications live report ✅ (`lens diff --ai`; HUD panel still deferred). Design-copilot
+  / retune chat remains FP-G4. QL-5 still supplies real manifest contents.
+- Prereqs (MVP): phases 4 / companion path. Prereqs (AI report): phase 11 + G2/G3 data.
 
 ### FP-G2 — Gameplay telemetry · **M · priority ALTA (immediately after G1)**
 - Companion package gains `QuestlineTelemetry`: thin dotted names (`currency.earned`,

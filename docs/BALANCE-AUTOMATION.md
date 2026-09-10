@@ -89,10 +89,10 @@ hooks + telemetry, not an LLM.
 | 2c | **Wire playability gate** (see §5) — **09c** only if needed | questline (+ game) | Confirm bots can complete a normal combat loop |
 | 3 | **FP-G3** deterministic bots + measured curves | questline + game `automation/` | After **QL-7**. Playtest automation |
 | 4 | **phase-11** AI foundation | questline | LLMPort + budget |
-| 5 | FP-G1 AI implications + AI-assisted bot policies + design copilot path | questline | Use *measured* data; never replace it |
+| 5 | FP-G1 AI implications ✅; later AI-assisted bot policies + design copilot (FP-G4) | questline | Use *measured* data; never replace it |
 | later | phase-12/13 agents/eval; FP-G4; D12 infinite (richer G2); FP-G3 soak matrices | both | Scale |
 
-**Immediate next:** **G1 implications live report** (LLMPort is in). Optional: attach a G1 `QUESTLINE_SNAPSHOT_ID` on later bot runs. Do not invert G1 → G2/G3 → 11. Phase-12 agents are parallelizable after 11; they are not the implications report.
+**Immediate next:** **phase-12** AI agents (optional). G1 implications live report ✅ (`lens diff --ai` persists). Optional: attach a G1 `QUESTLINE_SNAPSHOT_ID` on later bot runs so sessions join. Do not invert G1 → G2/G3 → 11. Brief: [`phases/phase-fp-g1-implications-live.md`](phases/phase-fp-g1-implications-live.md).
 
 ---
 
@@ -184,3 +184,4 @@ Starter prompts for the joint wave live in
 | 2026-09-09 | **FP-G3 live DoD:** Editor matrix 75/75 passed (~1h48). All sessions `outcome=lose`, `snapshot=snap-unset`. Watchdog thread warning on `3-balanced-44` (INC-0010, run still green). Next = phase-11. |
 | 2026-09-09 | **phase-11 landed:** LLMPort + ProviderRouter + hard budgets + `ai_calls` (migration 5) + versioned prompts + doctor ping + HUD cost table. Thin GameLens `--ai` consumer (measured vs model reasoning; no imputation). **Not** design copilot / AI bot policies. Immediate next = G1 implications live report (and/or 12). |
 | 2026-09-10 | **phase-11 live smoke:** Groq (`openai/gpt-oss-20b`) + Ollama (`llama3.2`, cost 0) verified. **Mistral postponed** (no La Plateforme key). Not a merge blocker. |
+| 2026-09-10 | **G1 implications live report:** persist `artifacts/lens/<a>__<b>/implications.json` + `.md` and `lens_implications` (migration 6). `snap-unset` / NULL sessions go to `unjoined` (never a silent `game_version` join). `combat.damage` and other `FUTURE_EVENT_NAMES` stay gaps. HUD GameLens panel still deferred (CLI). Mistral live smoke still deferred. |

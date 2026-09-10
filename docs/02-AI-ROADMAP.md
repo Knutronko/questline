@@ -20,8 +20,8 @@ See [`ai-setup.md`](ai-setup.md) and [`ADR-0011`](adr/ADR-0011-llmport-budget.md
   HUD run-detail table. Pricing file `pricing_v1.json` (estimates; tiers churn).
 - **Prompts:** `questline.ai.prompts` name+version; stable-prefix composition.
 - **Thin GameLens consumer:** `build_implications` / `lens diff --ai`. *Model reasoning*
-  vs *measured* `telemetry_sessions.summary`. Does **not** complete the design-copilot
-  report or AI bot policies (those stay post-11).
+  vs *measured* `telemetry_sessions.summary`. Live report persists JSON/MD + store
+  index. Does **not** complete design-copilot (FP-G4) or AI bot policies.
 
 ## 2. Agent kernel (Phase 12)
 
@@ -82,13 +82,12 @@ the strongest possible portfolio artifact for AI Quality / LLM Evaluation roles.
 
 ## 4. Later candidates (see `03-FUTURE-PHASES.md` + `BALANCE-AUTOMATION.md`)
 
-**Order vs GameLens (2026-09-09):** G1 snapshot/diff, G2 telemetry, and G3 bots are on
-main. Phase-11 LLMPort **shipped**. Remaining: G1 implications *live report* (use the
-thin consumer + measured sessions; do not invent green/red), then AI-policy bots /
-design copilot (FP-G4) / phase-12 agents. Do **not** invert that order.
+**Order vs GameLens (2026-09-10):** G1 snapshot/diff, G2 telemetry, G3 bots, phase-11
+LLMPort, and the **G1 implications live report** are on main. Remaining: AI-policy bots /
+design copilot (FP-G4) / phase-12 agents. Do **not** invert G1 → G2/G3 → 11.
 
-- **GameLens implications report (FP-G1 AI slice)**: balance-config diff (+ measured
-  telemetry when G2/G3 exist) → AI report. Framing: model reasoning vs *measured*.
+- **GameLens implications report (FP-G1 AI slice) ✅**: balance-config diff + measured
+  telemetry → persisted AI report. Framing: model reasoning vs *measured*.
   Measured input = `telemetry_sessions.summary` (ADR-0010); never impute missing KPIs.
 - **AI bot policies (post FP-G3 deterministic)**: LLM chooses actions under budget;
   always compared to deterministic baselines.

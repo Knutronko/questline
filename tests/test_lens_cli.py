@@ -54,6 +54,15 @@ def test_lens_snapshot_and_diff_cli(tmp_path: Path) -> None:
     assert "unit_beta" in text.output
     assert "added_entity" in text.output or "+ entity unit_beta" in text.output
     assert "pending: no-provider" in text.output
+    impl_json = tmp_path / "artifacts" / "lens" / "1.0.0__1.1.0" / "implications.json"
+    impl_md = tmp_path / "artifacts" / "lens" / "1.0.0__1.1.0" / "implications.md"
+    assert impl_json.is_file(), text.output
+    assert impl_md.is_file()
+    persisted = json.loads(impl_json.read_text(encoding="utf-8"))
+    assert persisted["status"] == "skipped"
+    assert persisted["framing"] == "model reasoning"
+    assert "combat.damage" in " ".join(persisted["gaps"])
+    assert "artifact:" in text.output
 
     js = runner.invoke(
         app,
@@ -76,6 +85,32 @@ def test_lens_snapshot_and_diff_cli(tmp_path: Path) -> None:
     kinds = {e["kind"] for e in payload["entries"]}
     assert "added_entity" in kinds
     assert "implications" not in payload
+
+
+def test_lens_diff_no_ai_does_not_persist(tmp_path: Path) -> None:
+    db = tmp_path / "store.db"
+    for ver, pack in (("1.0.0", "pack-a"), ("1.1.0", "pack-b")):
+        r = runner.invoke(
+            app,
+            [
+                "lens",
+                "snapshot",
+                "--pack",
+                str(FIXTURES / pack),
+                "--version",
+                ver,
+                "--store",
+                str(db),
+            ],
+        )
+        assert r.exit_code == 0, r.output
+    result = runner.invoke(
+        app,
+        ["lens", "diff", "1.0.0", "1.1.0", "--store", str(db), "--no-ai"],
+    )
+    assert result.exit_code == 0, result.output
+    impl_dir = tmp_path / "artifacts" / "lens" / "1.0.0__1.1.0"
+    assert not (impl_dir / "implications.json").exists()
 
 
 def test_lens_snapshot_requires_pack_or_import(tmp_path: Path) -> None:

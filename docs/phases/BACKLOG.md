@@ -30,10 +30,13 @@ Format: `- [ ] (phase-NN) description`
       hooks sufficient (BALANCE-AUTOMATION §5 / phase-09c brief). Do not schedule unless
       live G3 cannot finish combat without gestures.
 - [x] (fp-g1) AI implications thin LLMPort consumer — done in phase-11
-      (`build_implications`; measured vs model reasoning). Full design-copilot
-      / retune report still open (G1 implications live report).
-- [ ] (fp-g1) HUD GameLens panel (list snapshots / show typed diff) — deferred until
-      FP-G2/G3 produce measured data worth browsing beside config diffs; CLI is MVP.
+      (`build_implications`; measured vs model reasoning).
+- [x] (fp-g1) Implications live report — persist JSON/MD + `lens_implications`
+      (migration 6); `snap-unset` is an unjoined gap; CLI `lens diff --ai`.
+      Design-copilot / retune chat remains FP-G4.
+- [ ] (fp-g1) HUD GameLens panel (list snapshots / typed diff / implications) —
+      **explicit defer** after the live report. CLI + `artifacts/lens/<a>__<b>/implications.json`
+      is MVP. Same owner as the existing GameLens HUD BACKLOG item.
 - [x] (fp-g2) Thin telemetry before FP-G3 bots — do not wait for D12-only scheduling.
 - [ ] (fp-g2) HUD telemetry view (list sessions / summary / compare) — **still deferred
       after FP-G3**. CLI `questline telemetry` is MVP. G3 bots write sessions; no HUD

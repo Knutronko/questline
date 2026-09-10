@@ -10,6 +10,7 @@ Scheduled catalog FPs may use `phase-fp-*.md` (e.g. FP-G1) until numbered.
 **Balance automation / GameLens order:** [`BALANCE-AUTOMATION.md`](../BALANCE-AUTOMATION.md).
 **Joint D11/QL-5/FP-G1 prompts:** [`SESSION-PROMPTS-D11-QL5-FPG1.md`](SESSION-PROMPTS-D11-QL5-FPG1.md).
 **QL-6 / FP-G3 prompts:** [`SESSION-PROMPTS-QL6-FPG3.md`](SESSION-PROMPTS-QL6-FPG3.md).
+**G1 implications live report (after phase-11):** [`SESSION-PROMPTS-G1-IMPLICATIONS.md`](SESSION-PROMPTS-G1-IMPLICATIONS.md) · brief [`phase-fp-g1-implications-live.md`](phase-fp-g1-implications-live.md).
 
 
 ## Every phase session — living checklist
