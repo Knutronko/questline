@@ -21,7 +21,7 @@
 | Diff | Typed: numeric delta/%, added/removed **entities**, curve/series; grouped by system |
 | AI report | **Live:** `build_implications` via LLMPort. Persists `artifacts/lens/<a>__<b>/implications.json` + `.md` and a `lens_implications` store row (migration 6). Framing: *model reasoning*. Numbers from `telemetry_sessions.summary` only. `snap-unset` sessions are **unjoined** (never a silent version join). Missing KPIs (`combat.damage`, other `FUTURE_EVENT_NAMES`) are gaps, never imputed. Design-copilot / retune chat remains FP-G4. |
 
-HUD GameLens panel: **phase-12b** (after phase-12). Until then: CLI + persisted artifacts
+HUD GameLens panel: **FP-G4** (balance agent + browse). Until then: CLI + persisted artifacts
 (see BACKLOG + `hud.md`).
 
 ## Downstream consumers (do not break these contracts)
@@ -36,7 +36,7 @@ HUD GameLens panel: **phase-12b** (after phase-12). Until then: CLI + persisted 
 | **D12 / G2+** | Richer events: reuse reserved names in [`telemetry.md`](telemetry.md) (damage, ranch, buff, relocate, revive, projectiles). |
 | **FP-F3** feature impact | Optional `feature_id` on snapshots; `added_entity` diffs first-class |
 | **FP-G4** | Design copilot / RAG chat over snapshots + telemetry + reports. |
-| **HUD (phase-12b)** | Read `balance_snapshots` + `lens_implications` + artifacts; no separate store |
+| **HUD (FP-G4)** | Read `balance_snapshots` + `lens_implications` + artifacts; no separate store |
 
 Genre-agnostic hard rule: **no game type names in `src/questline`** — only manifest tags.
 ## Manifest contract (QL-5 fills contents)

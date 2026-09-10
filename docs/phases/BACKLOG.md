@@ -34,12 +34,10 @@ Format: `- [ ] (phase-NN) description`
 - [x] (fp-g1) Implications live report — persist JSON/MD + `lens_implications`
       (migration 6); `snap-unset` is an unjoined gap; CLI `lens diff --ai`.
       Design-copilot / retune chat remains FP-G4.
-- [ ] (fp-g1) HUD GameLens panel (list snapshots / typed diff / implications) —
-      **scheduled phase-12b** (after phase-12). CLI + artifacts until then.
-      Brief: [`phase-12b-hud-gamelens.md`](phase-12b-hud-gamelens.md).
+- [ ] (fp-g1) HUD GameLens panel — **FP-G4** (folded former 12b). CLI until G4.
+      Brief: [`phase-fp-g4-balance-agent.md`](phase-fp-g4-balance-agent.md).
 - [x] (fp-g2) Thin telemetry before FP-G3 bots — do not wait for D12-only scheduling.
-- [ ] (fp-g2) HUD telemetry view (list sessions / summary / compare) —
-      **scheduled phase-12b** (same HUD slice as GameLens). CLI until then.
+- [ ] (fp-g2) HUD telemetry view — **FP-G4** (same slice as GameLens HUD).
 - [ ] (fp-g2+ / D12) Richer events — reuse `FUTURE_EVENT_NAMES` in
       `questline.telemetry.schema` / [`telemetry.md`](../telemetry.md):
       `combat.damage`, `projectile.spawn|hit|dissipate`, `creature.grown`,
@@ -48,7 +46,7 @@ Format: `- [ ] (phase-NN) description`
       parallel names. Remaining P1Debug (spawn, KO, projectiles, ranch) → D12 /
       `FUTURE_EVENT_NAMES`. QL-6 thin mapping is done.
 - [x] (fp-g3) Deterministic bots (fake-driver + `automation/bots`). Live Editor matrix
-      is maintainer-checked DoD. AI policies after phase-11. HUD: **phase-12b**.
+      is maintainer-checked DoD. AI policies after phase-11. HUD: **FP-G4**.
       Brief: [`phase-fp-g3-bots.md`](phase-fp-g3-bots.md). Policies: game §11.
 - [x] (phase-11) LLMPort substrate + HUD `ai_calls` table on run detail. Full GameLens
       design-copilot report and AI bot policies remain follow-ups.
@@ -62,9 +60,9 @@ Format: `- [ ] (phase-NN) description`
 - [x] (phase-09) HUD graphs / compare — done in phase-10.
 - [ ] (phase-10) Command palette / “run any CLI” inside HUD — out of scope; keep
       `questline doctor` / one-off reports as CLI until a future phase claims it.
-- [ ] (phase-12) AI action buttons in HUD (triage/maintainer triggers).
-- [ ] (phase-12b) Maintainer walks **entire** HUD (08–11 + GameLens/telemetry) for
-      understandability — required acceptance in [`phase-12b-hud-gamelens.md`](phase-12b-hud-gamelens.md).
+- [ ] (phase-12) AI action buttons in HUD (triage/maintainer triggers) — **after FP-G4**.
+- [ ] (fp-g4) Maintainer walks **entire** HUD (08–11 + GameLens/agent) —
+      required in [`phase-fp-g4-balance-agent.md`](phase-fp-g4-balance-agent.md).
 - [ ] (phase-09) Document PowerShell clear of `QUESTLINE_PERF_*` in every live how-to that
       follows a perf dogfood (see INC-0001) — done in wire-setup + performance.md; keep
       citing INC when adding new live recipes.

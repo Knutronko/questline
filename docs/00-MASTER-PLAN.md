@@ -138,20 +138,18 @@ Merge gate: GitHub Actions (lint + type check + unit tests + phase acceptance te
 | 9b | QuestlineWire v2 UI | find / hierarchy / tap / screenshot on Wire (ADR-0008) | Author's Unity game + Dev APK (QL-2c) |
 | 10 | HUD II (control center) | Launch runs, quarantine mgmt, profile editor, perf graphs | Local runs |
 | 11 | AI foundation | LLMPort + adapters (Mistral/Groq/Ollama/Cursor CLI), cost ledger, failover | Live free-tier calls |
-| 12 | AI agents | Triage agent, maintainer agent (diagnose/fix + gates), self-healing locators | Broken-on-purpose tests |
-| **12b** | HUD GameLens + telemetry | Read-only panels over snapshots / diffs / implications / sessions; maintainer walks the **whole HUD** | Local store + Pablo UI review |
+| 12 | AI agents | Triage agent, maintainer agent (diagnose/fix + gates), self-healing locators — **parked until after FP-G4** | Broken-on-purpose tests |
+| **FP-G4** | GameLens balance agent + HUD | Retune *priorities* + browse snapshots/diffs/sessions; maintainer walks the **whole HUD** | Local store + Pablo UI review |
 | 13 | AI generation + eval | Spec→test generator, unit-test generator, eval harness + metrics | Golden set |
 | 14 | **Poco** + UTF | **Second** UI backend (conformance) + Unity Test Framework ingestion | Example game via Poco |
 | 15 | Integrations & release | CIPort + TeamCity adapter, farm stubs, iOS design doc, docs site, v0.1.0 | Tagged release |
 
-Dependency notes: 8→10 (HUD), 11→12→13 (AI agents/eval), **12→12b** (HUD GameLens +
-telemetry browse; Pablo reviews the whole UI). 2→4→5→**5b**→**9b**, 4→9, 9→9b (before
-GameLens bots), 3→12/13. **GameLens path (2026-09-10):** FP-G1 → FP-G2 → FP-G3
-(deterministic) → phase-11 → G1 implications live report → **phase-12** (test agents) →
-**phase-12b** (HUD) — see [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md). Optional
-**09c** Wire gestures if the bot playability gate fails. Phase **5b**+**9b** = €0 Unity
-live (hooks + UI). **Poco** (14) = second UI adapter — not AltTester. Inserted lettered
-phases do not renumber later briefs.
+Dependency notes: 8→10 (HUD), **G1–G3 → 11 → FP-G4** (balance agent + HUD) → **12**
+(test agents, parked until after G4) → 13 (eval). 2→4→5→**5b**→**9b**, 4→9, 9→9b.
+**GameLens path (2026-09-10):** FP-G1 → FP-G2 → FP-G3 → phase-11 → G1 implications →
+**FP-G4** (agent + HUD) → then phase-12. See [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md).
+Inserted lettered / catalog FPs do not renumber 13–15. HUD-first: operator phases ship
+HUD in the same PR.
 
 ---
 
@@ -175,17 +173,20 @@ phases do not renumber later briefs.
 5. **Update `docs/STATUS-DUAL.md`** when the phase changes done/next/blocked state (semáforo
    + roadmap row + date). Include the update in the phase PR. Cross-links:
    `docs/GAME-INTEGRATION.md`.
-6. The session ends with: branch pushed, PR description filled from the brief's checklist +
+6. **HUD-first (2026-09-10 lock):** operator-facing work ships in `questline hud` in
+   the same phase PR. PowerShell is extra (CI/scripting). Defer UI only when Pablo
+   says so in the brief. Self-review includes `Verified in HUD: …`.
+7. The session ends with: branch pushed, PR description filled from the brief's checklist +
    self-review, CI green. **The maintainer reviews and merges — the session never merges.**
-7. **Revision round (on the branch, before merge):** the maintainer checks out the PR branch,
+8. **Revision round (on the branch, before merge):** the maintainer checks out the PR branch,
    tests the phase hands-on, and leaves requested changes (PR comments or a list). The same
    session — or a fresh one given the brief + the change list — applies them on the same
    branch until CI is green and the maintainer is satisfied. One phase = one PR, and nothing
    reaches `main` untested by a human.
-8. A phase is *done* when its acceptance criteria are demonstrably met (CI + manual check
+9. A phase is *done* when its acceptance criteria are demonstrably met (CI + manual check
    where hardware is involved). "It should work" is not done.
-9. Briefs are immutable once merged; scope changes create a revision commit with reasoning.
-   (`STATUS-DUAL.md` and `INCIDENTS.md` are **living** docs — not phase briefs.)
+10. Briefs are immutable once merged; scope changes create a revision commit with reasoning.
+    (`STATUS-DUAL.md` and `INCIDENTS.md` are **living** docs — not phase briefs.)
 
 ## 7. Beyond v0.1
 

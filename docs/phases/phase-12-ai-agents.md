@@ -2,6 +2,10 @@
 
 > Session preamble: see `phase-00-bootstrap.md`. Read `docs/02-AI-ROADMAP.md §2–3`
 > carefully — the gates there are the whole point of this phase.
+>
+> **Status (2026-09-10 maintainer lock): PARKED** until **FP-G4** (GameLens
+> balance agent + HUD) merges. Do **not** start this brief next.
+> Immediate next: [`phase-fp-g4-balance-agent.md`](phase-fp-g4-balance-agent.md).
 
 ## Context
 Phases 00–11 merged. LLM layer with routing/budgets/cost ledger works.
@@ -43,11 +47,8 @@ anti-false-green gate), and locator self-healing (suggest-only).
 
 ## Out of scope
 - Test generation, unit-test generation, eval harness (Phase 13)
-- **GameLens “how to retune the game” agent** — G1 implications already label
-  *model reasoning* over measured bot/telemetry data; design-copilot chat is
-  **FP-G4**. Phase-12 agents triage/fix **tests**, not ScriptableObjects
-- **HUD GameLens / telemetry operator panels** — scheduled as **phase-12b**
-  immediately after this phase (Pablo reviews the whole HUD there)
+- **GameLens “how to retune” agent + HUD browse** — that is **FP-G4** (before this
+  phase). Do not duplicate it here.
 - AI-controlled bot policies (later add-on vs deterministic G3)
 
 ## Acceptance criteria

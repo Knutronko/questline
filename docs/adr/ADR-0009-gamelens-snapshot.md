@@ -36,8 +36,8 @@
 - **Consequences:**
   - QL-5 must ship a real manifest matching this schema; FP-G1 owns format + tooling.
   - HUD GameLens panel deferred until data from FP-G2/G3 is worth browsing (CLI MVP).
-    **2026-09-10:** scheduled as **phase-12b** immediately after phase-12 (Pablo
-    reviews the whole HUD). CLI remains MVP until then.
+    **2026-09-10:** HUD browse + balance agent scheduled as **FP-G4** (before
+    numbered phase-12). Former 12b browse-only slice is folded into G4.
   - FP-G2/G3 reuse `game_version` / `feature_id` / snapshot id as config truth keys.
   - phase-09c Wire gestures must **not** reuse ADR-0009 (taken); use ADR-0008 addendum
     or next free ADR number.

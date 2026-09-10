@@ -84,19 +84,18 @@ the strongest possible portfolio artifact for AI Quality / LLM Evaluation roles.
 ## 4. Later candidates (see `03-FUTURE-PHASES.md` + `BALANCE-AUTOMATION.md`)
 
 **Order vs GameLens (2026-09-10):** G1 snapshot/diff, G2 telemetry, G3 bots, phase-11
-LLMPort, and the **G1 implications live report** are in. Next: **phase-12** test agents,
-then **phase-12b** HUD GameLens/telemetry (Pablo reviews the whole UI). Remaining later:
-AI-policy bots / design copilot (FP-G4). Do **not** invert G1 → G2/G3 → 11.
-Phase-12 does **not** retune ScriptableObjects.
+LLMPort, and the **G1 implications live report** are in. Next: **FP-G4** balance agent +
+HUD. Numbered **phase-12** (triage/healer) is parked until after G4. Do **not** invert
+G1 → G2/G3 → 11. The G4 agent proposes retune *priorities*; it does not write SOs.
 
-- **GameLens implications report (FP-G1 AI slice) ✅**: balance-config diff + measured
-  telemetry → persisted AI report. Framing: model reasoning vs *measured*.
-  Measured input = `telemetry_sessions.summary` (ADR-0010); never impute missing KPIs.
-- **HUD GameLens + telemetry (phase-12b, after 12):** browse the loop in the control
-  center; maintainer full-UI review. Not FP-G4 chat.
-- **AI bot policies (post FP-G3 deterministic)**: LLM chooses actions under budget;
-  always compared to deterministic baselines.
-- **Design copilot (FP-G4)**: RAG chat over snapshots + telemetry + reports.
+- **GameLens implications report (FP-G1 AI slice) ✅**: batch *model reasoning* on
+  `lens diff --ai`. Measured input = `telemetry_sessions.summary`; never impute KPIs.
+- **FP-G4 — balance agent + HUD (next):** interactive priorities + browse snapshots /
+  diffs / sessions / implications in the control center. Pablo full-UI review.
+  Phase-12b browse-only brief is folded here.
+- **Phase-12 test agents (after G4):** triage / diagnose / healer.
+- **AI bot policies (post FP-G3 deterministic, later):** LLM chooses in-game actions
+  under budget; compared to deterministic baselines; not this FP.
 - **AI crash triage (FP-T6)**: dedupe + suspect-area analysis of monkey-run crashes.
 - **MCP server (FP-A1)**: expose run/query/triage/GameLens as MCP tools. High keyword value.
 - **Nightly auto-triage pipeline (FP-A2)**: scheduled run → triage digest → issues filed.

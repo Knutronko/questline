@@ -1,17 +1,17 @@
 # Phase 12b — HUD GameLens + telemetry operator surface
 
+> **Superseded 2026-09-10 (maintainer lock):** do **not** start this brief as a
+> HUD-only phase. Browse panels + the balance agent ship together as
+> **[FP-G4](phase-fp-g4-balance-agent.md)**. Numbered phase-12 (test agents) is
+> parked until after G4.
+>
 > Session preamble: see `phase-00-bootstrap.md`. Read [`hud.md`](../hud.md),
 > [`gamelens.md`](../gamelens.md), [`telemetry.md`](../telemetry.md),
 > [`BALANCE-AUTOMATION.md`](../BALANCE-AUTOMATION.md),
 > [`STATUS-DUAL.md`](../STATUS-DUAL.md) §4.
 >
-> **Scheduled:** immediately **after phase-12** (AI agents) merges. Does **not**
-> renumber 13–15 (lettered HUD follow-up, same pattern as 05b / 09b).
-> **Do not start** in the same chat as phase-12.
->
-> **Maintainer lock (2026-09-10):** Pablo walks the **whole HUD** in this phase
-> (existing 08–11 surfaces **and** the new GameLens/telemetry panels) and checks
-> that it is understandable without PowerShell.
+> **Originally scheduled:** after phase-12. **Does not** renumber 13–15.
+> Kept for history; follow FP-G4 instead.
 
 ## Context
 

@@ -24,9 +24,9 @@ the CLI uses — no UI-only code paths).
 | ✅ | **09** PerfProbe | Samples → `perf_samples` / `PerfSample` events (store) |
 | ✅ | **09b** Wire v2 | Richer live/automation runs. **HUD:** no dedicated Wire panel — screenshots via `ArtifactSaved`; launcher picks profile/device |
 | ✅ | **10** HUD II | Launcher, quarantine UI, profile editor, **perf graphs** + run comparison, CSRF + `--read-only` |
-| ✅ | **11** AI foundation | Run-detail **AI calls / cost** table (`ai_calls`; `GET /api/runs/{id}/ai-calls`). No secrets. GameLens implications stay CLI until **12b**. |
-| later | **12** AI agents | Triage / diagnose / healer buttons on failed runs (not GameLens retune) |
-| ⬜ **12b** | **HUD GameLens + telemetry** | After **12**. Read-only snapshots / typed diff / implications / sessions. **Pablo reviews the whole HUD.** [`phase-12b`](phases/phase-12b-hud-gamelens.md) |
+| ✅ | **11** AI foundation | Run-detail **AI calls / cost** table (`ai_calls`; `GET /api/runs/{id}/ai-calls`). No secrets. GameLens implications stay CLI until **FP-G4**. |
+| ⬜ **FP-G4** | **Balance agent + GameLens HUD** | **Next.** Browse snapshots/diff/implications/sessions + ask retune priorities. **Pablo reviews the whole HUD.** [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) |
+| later | **12** AI agents | Triage / diagnose / healer buttons on failed runs — **after FP-G4** |
 | later | **13** Eval | Eval HUD later |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
 
@@ -41,8 +41,8 @@ the CLI uses — no UI-only code paths).
 | PerfProbe series | ✅ Graphs + compare two runs |
 | Wire / drivers / devices | ✅ Launcher profile + device picker (no Wire-specific chrome) |
 | Reporters | ✅ Toggles on launch |
-| GameLens snapshot / diff / implications | ⬜ **12b** — CLI until then (`questline lens diff --ai`) |
-| Telemetry sessions / KPIs | ⬜ **12b** — CLI until then (`questline telemetry`) |
+| GameLens snapshot / diff / implications | ⬜ **FP-G4** — CLI until then (`questline lens diff --ai`) |
+| Telemetry sessions / KPIs | ⬜ **FP-G4** — CLI until then (`questline telemetry`) |
 | AI calls / cost | ✅ Phase 11 — table on run detail (allow-listed; no secrets) |
 | Command palette / arbitrary CLI | ❌ Deferred — CLI until a future BACKLOG item; not a full terminal |
 
@@ -60,23 +60,28 @@ CLI-only.
 
 ### Contract for future phase sessions
 
+**Maintainer lock (2026-09-10):** from now on, phases that add operator workflows
+**ship their HUD surface in the same PR**. PowerShell how-to is extra (CI/scripting).
+Defer UI only if Pablo says so in the brief. Pablo verifies new surfaces in
+`questline hud` (`Verified in HUD: …`).
+
 After phase 10, any phase that adds user-visible run/operator capability must:
 
-1. **Expose or extend it in the HUD** when applicable (same public APIs as CLI — no
+1. **Expose or extend it in the HUD** in that phase (same public APIs as CLI — no
    UI-only paths).
 2. **Include HUD verification** in the PR test plan / Self-review
    (`Verified in HUD: …`).
-3. **If HUD UI is deferred**, say so explicitly in the brief + this evolution table +
+3. **If HUD UI is deferred**, Pablo must lock it in the brief + this evolution table +
    BACKLOG with an owner phase. Do not leave new operator workflows PowerShell-only by
    default.
 
 Paste into phase prompts:
 
 ```
-If this phase adds store/event data or operator workflows users should see, extend
-questline hud (API + SPA + docs/hud.md + tests) or explicitly defer UI to a later phase
-in the brief / BACKLOG. Prefer HUD verification in the PR Self-review
-(Verified in HUD: …). Keep STATUS/INCIDENTS paste from docs/phases/README.md.
+Operator acceptance is in questline hud (API + SPA + docs/hud.md + Playwright).
+PowerShell is extra for CI/scripting. Do not ship a new operator workflow CLI-only
+unless Pablo defers HUD in the brief. Self-review: Verified in HUD: …
+Also update docs/STATUS-DUAL.md if status changed.
 ```
 
 Store/bus integration rules (still mandatory):
