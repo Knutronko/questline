@@ -47,7 +47,9 @@ flowchart LR
 | Config truth | QL-5 + **FP-G1** | Normalized snapshots + typed diffs | Playthrough proof |
 | Measured truth | **FP-G2** + QL-6 | Event series, session summaries | Config authorship |
 | Exercise | **FP-G3** (+ game bot suite) | N seeded runs / policy / version | Design opinions |
-| Judgment | **phase-11+** (AI report, later AI policies) | Labeled implications / suggested focus | Verdicts without artifacts |
+| Judgment | **G1 implications** (phase-11+ live report) | Labeled priorities over measured + config diff | Verdicts; SO writes |
+| Test agents | **phase-12** | Triage / diagnose / heal failing **tests** | Balance retune |
+| HUD browse | **phase-12b** (after 12) | Snapshots, diffs, implications, sessions in the control center | Chat copilot (FP-G4) |
 
 **Hard rule (master plan §3):** AI never invents a green/red. Bots and telemetry own
 the numbers; AI explains and prioritizes.
@@ -89,10 +91,14 @@ hooks + telemetry, not an LLM.
 | 2c | **Wire playability gate** (see §5) — **09c** only if needed | questline (+ game) | Confirm bots can complete a normal combat loop |
 | 3 | **FP-G3** deterministic bots + measured curves | questline + game `automation/` | After **QL-7**. Playtest automation |
 | 4 | **phase-11** AI foundation | questline | LLMPort + budget |
-| 5 | FP-G1 AI implications + AI-assisted bot policies + design copilot path | questline | Use *measured* data; never replace it |
-| later | phase-12/13 agents/eval; FP-G4; D12 infinite (richer G2); FP-G3 soak matrices | both | Scale |
+| 5 | FP-G1 AI implications ✅; later AI-assisted bot policies + design copilot (FP-G4) | questline | Use *measured* data; never replace it |
+| later | phase-12 agents; **12b HUD GameLens/telemetry**; 13 eval; FP-G4 copilot; D12; G3 soak | both | Scale; HUD after agents |
 
-**Immediate next:** **G1 implications live report** (LLMPort is in). Optional: attach a G1 `QUESTLINE_SNAPSHOT_ID` on later bot runs. Do not invert G1 → G2/G3 → 11. Phase-12 agents are parallelizable after 11; they are not the implications report.
+**Immediate next:** **phase-12** AI agents (test triage/healer — **not** a SO-retune copilot).
+Then **phase-12b** HUD GameLens + telemetry (Pablo reviews the whole UI). G1 implications
+live report ✅. Optional: `QUESTLINE_SNAPSHOT_ID` on later bots. Do not invert
+G1 → G2/G3 → 11. Briefs: [`phase-12`](phases/phase-12-ai-agents.md) ·
+[`phase-12b`](phases/phase-12b-hud-gamelens.md).
 
 ---
 
@@ -184,3 +190,4 @@ Starter prompts for the joint wave live in
 | 2026-09-09 | **FP-G3 live DoD:** Editor matrix 75/75 passed (~1h48). All sessions `outcome=lose`, `snapshot=snap-unset`. Watchdog thread warning on `3-balanced-44` (INC-0010, run still green). Next = phase-11. |
 | 2026-09-09 | **phase-11 landed:** LLMPort + ProviderRouter + hard budgets + `ai_calls` (migration 5) + versioned prompts + doctor ping + HUD cost table. Thin GameLens `--ai` consumer (measured vs model reasoning; no imputation). **Not** design copilot / AI bot policies. Immediate next = G1 implications live report (and/or 12). |
 | 2026-09-10 | **phase-11 live smoke:** Groq (`openai/gpt-oss-20b`) + Ollama (`llama3.2`, cost 0) verified. **Mistral postponed** (no La Plateforme key). Not a merge blocker. |
+| 2026-09-10 | **G1 implications live report:** persist `artifacts/lens/<a>__<b>/implications.json` + `.md` and `lens_implications` (migration 6). `snap-unset` / NULL sessions go to `unjoined` (never a silent `game_version` join). `combat.damage` and other `FUTURE_EVENT_NAMES` stay gaps. **Maintainer live (fixtures):** Groq (`ai_groq`) produced usable *model reasoning* over pack-a→pack-b (`session_count=0` — `.questline-tmp-lens.db` has no G3). Ollama `llama3.2` completed the path but confused gaps with missing KPIs — prefer Groq for implications; Ollama remains a zero-cost smoke. **Mistral** still deferred. HUD GameLens/telemetry panels scheduled as **phase-12b after phase-12** (Pablo full-HUD review). Phase-12 is test agents, not a retune copilot (FP-G4 later). |

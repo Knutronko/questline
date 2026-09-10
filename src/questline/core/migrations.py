@@ -220,6 +220,33 @@ def _migrate_005_ai_calls_ledger(conn: sqlite3.Connection) -> None:
     conn.execute("CREATE INDEX IF NOT EXISTS idx_ai_calls_ts ON ai_calls(timestamp)")
 
 
+def _migrate_006_lens_implications(conn: sqlite3.Connection) -> None:
+    """FP-G1 live report: implications index (JSON/MD artifacts on disk)."""
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS lens_implications (
+            id TEXT PRIMARY KEY,
+            snapshot_id_a TEXT,
+            snapshot_id_b TEXT,
+            version_a TEXT,
+            version_b TEXT,
+            status TEXT NOT NULL,
+            framing TEXT NOT NULL,
+            prompt_version TEXT NOT NULL,
+            artifact_path TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            meta TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_lens_impl_created
+            ON lens_implications(created_at);
+        CREATE INDEX IF NOT EXISTS idx_lens_impl_snap_a
+            ON lens_implications(snapshot_id_a);
+        CREATE INDEX IF NOT EXISTS idx_lens_impl_snap_b
+            ON lens_implications(snapshot_id_b);
+        """
+    )
+
+
 # Append-only: new modules add the next integer version here.
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_core_schema", _migrate_001_initial_core),
@@ -227,6 +254,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(3, "balance_snapshots", _migrate_003_balance_snapshots),
     Migration(4, "telemetry", _migrate_004_telemetry),
     Migration(5, "ai_calls_ledger", _migrate_005_ai_calls_ledger),
+    Migration(6, "lens_implications", _migrate_006_lens_implications),
 )
 
 CURRENT_SCHEMA_VERSION: int = MIGRATIONS[-1].version

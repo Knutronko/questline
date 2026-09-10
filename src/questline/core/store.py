@@ -581,6 +581,96 @@ class RunStore:
             rows = self._conn.execute(sql, params).fetchall()
         return [dict(r) for r in rows]
 
+    def save_lens_implications(
+        self,
+        *,
+        pair_id: str,
+        snapshot_id_a: str | None,
+        snapshot_id_b: str | None,
+        version_a: str | None,
+        version_b: str | None,
+        status: str,
+        framing: str,
+        prompt_version: str,
+        artifact_path: str,
+        created_at: str | None = None,
+        meta: dict[str, Any] | None = None,
+    ) -> None:
+        """Index a persisted GameLens implications artifact (FP-G1 live report)."""
+        ts = created_at or datetime.now().astimezone().isoformat()
+        meta_json = json.dumps(meta or {}, sort_keys=True)
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                self._conn.execute(
+                    """
+                    INSERT OR REPLACE INTO lens_implications (
+                        id, snapshot_id_a, snapshot_id_b, version_a, version_b,
+                        status, framing, prompt_version, artifact_path,
+                        created_at, meta
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        pair_id,
+                        snapshot_id_a,
+                        snapshot_id_b,
+                        version_a,
+                        version_b,
+                        status,
+                        framing,
+                        prompt_version,
+                        artifact_path,
+                        ts,
+                        meta_json,
+                    ),
+                )
+                self._conn.execute("COMMIT")
+            except Exception:
+                self._conn.execute("ROLLBACK")
+                raise
+
+    def get_lens_implications(self, pair_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT * FROM lens_implications WHERE id = ?", (pair_id,)
+            ).fetchone()
+        if row is None:
+            return None
+        data = dict(row)
+        data["meta"] = _json_obj(data.get("meta"))
+        return data
+
+    def list_lens_implications(
+        self,
+        *,
+        snapshot_id_a: str | None = None,
+        snapshot_id_b: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if snapshot_id_a:
+            clauses.append("snapshot_id_a = ?")
+            params.append(snapshot_id_a)
+        if snapshot_id_b:
+            clauses.append("snapshot_id_b = ?")
+            params.append(snapshot_id_b)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = (
+            f"SELECT * FROM lens_implications {where} "
+            f"ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?"
+        )
+        params.extend([max(0, int(limit)), max(0, int(offset))])
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            data["meta"] = _json_obj(data.get("meta"))
+            out.append(data)
+        return out
+
     def save_telemetry_session(
         self,
         *,

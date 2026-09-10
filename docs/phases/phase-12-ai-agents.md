@@ -42,7 +42,13 @@ anti-false-green gate), and locator self-healing (suggest-only).
    outputs.
 
 ## Out of scope
-Test generation, unit-test generation, eval harness (Phase 13).
+- Test generation, unit-test generation, eval harness (Phase 13)
+- **GameLens “how to retune the game” agent** — G1 implications already label
+  *model reasoning* over measured bot/telemetry data; design-copilot chat is
+  **FP-G4**. Phase-12 agents triage/fix **tests**, not ScriptableObjects
+- **HUD GameLens / telemetry operator panels** — scheduled as **phase-12b**
+  immediately after this phase (Pablo reviews the whole HUD there)
+- AI-controlled bot policies (later add-on vs deterministic G3)
 
 ## Acceptance criteria
 - [ ] CI (scripted fake LLM — deterministic tool-call sequences): kernel budget tests,

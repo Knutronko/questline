@@ -586,7 +586,7 @@ def lens_diff(
         bool,
         typer.Option(
             "--ai/--no-ai",
-            help="Include AI implications (LLMPort; stub if no provider)",
+            help="Include AI implications (LLMPort; persist JSON/MD; stub if no provider)",
         ),
     ] = True,
     config: Annotated[
@@ -609,7 +609,7 @@ def lens_diff(
     from questline.core.store import RunStore
     from questline.lens.diff import diff_snapshots
     from questline.lens.render import render_diff_text
-    from questline.lens.report import build_implications
+    from questline.lens.report import build_implications, persist_implications
     from questline.lens.snapshot import load_snapshot
 
     fmt = format.strip().lower()
@@ -666,7 +666,11 @@ def lens_diff(
             from questline.ai.factory import build_router
 
             router = build_router(settings, store=store, run_id="lens")
-            implications = build_implications(report, store=store, router=router)
+            implications = persist_implications(
+                store,
+                report,
+                build_implications(report, store=store, router=router),
+            )
         if fmt == "json":
             payload = report.to_dict()
             if implications is not None:

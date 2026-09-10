@@ -24,11 +24,11 @@
      uses stdlib urllib (same pattern as Slack).
   5. **Prompts:** versioned files in `questline.ai.prompts`, loaded by
      name+version; stable-prefix composition for provider-side caches.
-  6. **GameLens thin consumer:** `build_implications` may call LLMPort. Output
-     is *model reasoning*. Figures come from `telemetry_sessions.summary`.
+  6. **GameLens consumer:** `build_implications` may call LLMPort. Output is
+     *model reasoning*. Figures come from `telemetry_sessions.summary`.
      Missing KPIs (e.g. `combat.damage`, `snap-unset`) are listed as gaps —
-     never imputed. This is **not** the full design-copilot report (that
-     remains the G1 implications live-report follow-up).
+     never imputed. The G1 implications **live report** persists JSON/MD + a
+     `lens_implications` index (migration 6). Design-copilot chat remains FP-G4.
   7. **HUD:** run-detail `ai_calls` table + `GET /api/runs/{id}/ai-calls`
      (allow-listed fields). CLI: `questline doctor` ping, `questline ai
      complete`, `questline ai costs`.

@@ -40,6 +40,8 @@ def render_diff_text(report: DiffReport, *, implications: ImplicationsReport | N
             for gap in implications.gaps:
                 lines.append(f"  - {gap}")
         lines.append(implications.summary)
+        if implications.artifact_path:
+            lines.append(f"artifact: {implications.artifact_path}")
         lines.append("")
 
     return "\n".join(lines)
