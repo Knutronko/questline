@@ -22,10 +22,11 @@ See [`ai-setup.md`](ai-setup.md) and [`ADR-0011`](adr/ADR-0011-llmport-budget.md
 - **Thin GameLens consumer:** `build_implications` / `lens diff --ai`. *Model reasoning*
   vs *measured* `telemetry_sessions.summary`. Live report persists JSON/MD + store
   index. Does **not** complete design-copilot (FP-G4) or AI bot policies.
+  Phase-12 agents are test triage/healer, not a balance-retune loop.
 
 ## 2. Agent kernel (Phase 12)
 
-Shared loop for all agents:
+Shared loop for all **test** agents (not GameLens retune):
 - Allow-listed tools per agent (read_file, grep, run_test, read_screenshot, hierarchy, …).
 - **Per-task turn budget** with an explicit task-boundary signal — one greedy task can never
   starve the rest of a batch.
@@ -83,12 +84,16 @@ the strongest possible portfolio artifact for AI Quality / LLM Evaluation roles.
 ## 4. Later candidates (see `03-FUTURE-PHASES.md` + `BALANCE-AUTOMATION.md`)
 
 **Order vs GameLens (2026-09-10):** G1 snapshot/diff, G2 telemetry, G3 bots, phase-11
-LLMPort, and the **G1 implications live report** are on main. Remaining: AI-policy bots /
-design copilot (FP-G4) / phase-12 agents. Do **not** invert G1 → G2/G3 → 11.
+LLMPort, and the **G1 implications live report** are in. Next: **phase-12** test agents,
+then **phase-12b** HUD GameLens/telemetry (Pablo reviews the whole UI). Remaining later:
+AI-policy bots / design copilot (FP-G4). Do **not** invert G1 → G2/G3 → 11.
+Phase-12 does **not** retune ScriptableObjects.
 
 - **GameLens implications report (FP-G1 AI slice) ✅**: balance-config diff + measured
   telemetry → persisted AI report. Framing: model reasoning vs *measured*.
   Measured input = `telemetry_sessions.summary` (ADR-0010); never impute missing KPIs.
+- **HUD GameLens + telemetry (phase-12b, after 12):** browse the loop in the control
+  center; maintainer full-UI review. Not FP-G4 chat.
 - **AI bot policies (post FP-G3 deterministic)**: LLM chooses actions under budget;
   always compared to deterministic baselines.
 - **Design copilot (FP-G4)**: RAG chat over snapshots + telemetry + reports.

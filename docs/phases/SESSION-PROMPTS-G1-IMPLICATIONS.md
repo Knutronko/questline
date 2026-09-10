@@ -6,10 +6,15 @@
 > [`STATUS-DUAL.md`](../STATUS-DUAL.md) §4,
 > [`phase-fp-g1-implications-live.md`](phase-fp-g1-implications-live.md).
 >
-> **Do not start phase-12, FP-G4, or AI bot policies in these chats.**
+> **Do not start phase-12, 12b, FP-G4, or AI bot policies in these chats.**
 
 **Now:** **1 required chat** (questline). **1 optional** (game snapshot id). D11 feel
 playtest is **human**, not a Cursor phase.
+
+**After chat 1 merges:** phase-12 (test agents) → **phase-12b** (HUD GameLens +
+telemetry; Pablo reviews the whole UI). Briefs:
+[`phase-12-ai-agents.md`](phase-12-ai-agents.md) ·
+[`phase-12b-hud-gamelens.md`](phase-12b-hud-gamelens.md).
 
 | Chat | Workspace | When |
 |------|-----------|------|

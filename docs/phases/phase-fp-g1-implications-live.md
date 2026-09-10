@@ -79,10 +79,10 @@ Ollama live (Mistral still deferred). CI stays fake-transport.
 - [x] CI: implications with fake LLM; `snap-unset` → gap; `combat.damage` in gaps;
       no live keys.
 - [x] Report persisted (not stdout-only).
-- [ ] Maintainer live: Groq and/or Ollama produces *model reasoning* over a real
-      `lens diff`; measured numbers match store summaries. (how-to in `gamelens.md`;
-      Mistral still deferred.)
-- [x] Self-review + `Incidents: none`; HUD **explicit defer**.
+- [x] Maintainer live: Groq **and** Ollama `lens diff` on fixture store 2026-09-10
+      (`status: ok`, persist). Groq usable; Ollama `llama3.2` path-ok but weak on gaps.
+      Fixture DB has no G3 sessions (`session_count=0` correct). Mistral still deferred.
+- [x] Self-review + `Incidents: none`; HUD GameLens **scheduled phase-12b** (after 12).
 - [x] STATUS-DUAL next-row updated when this lands.
 
 ## PR checklist
@@ -97,9 +97,12 @@ Title `fp-g1: GameLens implications live report`. English PR. Talk to Pablo in S
   matching `game_version` → `measured.unjoined` + gap. Never silent `game_version`
   fallback. `FUTURE_EVENT_NAMES` listed as gaps; not imputed.
 - CLI: kept `lens diff --ai` (no `lens report`). `--no-ai` does not persist.
-- HUD: **explicit defer** — GameLens panel stays BACKLOG; CLI + artifacts are MVP.
+- HUD: **not this PR** — scheduled **phase-12b** after phase-12; Pablo reviews the
+  whole HUD there. CLI + artifacts are MVP until then.
+- Live: Groq + Ollama fixture smoke (see `gamelens.md`). Does not retune ElJuegaso.
 - Tests: fake LLM / FakeProvider; no live keys.
-- Out of scope held: phase-12, FP-G4, AI bot policies, 09c, Poco, D12, ElJuegaso Unity.
+- Out of scope held: phase-12 agents, FP-G4, AI bot policies, 09c, Poco, D12,
+  ElJuegaso Unity.
 - **Incidents: none**
-- **Verified in HUD:** n/a (deferred)
-- **STATUS-DUAL:** next = phase-12; G1 live report ✅
+- **Verified in HUD:** n/a (12b)
+- **STATUS-DUAL:** next = phase-12, then 12b; G1 live report ✅

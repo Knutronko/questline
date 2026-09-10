@@ -119,10 +119,16 @@ Get-Content artifacts\lens\1.0.0__1.1.0\implications.json | Select-Object -First
 
 Mistral (`-p ai_mistral`) remains deferred until a La Plateforme key exists.
 
+**Fixture live (2026-09-10):** `lens diff 1.0.0 1.1.0` on `.questline-tmp-lens.db` —
+Groq usable *model reasoning*; Ollama `llama3.2` path-ok but weak on gaps. No G3
+sessions in that store (`session_count=0` is correct). Prefer `-p ai_groq` for the
+report. HUD browse of this artifact is **phase-12b**.
+
 ## HUD
 
 Run detail (`#/runs/:id`) shows an **AI calls** table (provider, tokens, cost,
 outcome). Allow-listed API: `GET /api/runs/{id}/ai-calls`. No secret values.
+GameLens / telemetry operator panels: **phase-12b** (after 12).
 
 ## CI
 

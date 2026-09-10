@@ -24,11 +24,10 @@ the CLI uses — no UI-only code paths).
 | ✅ | **09** PerfProbe | Samples → `perf_samples` / `PerfSample` events (store) |
 | ✅ | **09b** Wire v2 | Richer live/automation runs. **HUD:** no dedicated Wire panel — screenshots via `ArtifactSaved`; launcher picks profile/device |
 | ✅ | **10** HUD II | Launcher, quarantine UI, profile editor, **perf graphs** + run comparison, CSRF + `--read-only` |
-| ❌ deferred | **FP-G1** GameLens | CLI `questline lens` + persisted implications; **no HUD panel** (explicit defer, BACKLOG). |
-| ❌ deferred | **FP-G2** Telemetry | CLI `questline telemetry` only — **no HUD panel** (BACKLOG). G3 bots did not add one. |
-| ❌ deferred | **FP-G3** bots | Same telemetry CLI; **no HUD panel** (explicit defer). |
-| ✅ | **11** AI foundation | Run-detail **AI calls / cost** table (`ai_calls`; `GET /api/runs/{id}/ai-calls`). No secrets. GameLens implications stay CLI (`lens diff --ai`). Phase-12: action buttons. |
-| later | **12–13** AI agents | Triage panels / action buttons; eval HUD later |
+| ✅ | **11** AI foundation | Run-detail **AI calls / cost** table (`ai_calls`; `GET /api/runs/{id}/ai-calls`). No secrets. GameLens implications stay CLI until **12b**. |
+| later | **12** AI agents | Triage / diagnose / healer buttons on failed runs (not GameLens retune) |
+| ⬜ **12b** | **HUD GameLens + telemetry** | After **12**. Read-only snapshots / typed diff / implications / sessions. **Pablo reviews the whole HUD.** [`phase-12b`](phases/phase-12b-hud-gamelens.md) |
+| later | **13** Eval | Eval HUD later |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
 
 ### Gap audit (05b–09b → HUD after 10)
@@ -42,8 +41,8 @@ the CLI uses — no UI-only code paths).
 | PerfProbe series | ✅ Graphs + compare two runs |
 | Wire / drivers / devices | ✅ Launcher profile + device picker (no Wire-specific chrome) |
 | Reporters | ✅ Toggles on launch |
-| GameLens snapshot / diff / implications | ❌ Deferred — CLI (`questline lens diff --ai`); artifacts `implications.json`; HUD panel still BACKLOG |
-| Telemetry sessions / KPIs | ❌ Deferred — CLI (`questline telemetry`); G3 bots did not add a HUD panel (BACKLOG) |
+| GameLens snapshot / diff / implications | ⬜ **12b** — CLI until then (`questline lens diff --ai`) |
+| Telemetry sessions / KPIs | ⬜ **12b** — CLI until then (`questline telemetry`) |
 | AI calls / cost | ✅ Phase 11 — table on run detail (allow-listed; no secrets) |
 | Command palette / arbitrary CLI | ❌ Deferred — CLI until a future BACKLOG item; not a full terminal |
 

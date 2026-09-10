@@ -21,7 +21,8 @@
 | Diff | Typed: numeric delta/%, added/removed **entities**, curve/series; grouped by system |
 | AI report | **Live:** `build_implications` via LLMPort. Persists `artifacts/lens/<a>__<b>/implications.json` + `.md` and a `lens_implications` store row (migration 6). Framing: *model reasoning*. Numbers from `telemetry_sessions.summary` only. `snap-unset` sessions are **unjoined** (never a silent version join). Missing KPIs (`combat.damage`, other `FUTURE_EVENT_NAMES`) are gaps, never imputed. Design-copilot / retune chat remains FP-G4. |
 
-HUD GameLens panel: **deferred** (CLI + persisted artifacts are MVP; see BACKLOG + `hud.md`).
+HUD GameLens panel: **phase-12b** (after phase-12). Until then: CLI + persisted artifacts
+(see BACKLOG + `hud.md`).
 
 ## Downstream consumers (do not break these contracts)
 
@@ -35,7 +36,7 @@ HUD GameLens panel: **deferred** (CLI + persisted artifacts are MVP; see BACKLOG
 | **D12 / G2+** | Richer events: reuse reserved names in [`telemetry.md`](telemetry.md) (damage, ranch, buff, relocate, revive, projectiles). |
 | **FP-F3** feature impact | Optional `feature_id` on snapshots; `added_entity` diffs first-class |
 | **FP-G4** | Design copilot / RAG chat over snapshots + telemetry + reports. |
-| **HUD (later)** | Read `balance_snapshots` + `lens_implications` + artifacts; no separate store |
+| **HUD (phase-12b)** | Read `balance_snapshots` + `lens_implications` + artifacts; no separate store |
 
 Genre-agnostic hard rule: **no game type names in `src/questline`** — only manifest tags.
 ## Manifest contract (QL-5 fills contents)
@@ -139,6 +140,13 @@ uv run questline lens diff 1.0.0 1.1.0 -p ai_groq --store .questline-tmp-lens.db
 uv run questline lens diff 1.0.0 1.1.0 -p ai_ollama --store .questline-tmp-lens.db
 ```
 
-On current G3 bot data (`outcome=lose`, `config_snapshot_id=snap-unset`), the persisted
-report must mention those as **gaps** / **unjoined**. `lose` is measured play, not a
-bot fail. Attach `QUESTLINE_SNAPSHOT_ID` on later bot runs to join.
+**Maintainer live (2026-09-10, fixture store):** both profiles returned `status: ok` and
+wrote `artifacts\lens\1.0.0__1.1.0\implications.json`. That DB is pack-a vs pack-b —
+**no G3 bot sessions**, so gaps correctly include `session_count=0` and reserved KPIs
+(`combat.damage`, …). Groq summarized the typed config diff and the telemetry gap.
+Ollama `llama3.2` completed the HTTP path (cost 0) but treated gap strings as “missing
+KPIs”; use Groq for readable implications. This does **not** retune the game.
+
+To interpret the G3 matrix, import those sessions into the **same** store as real
+snapshots and/or set `QUESTLINE_SNAPSHOT_ID` on later bot runs. Until then,
+`snap-unset` stays `unjoined`. `lose` is measured play, not a bot fail.

@@ -39,6 +39,7 @@
   7. **CLI:** `questline telemetry import` / `query` (not under `lens`).
      ASCII-only human text (INC-0007).
   8. **HUD:** telemetry view **deferred** (CLI MVP), same pattern as GameLens.
+     **2026-09-10:** operator panels scheduled as **phase-12b** (after phase-12).
   9. **Summaries:** computed at ingest from events (counts, currency net, first
      leak `t`, waves, duration, outcome, checkpoint labels). Measured facts only.
 - **Consequences:**
