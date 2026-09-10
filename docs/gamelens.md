@@ -21,8 +21,8 @@
 | Diff | Typed: numeric delta/%, added/removed **entities**, curve/series; grouped by system |
 | AI report | **Live:** `build_implications` via LLMPort. Persists `artifacts/lens/<a>__<b>/implications.json` + `.md` and a `lens_implications` store row (migration 6). Framing: *model reasoning*. Numbers from `telemetry_sessions.summary` only. `snap-unset` sessions are **unjoined** (never a silent version join). Missing KPIs (`combat.damage`, other `FUTURE_EVENT_NAMES`) are gaps, never imputed. Design-copilot / retune chat remains FP-G4. |
 
-HUD GameLens panel: **FP-G4** (balance agent + browse). Until then: CLI + persisted artifacts
-(see BACKLOG + `hud.md`).
+HUD GameLens panel: **FP-G4** (balance agent + browse) — `#/lens` in `questline hud`.
+CLI `questline lens` remains for CI/scripting.
 
 ## Downstream consumers (do not break these contracts)
 

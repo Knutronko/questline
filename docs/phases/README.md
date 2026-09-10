@@ -11,8 +11,8 @@ Scheduled catalog FPs may use `phase-fp-*.md` (e.g. FP-G1) until numbered.
 **Joint D11/QL-5/FP-G1 prompts:** [`SESSION-PROMPTS-D11-QL5-FPG1.md`](SESSION-PROMPTS-D11-QL5-FPG1.md).
 **QL-6 / FP-G3 prompts:** [`SESSION-PROMPTS-QL6-FPG3.md`](SESSION-PROMPTS-QL6-FPG3.md).
 **G1 implications live report (after phase-11):** [`SESSION-PROMPTS-G1-IMPLICATIONS.md`](SESSION-PROMPTS-G1-IMPLICATIONS.md) · brief [`phase-fp-g1-implications-live.md`](phase-fp-g1-implications-live.md) — **merged**.
-**Next:** [`SESSION-PROMPTS-G4-BALANCE-AGENT.md`](SESSION-PROMPTS-G4-BALANCE-AGENT.md) · brief [`phase-fp-g4-balance-agent.md`](phase-fp-g4-balance-agent.md).
-**Parked:** [`phase-12-ai-agents.md`](phase-12-ai-agents.md) (after G4). **Folded:** [`phase-12b-hud-gamelens.md`](phase-12b-hud-gamelens.md) → G4.
+**FP-G4 (this PR):** [`SESSION-PROMPTS-G4-BALANCE-AGENT.md`](SESSION-PROMPTS-G4-BALANCE-AGENT.md) · brief [`phase-fp-g4-balance-agent.md`](phase-fp-g4-balance-agent.md).
+**Next:** [`phase-12-ai-agents.md`](phase-12-ai-agents.md) after G4 merges. **Folded:** [`phase-12b-hud-gamelens.md`](phase-12b-hud-gamelens.md) → G4.
 
 
 ## Every phase session — living checklist

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from questline.lens.agent import AgentTurn, run_balance_agent
 from questline.lens.diff import DiffReport, diff_snapshots
 from questline.lens.manifest import BalanceManifest, load_manifest
 from questline.lens.report import (
@@ -18,6 +19,7 @@ from questline.lens.snapshot import (
 )
 
 __all__ = [
+    "AgentTurn",
     "BalanceManifest",
     "BalanceSnapshot",
     "DiffReport",
@@ -29,5 +31,6 @@ __all__ = [
     "persist_implications",
     "load_snapshot",
     "normalize_pack",
+    "run_balance_agent",
     "write_snapshot",
 ]

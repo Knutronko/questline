@@ -84,13 +84,13 @@ the strongest possible portfolio artifact for AI Quality / LLM Evaluation roles.
 ## 4. Later candidates (see `03-FUTURE-PHASES.md` + `BALANCE-AUTOMATION.md`)
 
 **Order vs GameLens (2026-09-10):** G1 snapshot/diff, G2 telemetry, G3 bots, phase-11
-LLMPort, and the **G1 implications live report** are in. Next: **FP-G4** balance agent +
-HUD. Numbered **phase-12** (triage/healer) is parked until after G4. Do **not** invert
+LLMPort, G1 implications live report, and **FP-G4** balance agent + HUD are in.
+Numbered **phase-12** (triage/healer) is next. Do **not** invert
 G1 → G2/G3 → 11. The G4 agent proposes retune *priorities*; it does not write SOs.
 
 - **GameLens implications report (FP-G1 AI slice) ✅**: batch *model reasoning* on
   `lens diff --ai`. Measured input = `telemetry_sessions.summary`; never impute KPIs.
-- **FP-G4 — balance agent + HUD (next):** interactive priorities + browse snapshots /
+- **FP-G4 — balance agent + HUD ✅:** interactive priorities + browse snapshots /
   diffs / sessions / implications in the control center. Pablo full-UI review.
   Phase-12b browse-only brief is folded here.
 - **Phase-12 test agents (after G4):** triage / diagnose / healer.

@@ -31,7 +31,7 @@ Questline is a **local-first game-automation framework** for Unity (and mock/CI)
 | **HUD** | Viewer (08) + control center (10) | This app |
 
 **Not in the HUD yet (use CLI / later phases):** `questline doctor`, arbitrary shell /
-command palette, AI triage buttons (phase 12), Poco/UTF (phase 14), GameLens FP-G*.
+command palette, AI triage buttons (phase 12), Poco/UTF (phase 14).
 
 ---
 
@@ -82,6 +82,7 @@ useful for Perf compare and drill-down without a live game.
 | **Quarantine** | `#/quarantine` | Ledger add/remove + limbo audit |
 | **Profiles** | `#/profiles` | Edit/validate/`questline.toml` (secrets = env **names** only) |
 | **Perf** | `#/perf` | PerfProbe series + build-over-build compare |
+| **GameLens** | `#/lens` | Snapshots, typed diff, implications, telemetry sessions, balance agent |
 | **Trends** | `#/trends` | Pass-rate / duration charts, flakiness, duration-vs-pass |
 | **Live** | `#/live` | WebSocket stream of run events |
 | *(drill)* | `#/runs/{id}` | Tests grid + infra vs test banner |
@@ -303,6 +304,28 @@ when isolating Wire debugging — see [INCIDENTS.md](INCIDENTS.md) / [performanc
 
 ---
 
+### 4.11 GameLens + balance agent (FP-G4)
+
+**What it is:** Config truth (snapshots / typed diff), measured sessions, persisted
+implications, and an interactive *model reasoning* agent that proposes **retune
+priorities**. It does not write ScriptableObjects and does not issue green/red.
+
+**In the HUD:**
+
+1. **GameLens** (`#/lens`) — snapshot list. Pick A/B → **Open typed diff**.
+2. Diff page — typed entries by system + persisted implications. Gaps such as
+   `snap-unset` and `combat.damage` stay visible (never imputed).
+3. **Sessions** (`#/lens/sessions`) — `outcome=lose` is **measured play**, not a
+   bot/framework fail. `config_snapshot_id=snap-unset` is a join gap.
+4. **Ask** on the diff — profile `ai_groq` (preferred) or `ai_ollama`. Reply shows
+   priorities, gaps, measured citations, and a cost row (`ai_calls`).
+5. `--read-only` still browses; Ask is disabled (CSRF mutator).
+
+Smoke fixture (`serve_hud_smoke.py`) seeds two snapshots, a `lose`+`snap-unset`
+session, implications, and a fake-LLM Ask path (no live keys).
+
+---
+
 ## 5. End-to-end recipes
 
 ### A. Mock dogfood (no Unity)
@@ -315,9 +338,11 @@ when isolating Wire debugging — see [INCIDENTS.md](INCIDENTS.md) / [performanc
 ### B. Fixture UI without writing a suite
 
 1. `uv run python scripts/serve_hud_smoke.py --port 8741`
-2. **Runs** → `run-a` / `run-b` → infra banner + death-point.
+2. **Runs** → `run-a` / `run-b` → infra banner + death-point + AI calls.
 3. **Perf** → compare `run-a` vs `run-b`.
-4. **Launch** → Start/Stop (smoke uses a fake process; does not pollute fixture runs).
+4. **GameLens** → snapshots → typed diff → implications gaps → **Ask** (fake LLM).
+5. **Sessions** → `sess-unset`: `lose` = measured; `snap-unset` = gap.
+6. **Launch** → Start/Stop (smoke uses a fake process; does not pollute fixture runs).
 
 ### C. Wire Editor smoke
 

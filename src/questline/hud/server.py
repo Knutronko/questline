@@ -16,6 +16,7 @@ from questline.hud import static_dir
 from questline.hud.api import router as api_router
 from questline.hud.control import router as control_router
 from questline.hud.launcher import RunLauncher
+from questline.hud.lens_api import router as lens_router
 from questline.hud.live import LiveBridge
 from questline.hud.security import HudSecurityMiddleware, new_csrf_token
 
@@ -92,9 +93,11 @@ def create_app(
     else:
         app.state.launcher = None
 
+    app.state.llm_provider = None
     app.add_middleware(HudSecurityMiddleware, read_only=read_only)
     app.include_router(api_router)
     app.include_router(control_router)
+    app.include_router(lens_router)
 
     @app.websocket("/api/live")
     async def live_ws(websocket: WebSocket) -> None:
