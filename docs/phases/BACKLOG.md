@@ -50,6 +50,9 @@ Format: `- [ ] (phase-NN) description`
       Brief: [`phase-fp-g3-bots.md`](phase-fp-g3-bots.md). Policies: game §11.
 - [x] (phase-11) LLMPort substrate + HUD `ai_calls` table on run detail. Full GameLens
       design-copilot report and AI bot policies remain follow-ups.
+- [ ] (phase-11) Mistral live smoke (`-p ai_mistral`, `MISTRAL_API_KEY`) — **deferred**
+      2026-09-10. Groq + Ollama verified. Recipe: [`ai-setup.md`](../ai-setup.md)
+      § Live smoke status.
 - [ ] (phase-09) Companion `draw_calls` is a reserved slot (always 0 in Runtime asmdef —
       no UnityEditor dependency). Optional Editor-only extension or game-injected counter.
 - [ ] (phase-09) PerfProbe anomaly detection / soak trend analysis — deferred (phase brief

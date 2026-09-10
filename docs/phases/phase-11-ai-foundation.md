@@ -61,9 +61,13 @@ Agents, tool-use loop (Phase 12), eval harness (Phase 13).
 ## Acceptance criteria
 - [x] CI: adapters green against recorded/fake transports; router fallback + budget-cap
       unit tests; no live keys in CI.
-- [ ] Maintainer-checked: live smoke — same `LlmRequest` answered via Mistral, Groq,
-      Ollama by flipping profile only; costs ledgered for all three (Ollama = 0).
-      How-to: [`ai-setup.md`](../ai-setup.md).
+- [x] Maintainer-checked live smoke (2026-09-10): same `LlmRequest` via **Groq**
+      (`-p ai_groq`, `openai/gpt-oss-20b`) and **Ollama** (`-p ai_ollama`, `llama3.2`,
+      cost 0). How-to: [`ai-setup.md`](../ai-setup.md).
+- [ ] **Mistral live smoke deferred** (no La Plateforme key yet). Profile `ai_mistral`
+      stays in `questline.toml`. Retry: set `MISTRAL_API_KEY` and
+      `uv run questline ai complete -p ai_mistral "Reply with the single word pong."`
+      — tracked in [`BACKLOG.md`](BACKLOG.md).
 - [x] Rate-limit simulation: primary 429s → router falls to secondary → call succeeds,
       both attempts ledgered.
 - [x] `BudgetExceededError` fires at the configured ceiling in a scripted loop.
@@ -80,9 +84,10 @@ Title `phase-11: ai foundation`. **ADR-0011** (not 0007 — HUD). Python 3.11+ (
   **Not** shipped: phase-12 tool loop, phase-13 eval, AI bot policies, design copilot.
 - CI: fake transports; no live keys. Import-linter isolates `cursor_cli`.
 - HUD: run-detail AI calls table (`Verified in HUD:` Playwright smoke + API tests).
+- Live smoke: Groq + Ollama 2026-09-10. **Mistral postponed** (maintainer; not a merge
+  blocker). Groq model id is `openai/gpt-oss-20b` after Llama 3.3 shutdown.
 - **Incidents: none** (INC-0010 remains open from G3; out of scope).
-- Accepted risk: live Mistral/Groq/Ollama smoke is maintainer-checked (same
-  `questline ai complete` prompt, profile flip). Pricing file is an estimate.
+- Accepted risk: pricing file is an estimate; free-tier model ids churn.
 
 ## Lessons / incidents
 
@@ -101,4 +106,6 @@ Title `phase-11: ai foundation`. **ADR-0011** (not 0007 — HUD). Python 3.11+ (
   default `Python-urllib/3.x` UA.
 - Groq shut down `llama-3.3-70b-versatile` on 2026-08-16 (free/developer);
   live profiles use `openai/gpt-oss-20b` (see Groq deprecations).
+- HUD `_reconcile_finished` must copy `error`/`log_tail` (same path as the waiter)
+  or CI flakes when `status()` wins the race.
 - **Incidents:** none.

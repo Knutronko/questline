@@ -35,8 +35,10 @@
 - **Consequences:**
   - Phase 12 agents import LLMPort + router only; they must not import
     `cursor_cli`.
-  - Maintainer live smoke flips `-p ai_mistral|ai_groq|ai_ollama` with the same
-    `LlmRequest` (`docs/ai-setup.md`). CI uses fake transports; no live keys.
+  - Maintainer live smoke: **Groq** (`ai_groq`) and **Ollama** (`ai_ollama`) verified
+    2026-09-10. **Mistral (`ai_mistral`) postponed** until a La Plateforme key exists
+    — not a merge blocker; retry recipe in `docs/ai-setup.md`. CI uses fake
+    transports; no live keys.
   - Pricing rows are estimates; free tiers churn — recheck `ai-setup.md`.
 - **Alternatives considered:** Vendor SDKs as required extras (rejected —
   urllib + empty `[ai]` extra matches Slack/GitHub). Soft budget warnings

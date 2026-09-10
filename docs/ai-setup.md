@@ -45,7 +45,23 @@ uv run questline ai costs --run cli
 `--run` defaults to `cli` and is **append-only** — earlier FAIL rows stay. Look at the
 latest `ok` row; Ollama must be `cost=0`.
 
-Skip Mistral (no `MISTRAL_API_KEY`): use `-p ai_groq` and `-p ai_ollama`. Do not use
+## Live smoke status (2026-09-10)
+
+| Profile | Status | Notes |
+|---------|--------|--------|
+| `ai_groq` | **verified** | `openai/gpt-oss-20b` → `pong`. Key: `GROQ_API_KEY`. |
+| `ai_ollama` | **verified** | `llama3.2` → `Pong`, ledger **cost=0**. No key. |
+| `ai_mistral` | **deferred** | No La Plateforme key yet. Not a merge blocker. |
+
+When a Mistral key exists:
+
+```powershell
+$env:MISTRAL_API_KEY = "paste-real-key"
+uv run questline doctor -p ai_mistral
+uv run questline ai complete -p ai_mistral "Reply with the single word pong."
+```
+
+Until then, Groq-only / Ollama-only: `-p ai_groq` and `-p ai_ollama`. Do not use
 `-p ai_mistral` — that profile still lists Mistral first (skip is expected).
 
 If Groq returns Cloudflare **1010**, the client User-Agent was blocked (`Python-urllib/…`).

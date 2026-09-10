@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-09-09** (fw **phase-11** AI foundation ✅; G3 live 75/75 Editor remains measured data).
+> Última revisión: **2026-09-10** (fw **phase-11** AI foundation ✅; Mistral live smoke deferred; G3 live 75/75 Editor remains measured data).
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 + **05b–10** + **FP-G1** + **FP-G2** + **FP-G3** + **11** ✅ | LLMPort + router + `ai_calls` + HUD cost table; G3 75/75 Editor still measured | **G1 implications live report** (and/or phase-12) | AltTester Desktop fuera del happy path; G2/G3 HUD diferido; 09c parked (hooks sufficient); INC-0010 open (watchdog, out of 11) |
+| **questline** | v0.1 + **05b–10** + **FP-G1** + **FP-G2** + **FP-G3** + **11** ✅ | LLMPort + router + `ai_calls` + HUD cost table; live smoke Groq+Ollama; G3 75/75 Editor still measured | **G1 implications live report** (and/or phase-12) | AltTester Desktop fuera del happy path; G2/G3 HUD diferido; 09c parked (hooks sufficient); INC-0010 open (watchdog, out of 11); **Mistral live smoke deferred** |
 | **ElJuegaso P1** | Proto D (feel) | **QL-1…3 + QL-5 + QL-6 + QL-7** + Wire + **`automation/bots`** + **D10.5** + **D11 código** | Playtest D11 (feel); optional `QUESTLINE_SNAPSHOT_ID` on later bots | Poco = 2º UI (fw 14); IEB-1…5 aún no son SO (hueco GameLens) |
 
 
@@ -54,7 +54,7 @@
 | **FP-G1** | GameLens snapshot/diff | ✅ | ADR-0009; CLI `lens`; AI report → tras **11** — [`gamelens.md`](gamelens.md) · [`phase-fp-g1`](phases/phase-fp-g1-gamelens-snapshot.md) |
 | **FP-G2** | Telemetría thin | ✅ | ADR-0010; CLI `telemetry`; HUD diferido — [`telemetry.md`](telemetry.md) · [`phase-fp-g2`](phases/phase-fp-g2-telemetry.md); trigger **QL-6** |
 | **FP-G3** | Bots deterministas | ✅ **live Editor 2026-09-09** | Suite in ElJuegaso `automation/bots`. Matrix B1–B5 × 5 policies × N=3 = **75 passed** (~1h48). All cells `lose` (measured, not a bot fail). `config_snapshot_id=snap-unset` (no `QUESTLINE_SNAPSHOT_ID`). Playability: **hooks sufficient**, 09c parked. HUD telemetry **deferred** (CLI). Brief [`phase-fp-g3`](phases/phase-fp-g3-bots.md). |
-| 11 | AI foundation | ✅ | LLMPort + adapters + router + hard budgets + `ai_calls` (migration 5) + versioned prompts + doctor ping + HUD cost table. Thin GameLens consumer (measured vs model reasoning). **Not** design copilot / AI bot policies. [`ai-setup.md`](ai-setup.md) · [`ADR-0011`](adr/ADR-0011-llmport-budget.md) · [`phase-11`](phases/phase-11-ai-foundation.md) |
+| 11 | AI foundation | ✅ | LLMPort + adapters + router + hard budgets + `ai_calls` (migration 5) + versioned prompts + doctor ping + HUD cost table. Thin GameLens consumer (measured vs model reasoning). Live smoke: Groq + Ollama **2026-09-10**; **Mistral deferred**. **Not** design copilot / AI bot policies. [`ai-setup.md`](ai-setup.md) · [`ADR-0011`](adr/ADR-0011-llmport-budget.md) · [`phase-11`](phases/phase-11-ai-foundation.md) |
 | 12 | AI agents | ⬜ | |
 | 13 | AI generation + eval | ⬜ | |
 | 14 | **Poco** + UTF | ⬜ | 2º UI backend + UTF; trigger **QL-4** |
