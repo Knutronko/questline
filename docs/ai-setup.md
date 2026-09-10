@@ -42,7 +42,8 @@ uv run questline ai complete -p ai_ollama $prompt   # Ollama running locally
 uv run questline ai costs --run cli
 ```
 
-`--run` defaults to `cli`. Ollama rows must show `cost=0`.
+`--run` defaults to `cli` and is **append-only** — earlier FAIL rows stay. Look at the
+latest `ok` row; Ollama must be `cost=0`.
 
 Skip Mistral (no `MISTRAL_API_KEY`): use `-p ai_groq` and `-p ai_ollama`. Do not use
 `-p ai_mistral` — that profile still lists Mistral first (skip is expected).
@@ -62,7 +63,9 @@ if it was pasted into chat.
 See also [`02-AI-ROADMAP.md`](02-AI-ROADMAP.md) §5. Typical 2026 roles:
 
 - **Mistral La Plateforme** — primary agents / implications (`mistral-small-latest`).
-- **Groq** — fast fallback (`llama-3.3-70b-versatile`); RPM limits → 429 → router fallback.
+- **Groq** — fast fallback (`openai/gpt-oss-20b`; `openai/gpt-oss-120b` as strong).
+  `llama-3.3-70b-versatile` shut down 2026-08-16 for free/developer ([deprecations](https://console.groq.com/docs/deprecations)).
+  RPM limits → 429 → router fallback.
 - **Ollama** — offline demos and zero-cost smoke.
 - **Anthropic** — `kind = "anthropic"`, `api_key_env = "ANTHROPIC_API_KEY"`.
 - **Cursor CLI** — experimental `kind = "cursor_cli"` (`cursor-agent --print`).

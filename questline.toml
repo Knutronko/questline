@@ -63,7 +63,7 @@ api_key_env = "MISTRAL_API_KEY"
 [profile.ai_mistral.ai.providers.groq]
 kind = "openai_compat"
 base_url = "https://api.groq.com/openai/v1"
-model = "llama-3.3-70b-versatile"
+model = "openai/gpt-oss-20b"
 api_key_env = "GROQ_API_KEY"
 
 [profile.ai_groq]
@@ -71,12 +71,13 @@ driver = "mock"
 ai.candidates = ["groq", "mistral"]
 ai.budget_per_call_usd = 0.05
 ai.budget_per_run_usd = 1.00
-ai.models.fast = "llama-3.3-70b-versatile"
+ai.models.fast = "openai/gpt-oss-20b"
+ai.models.strong = "openai/gpt-oss-120b"
 
 [profile.ai_groq.ai.providers.groq]
 kind = "openai_compat"
 base_url = "https://api.groq.com/openai/v1"
-model = "llama-3.3-70b-versatile"
+model = "openai/gpt-oss-20b"
 api_key_env = "GROQ_API_KEY"
 
 [profile.ai_groq.ai.providers.mistral]

@@ -102,12 +102,12 @@ design copilot (FP-G4) / phase-12 agents. Do **not** invert that order.
 - **Visual regression assist (FP-T3)**: screenshot diffing with LLM intentionality judgment.
 - **Perf anomaly detection**: threshold learning from PerfProbe series history.
 
-## 5. Free-tier operating notes (2026-07 state — recheck quarterly, tiers churn)
+## 5. Free-tier operating notes (2026-09-10 — recheck quarterly, tiers churn)
 
 | Provider | Free tier | Role |
 |---|---|---|
 | Mistral La Plateforme | ~1B tokens/month | Primary (agents) |
-| Groq | Llama 3.3 70B, ~30 RPM / 1k req/day | Secondary / fast classification |
+| Groq | `openai/gpt-oss-20b` (~30 RPM / 1k req/day); Llama 3.3 70B shut down 2026-08-16 | Secondary / fast classification |
 | Gemini API | ~10–15 RPM Flash | Tertiary |
 | GitHub Models | daily limits, many models | Experiments |
 | Ollama (local) | unlimited, weaker models | Offline demos, CI smoke |

@@ -99,4 +99,6 @@ Title `phase-11: ai foundation`. **ADR-0011** (not 0007 — HUD). Python 3.11+ (
   otherwise apply profile `models.fast` to Groq).
 - Urllib sends `User-Agent: questline` — Groq/Cloudflare **1010** on the
   default `Python-urllib/3.x` UA.
+- Groq shut down `llama-3.3-70b-versatile` on 2026-08-16 (free/developer);
+  live profiles use `openai/gpt-oss-20b` (see Groq deprecations).
 - **Incidents:** none.
