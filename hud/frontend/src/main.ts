@@ -8,6 +8,16 @@ import { renderLaunch, wireLaunch } from "./pages/launch";
 import { renderQuarantine, wireQuarantine } from "./pages/quarantine";
 import { renderProfiles, wireProfiles } from "./pages/profiles";
 import { renderPerf, wirePerf } from "./pages/perf";
+import {
+  renderLensDiff,
+  renderLensHome,
+  renderLensSession,
+  renderLensSessions,
+  renderLensTurn,
+  renderLensTurns,
+  wireLensDiff,
+  wireLensHome,
+} from "./pages/lens";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -44,7 +54,7 @@ function shell(active: string, body: string): string {
   const staleBanner = staleApi
     ? `<div class="empty" style="margin:0 0 0.75rem;border-color:var(--warn)" data-testid="stale-api">
         <strong>STALE HUD PROCESS</strong> — SPA is newer than the Python API
-        (missing <code>/api/runs/…/test?id=</code>). Stop the old
+        (missing <code>/api/runs/…/test?id=</code> or GameLens <code>/api/lens</code>). Stop the old
         <code>questline hud</code> and run <code>uv run questline hud --open</code>
         again from the repo root, then hard-refresh.
       </div>`
@@ -56,6 +66,7 @@ function shell(active: string, body: string): string {
         ${link("#/", "Runs")}
         ${control}
         ${link("#/perf", "Perf")}
+        ${link("#/lens", "GameLens")}
         ${link("#/trends", "Trends")}
         ${link("#/live", "Live")}
       </nav>
@@ -67,7 +78,8 @@ function shell(active: string, body: string): string {
 
 function route(): { name: string; params: Record<string, string> } {
   const hash = location.hash.replace(/^#\/?/, "") || "";
-  const parts = hash.split("/").filter(Boolean);
+  const path = hash.split("?")[0] || "";
+  const parts = path.split("/").filter(Boolean);
   // test_id is pytest nodeid and may contain '/' — take the remainder after /tests/
   if (parts[0] === "runs" && parts[1] && parts[2] === "tests" && parts.length >= 4) {
     const raw = parts.slice(3).join("/");
@@ -88,6 +100,18 @@ function route(): { name: string; params: Record<string, string> } {
   if (parts[0] === "quarantine") return { name: "quarantine", params: {} };
   if (parts[0] === "profiles") return { name: "profiles", params: {} };
   if (parts[0] === "perf") return { name: "perf", params: {} };
+  if (parts[0] === "lens") {
+    if (parts[1] === "diff") return { name: "lens-diff", params: {} };
+    if (parts[1] === "sessions" && parts[2]) {
+      return { name: "lens-session", params: { id: parts[2] } };
+    }
+    if (parts[1] === "sessions") return { name: "lens-sessions", params: {} };
+    if (parts[1] === "turns" && parts[2]) {
+      return { name: "lens-turn", params: { id: parts[2] } };
+    }
+    if (parts[1] === "turns") return { name: "lens-turns", params: {} };
+    return { name: "lens", params: {} };
+  }
   return { name: "runs", params: {} };
 }
 
@@ -189,6 +213,24 @@ async function paint(): Promise<void> {
     } else if (r.name === "perf") {
       body = await renderPerf();
       active = "Perf";
+    } else if (r.name === "lens") {
+      body = await renderLensHome();
+      active = "GameLens";
+    } else if (r.name === "lens-diff") {
+      body = await renderLensDiff();
+      active = "GameLens";
+    } else if (r.name === "lens-sessions") {
+      body = await renderLensSessions();
+      active = "GameLens";
+    } else if (r.name === "lens-session") {
+      body = await renderLensSession(r.params.id);
+      active = "GameLens";
+    } else if (r.name === "lens-turns") {
+      body = await renderLensTurns();
+      active = "GameLens";
+    } else if (r.name === "lens-turn") {
+      body = await renderLensTurn(r.params.id);
+      active = "GameLens";
     } else {
       body = await renderRuns();
       active = "Runs";
@@ -225,6 +267,8 @@ function wire(name: string): void {
   if (name === "quarantine") wireQuarantine();
   if (name === "profiles") wireProfiles();
   if (name === "perf") wirePerf();
+  if (name === "lens") wireLensHome();
+  if (name === "lens-diff") wireLensDiff();
 }
 
 async function boot(): Promise<void> {
@@ -232,7 +276,7 @@ async function boot(): Promise<void> {
     const meta = await getMeta();
     readOnly = !!meta.read_only;
     smokeMode = !!meta.smoke;
-    staleApi = !meta.api?.test_by_query;
+    staleApi = !meta.api?.test_by_query || !meta.api?.lens;
     if (!readOnly) await ensureCsrf();
   } catch {
     readOnly = false;
