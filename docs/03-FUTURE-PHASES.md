@@ -10,9 +10,8 @@ S = 1–2 sessions, M = 3–4, L = 5+.
 
 **D11 + QL-5 + FP-G1** → **FP-G2 / QL-6** → **FP-G3** (deterministic bots; Wire 09c
 only if playability gate fails) → **phase-11** AI foundation → **G1 implications live
-report** ✅ → **phase-12** test agents → **phase-12b** HUD GameLens/telemetry (Pablo
-reviews the whole UI) → AI bot policies / FP-G4 → then other FPs (T2/T1/P3/…) as
-curiosity allows.
+report** ✅ → **FP-G4** balance agent + HUD (Pablo reviews the whole UI) → **phase-12**
+test agents → then other FPs (T2/T1/P3/…) as curiosity allows.
 
 Older catalog wave (FP-T* interleaved before bots) is **superseded** for the reference
 game's balance goals. iOS (FP-P1) whenever curiosity wins.
@@ -48,8 +47,8 @@ creature growth curves) — but the module is genre-agnostic by design.
 - **Scheduling split:** snapshot + diff shipped with D11/QL-5; thin `--ai` consumer in
   phase-11; **live report** (persist + join) follows phase-11.
 - **Status:** FP-G1 snapshot/diff ✅ (ADR-0009 / [`gamelens.md`](gamelens.md)); AI
-  implications live report ✅ (`lens diff --ai`; HUD panel = **phase-12b** after 12).
-  Design-copilot / retune chat remains FP-G4. QL-5 still supplies real manifest contents.
+  implications live report ✅ (`lens diff --ai`; HUD + interactive agent = **FP-G4**).
+  QL-5 still supplies real manifest contents.
 - Prereqs (MVP): phases 4 / companion path. Prereqs (AI report): phase 11 + G2/G3 data.
 
 ### FP-G2 — Gameplay telemetry · **M · priority ALTA (immediately after G1)**
@@ -59,7 +58,7 @@ creature growth curves) — but the module is genre-agnostic by design.
   transport via existing `call_hook` drain during automated runs, or local file spool
   for manual play (CLI import).
 - Ingestion into the store (`telemetry_sessions` + `telemetry_events`, ADR-0010);
-  session summaries; HUD telemetry view **phase-12b** (CLI `questline telemetry` until then).
+  session summaries; HUD telemetry view **FP-G4**.
 - Comparison: same scenario across versions → metric deltas (time per wave, economy
   inflow/outflow, …) via summaries + optional `--compare`.
 - **Pull-forward:** required before meaningful FP-G3 “data extraction”; **not** only with
@@ -89,14 +88,19 @@ creature growth curves) — but the module is genre-agnostic by design.
   [`phases/phase-09c-wire-play-gestures.md`](phases/phase-09c-wire-play-gestures.md).
 - Prereqs: FP-G1 + FP-G2, Wire v2 (09b); **not** phase 11/13 for deterministic bots.
 - **Status (2026-08-14):** suite in ElJuegaso `automation/bots`; fake-driver CI ✅.
-  Playability = hooks (09c parked). HUD telemetry → **phase-12b**. Live Editor matrix
+  Playability = hooks (09c parked). HUD telemetry → **FP-G4**. Live Editor matrix
   maintainer-checked DoD.
 
-### FP-G4 — Design copilot · **M · priority BAJA (visionary)**
-- Chat interface (HUD panel) over GameLens history: "what changed between 0.3 and 0.4
-  that made wave 12 harder?", "which creature stat has never been touched?".
-  RAG over snapshots + `telemetry_sessions` + reports. Prereqs: G1–G3 mature + phase-11
-  + **phase-12b** browse panels (this FP is chat, not the first HUD list/diff view).
+### FP-G4 — GameLens balance agent + HUD · **M · scheduled NEXT (2026-09-10)**
+- Interactive *model reasoning* over snapshots + typed diffs + `telemetry_sessions.summary`
+  + persisted implications. Output = retune **priorities**, never SO writes, never
+  green/red, never imputed KPIs.
+- HUD: browse G1/G2/G3 **and** run the agent. Pablo reviews the **whole** control center.
+  Operator acceptance is HUD-first (PowerShell extra).
+- Thin read-only tool loop over LLMPort (not the phase-12 triage/healer kernel).
+- Brief: [`phases/phase-fp-g4-balance-agent.md`](phases/phase-fp-g4-balance-agent.md).
+  Former phase-12b browse-only slice is folded here. Phase-12 test agents wait until
+  after this FP.
   Event names: thin catalog now; D12 reserved names when present — do not invent aliases.
 
 ---

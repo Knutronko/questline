@@ -5,7 +5,7 @@
 > Brief: [`phases/phase-fp-g2-telemetry.md`](phases/phase-fp-g2-telemetry.md).
 > Loop: [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md).
 
-HUD telemetry view: **phase-12b** (CLI until then). Same owner as the GameLens HUD panel.
+HUD telemetry view: **FP-G4** (CLI until then). Same owner as the GameLens HUD panel.
 
 ## Thin catalog (locked)
 
@@ -101,7 +101,7 @@ Hooks: `BeginTelemetrySession` / `SetTelemetryContext` (JSON string),
 | **QL-6** | Map done (2026-08-13). Game mapping + dogfood labels/gaps live in ElJuegaso `docs/prototipos/P1/integracion-questline.md` §10 (not in `src/questline`). |
 | **FP-G3** | Set `policy_id` + `seed` + `config_snapshot_id` via `SetTelemetryContext` **after** combat `BeginSession` (`LoadIeb` wipes context if set too early). Then `drain_telemetry(driver, store)` after the session. IEB play does **not** set `P1Rng` unless the bot calls `SetSeed`. Checkpoints the game actually emits: `post_3_deploy`, `between_wave`, `prep_end`, `end` — **not** `mid_w1`/`mid_w2`. ∞Ám sessions omit `currency.spent`. Buff v1 = `SkipBuffDraft` (no offer list on `BoardState`). Brief: [`phases/phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md). |
 | **phase-11 / G1 live report** | Read `telemetry_sessions.summary` as *measured*. Never invent missing KPIs (no `enemy.spawn` / ally KO / DPS until D12). `snap-unset` stays a join gap. |
-| **HUD (phase-12b)** | Read the same tables; no second store. Brief [`phase-12b-hud-gamelens.md`](phases/phase-12b-hud-gamelens.md). |
+| **HUD (FP-G4)** | Read the same tables; no second store. Brief [`phase-fp-g4-balance-agent.md`](phases/phase-fp-g4-balance-agent.md). |
 | **D12 / G2+** | Append reserved names above; new migration if summary columns/JSON keys grow. Game note: `diseno-modo-infinito.md`. |
 
 Python drain (automated runs):

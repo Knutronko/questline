@@ -11,10 +11,9 @@
 **Now:** **1 required chat** (questline). **1 optional** (game snapshot id). D11 feel
 playtest is **human**, not a Cursor phase.
 
-**After chat 1 merges:** phase-12 (test agents) → **phase-12b** (HUD GameLens +
-telemetry; Pablo reviews the whole UI). Briefs:
-[`phase-12-ai-agents.md`](phase-12-ai-agents.md) ·
-[`phase-12b-hud-gamelens.md`](phase-12b-hud-gamelens.md).
+**After chat 1 merges:** **FP-G4** (balance agent + HUD) —
+[`SESSION-PROMPTS-G4-BALANCE-AGENT.md`](SESSION-PROMPTS-G4-BALANCE-AGENT.md).
+Phase-12 test agents **after** G4. Phase-12b folded into G4.
 
 | Chat | Workspace | When |
 |------|-----------|------|
