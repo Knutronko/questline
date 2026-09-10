@@ -44,6 +44,13 @@ uv run questline ai costs --run cli
 
 `--run` defaults to `cli`. Ollama rows must show `cost=0`.
 
+Skip Mistral (no `MISTRAL_API_KEY`): use `-p ai_groq` and `-p ai_ollama`. Do not use
+`-p ai_mistral` — that profile still lists Mistral first (skip is expected).
+
+If Groq returns Cloudflare **1010**, the client User-Agent was blocked (`Python-urllib/…`).
+Questline sends `User-Agent: questline`. Retry after pulling that fix; rotate the key
+if it was pasted into chat.
+
 ### Ollama
 
 1. Install Ollama and pull a small model (`ollama pull llama3.2`).

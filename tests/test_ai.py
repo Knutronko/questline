@@ -278,6 +278,40 @@ def test_urllib_transport_429(monkeypatch: pytest.MonkeyPatch) -> None:
     assert exc.value.retry_after_s == 2.0
 
 
+def test_urllib_transport_sets_user_agent(monkeypatch: pytest.MonkeyPatch) -> None:
+    from questline.ai.http import UrllibHttpTransport
+
+    captured: dict[str, str] = {}
+
+    class _FakeResp:
+        status = 200
+        headers = {}
+
+        def read(self) -> bytes:
+            return b"{}"
+
+        def __enter__(self) -> _FakeResp:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    def fake_urlopen(req, timeout=None):
+        captured.update({k.lower(): v for k, v in req.header_items()})
+        return _FakeResp()
+
+    monkeypatch.setattr("questline.ai.http.urllib.request.urlopen", fake_urlopen)
+    UrllibHttpTransport().request(
+        "POST",
+        "https://example.invalid/v1",
+        headers={"Authorization": "Bearer x", "Content-Type": "application/json"},
+        body=b"{}",
+        timeout_s=1.0,
+    )
+    assert captured.get("user-agent") == "questline"
+    assert captured.get("authorization") == "Bearer x"
+
+
 def test_pricing_unknown_model_uses_fallback() -> None:
     table = load_pricing()
     cost = table.estimate(model="mystery", kind="openai_compat", tokens_in=1_000_000, tokens_out=0)
@@ -424,3 +458,27 @@ model = "fake-test"
         assert resp.provider == "fake"
     finally:
         store.close()
+
+
+def test_doctor_ping_pins_provider_model_not_profile_fast(tmp_path: Path) -> None:
+    from questline.ai.doctor import ping_providers
+
+    cfg = tmp_path / "q.toml"
+    cfg.write_text(
+        """
+[profile.p]
+driver = "mock"
+ai.candidates = ["fake"]
+ai.models.fast = "mistral-small-latest"
+ai.budget_per_call_usd = 10
+ai.budget_per_run_usd = 10
+[profile.p.ai.providers.fake]
+kind = "fake"
+model = "fake-test"
+""",
+        encoding="utf-8",
+    )
+    settings = load_settings(config_path=cfg, profile="p", project_root=tmp_path, environ={})
+    results = ping_providers(settings)
+    assert results[0].usable
+    assert "fake-test" in results[0].detail

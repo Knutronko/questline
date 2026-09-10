@@ -95,4 +95,8 @@ Title `phase-11: ai foundation`. **ADR-0011** (not 0007 — HUD). Python 3.11+ (
   table is newest-first so `.first()` is `run-b`.
 - Router `models.fast|strong` applies to the **primary** only; fallbacks keep
   each provider's vendor model id (do not send `mistral-small-latest` to Groq).
+- Doctor pings pin `req.model` to that provider (one-provider router would
+  otherwise apply profile `models.fast` to Groq).
+- Urllib sends `User-Agent: questline` — Groq/Cloudflare **1010** on the
+  default `Python-urllib/3.x` UA.
 - **Incidents:** none.

@@ -58,6 +58,7 @@ def ping_providers(
                     max_tokens=1,
                     temperature=0.0,
                     purpose_tag="doctor.ping",
+                    model=provider.model,
                 )
             )
             preview = (resp.text or "").replace("\n", " ").strip()[:40]

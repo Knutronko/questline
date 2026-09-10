@@ -11,6 +11,10 @@ from typing import Any, Protocol, runtime_checkable
 from questline.ai.errors import RateLimitedError
 from questline.core.errors import ProviderError
 
+# Groq (and other CDNs) return Cloudflare 1010 if urllib's default
+# ``Python-urllib/3.x`` User-Agent is sent. Match the GitHub reporter.
+_DEFAULT_USER_AGENT = "questline"
+
 
 @dataclass(frozen=True, slots=True)
 class HttpResponse:
@@ -62,7 +66,10 @@ class UrllibHttpTransport:
         body: bytes | None,
         timeout_s: float,
     ) -> HttpResponse:
-        req = urllib.request.Request(url, data=body, headers=headers, method=method)
+        merged = dict(headers)
+        if not any(k.lower() == "user-agent" for k in merged):
+            merged["User-Agent"] = _DEFAULT_USER_AGENT
+        req = urllib.request.Request(url, data=body, headers=merged, method=method)
         try:
             with urllib.request.urlopen(req, timeout=timeout_s) as resp:
                 raw = resp.read()
