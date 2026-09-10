@@ -155,21 +155,35 @@ for remote-trigger use cases. Adapters: GitHub Actions (real: annotations, job s
 artifact upload), TeamCity (REST: service messages, build trigger, status) — designed +
 integration-testable against a Dockerized TC when desired.
 
-### 3.5 LLMPort (AI foundation)
+### 3.5 LLMPort (AI foundation) — **phase-11 ✅**
+
+Modules: `questline.ai.port` (`LlmRequest` / `LlmResponse` / `LLMProvider`),
+`questline.ai.router.ProviderRouter`, `questline.ai.factory.build_router`,
+adapters under `questline.ai.providers`. Config: `[profile.*.ai]` (`candidates`,
+`budget_per_call_usd`, `budget_per_run_usd`, `models.fast|strong`,
+`providers.*.api_key_env` — **names only**). Extra `questline[ai]` is empty
+(HTTP = stdlib urllib). Runtime: Python **3.11+** (`pyproject.toml`), not the
+older “3.12 only” planning line.
+
 ```python
 class LLMProvider(Protocol):
     def complete(self, req: LlmRequest) -> LlmResponse   # text + optional image blocks + tools
-    def name/model/pricing() -> ...
+    name / model / kind
 ```
-- Adapters: `OpenAICompatProvider` (one adapter covers Mistral free tier — primary, Groq,
-  OpenRouter, any OpenAI-style endpoint), `OllamaProvider` (offline), `AnthropicProvider`
-  (thin), `CursorCliProvider` (experimental: subprocess to `cursor-agent`; clearly labeled,
-  nothing core depends on it).
-- `ProviderRouter`: ordered fallback on rate-limit/outage (free tiers churn), per-call
-  budget caps, and an `ai_calls` ledger row per call: provider, model, tokens in/out,
-  cached, cost estimate, purpose tag, duration.
-- Prompt hygiene: system prompts are versioned files in-repo; cache-friendly ordering
-  (stable prefix first); image support for screenshots.
+
+- Adapters: `OpenAICompatProvider` (Mistral / Groq / OpenRouter / any OpenAI-style
+  endpoint), `OllamaProvider` (offline, cost 0), `AnthropicProvider` (thin),
+  `CursorCliProvider` (experimental `cursor-agent --print`; import-linter isolates
+  `questline.ai.providers.cursor_cli` from core/CLI/HUD).
+- `ProviderRouter`: ordered fallback on 429/5xx/timeout; **BudgetExceededError** is a
+  hard stop (per-call and per-run USD). Every attempt (including 429) is an `ai_calls`
+  row (migration 5). Pricing: `questline.ai.pricing_v1.json`.
+- CLI: `questline doctor` (1-token ping), `questline ai complete`, `questline ai costs`.
+  Operator guide: [`ai-setup.md`](ai-setup.md). ADR: [`ADR-0011`](adr/ADR-0011-llmport-budget.md).
+- Prompts: versioned files in `questline.ai.prompts`; stable-prefix composition.
+- GameLens: `build_implications` may call LLMPort — *model reasoning* vs *measured*
+  `telemetry_sessions.summary`; missing KPIs are gaps (never imputed). Not the full
+  design-copilot report.
 
 ---
 
@@ -226,7 +240,9 @@ next to Python UI tests.
   bridge). Wrappable in Tauri later if a native app is ever wanted.
 - **Viewer** (Phase 8): run history, filters, test detail (steps timeline, artifacts,
   screenshots, hierarchy snapshots, death-point report), trends, flakiness view
-  (pass-rate per test over time), AI cost per run (when `ai_calls` exist).
+  (pass-rate per test over time).
+- **AI cost per run (phase-11 ✅):** run detail table over `ai_calls` (allow-listed).
+  Triage action buttons remain Phase 12.
 - **Control center** (Phase 10 ✅): launch/stop runs (profile picker, marker/test selection,
   device picker), quarantine management (ledger-backed), profile/config editor with
   validation, perf graphs (PerfProbe series from phase 09, threshold overlays). AI actions

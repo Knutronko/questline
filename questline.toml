@@ -43,3 +43,57 @@ wait.probe = 2.0
 wait.deadline = 45.0
 wait.interval = 0.5
 perf.enabled = false
+
+# Phase-11 LLMPort live smoke — same LlmRequest, flip -p only.
+# Keys: env var NAMES here; values from the environment. See docs/ai-setup.md.
+[profile.ai_mistral]
+driver = "mock"
+ai.candidates = ["mistral", "groq"]
+ai.budget_per_call_usd = 0.05
+ai.budget_per_run_usd = 1.00
+ai.models.fast = "mistral-small-latest"
+ai.models.strong = "mistral-large-latest"
+
+[profile.ai_mistral.ai.providers.mistral]
+kind = "openai_compat"
+base_url = "https://api.mistral.ai/v1"
+model = "mistral-small-latest"
+api_key_env = "MISTRAL_API_KEY"
+
+[profile.ai_mistral.ai.providers.groq]
+kind = "openai_compat"
+base_url = "https://api.groq.com/openai/v1"
+model = "openai/gpt-oss-20b"
+api_key_env = "GROQ_API_KEY"
+
+[profile.ai_groq]
+driver = "mock"
+ai.candidates = ["groq", "mistral"]
+ai.budget_per_call_usd = 0.05
+ai.budget_per_run_usd = 1.00
+ai.models.fast = "openai/gpt-oss-20b"
+ai.models.strong = "openai/gpt-oss-120b"
+
+[profile.ai_groq.ai.providers.groq]
+kind = "openai_compat"
+base_url = "https://api.groq.com/openai/v1"
+model = "openai/gpt-oss-20b"
+api_key_env = "GROQ_API_KEY"
+
+[profile.ai_groq.ai.providers.mistral]
+kind = "openai_compat"
+base_url = "https://api.mistral.ai/v1"
+model = "mistral-small-latest"
+api_key_env = "MISTRAL_API_KEY"
+
+[profile.ai_ollama]
+driver = "mock"
+ai.candidates = ["ollama"]
+ai.budget_per_call_usd = 0.05
+ai.budget_per_run_usd = 1.00
+ai.models.fast = "llama3.2"
+
+[profile.ai_ollama.ai.providers.ollama]
+kind = "ollama"
+base_url = "http://127.0.0.1:11434"
+model = "llama3.2"

@@ -111,7 +111,7 @@ def test_diff_field_added_removed_and_series() -> None:
     text = render_diff_text(report, implications=implications_stub(report))
     assert "[waves]" in text
     assert "series_changed" in text or "series" in text
-    assert implications_stub(report).to_dict()["pending"] == "phase-11"
+    assert implications_stub(report).to_dict()["pending"] == "no-provider"
     assert report.to_dict()["by_system"]["waves"]
 
 

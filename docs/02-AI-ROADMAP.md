@@ -7,18 +7,21 @@ claims) and rule 7 (incremental persistence + cost per call).
 
 ---
 
-## 1. Foundation (Phase 11)
+## 1. Foundation (Phase 11) — **shipped**
 
-- **LLMPort + adapters**: OpenAI-compatible (Mistral free tier primary, Groq secondary,
-  OpenRouter), Ollama (offline/zero-cost), Anthropic (thin), Cursor CLI (experimental).
-- **ProviderRouter**: fallback chain on rate limit/outage; per-call and per-run budget caps
-  (hard stop, not warning); model selection per task class (cheap model for classification,
-  strong model for repair).
-- **Cost ledger**: every call → `ai_calls` row (provider, model, tokens, cost estimate,
-  purpose, duration, cache hit). HUD shows cost per run/agent/feature. Cost is a first-class
-  metric from day 1, not an afterthought.
-- **Prompt hygiene**: versioned prompt files; stable-prefix ordering for provider-side
-  caching; screenshots as native image blocks (agents must never "read" a base64 string).
+See [`ai-setup.md`](ai-setup.md) and [`ADR-0011`](adr/ADR-0011-llmport-budget.md).
+
+- **LLMPort** (`questline.ai.port`) + adapters: OpenAI-compatible (Mistral primary, Groq
+  secondary, OpenRouter), Ollama (offline/zero-cost), Anthropic (thin), Cursor CLI
+  (experimental; import-linter isolated).
+- **ProviderRouter** (`questline.ai.router`): fallback on 429/5xx/timeout; per-call and
+  per-run budget caps (`BudgetExceededError` hard stop); `ai.models.fast` / `strong`.
+- **Cost ledger:** every attempt → `ai_calls` (migration 5). CLI `questline ai costs`;
+  HUD run-detail table. Pricing file `pricing_v1.json` (estimates; tiers churn).
+- **Prompts:** `questline.ai.prompts` name+version; stable-prefix composition.
+- **Thin GameLens consumer:** `build_implications` / `lens diff --ai`. *Model reasoning*
+  vs *measured* `telemetry_sessions.summary`. Does **not** complete the design-copilot
+  report or AI bot policies (those stay post-11).
 
 ## 2. Agent kernel (Phase 12)
 
@@ -79,10 +82,10 @@ the strongest possible portfolio artifact for AI Quality / LLM Evaluation roles.
 
 ## 4. Later candidates (see `03-FUTURE-PHASES.md` + `BALANCE-AUTOMATION.md`)
 
-**Order vs GameLens (2026-08-12):** ship **FP-G1 snapshot/diff** and **deterministic
-bots (FP-G3)** *before* relying on this foundation for balance work. Phase-11 still
-unlocks: FP-G1 AI implications report, AI-policy bots, design copilot (FP-G4), and all
-agents below. Do **not** block bot data collection on LLMPort.
+**Order vs GameLens (2026-09-09):** G1 snapshot/diff, G2 telemetry, and G3 bots are on
+main. Phase-11 LLMPort **shipped**. Remaining: G1 implications *live report* (use the
+thin consumer + measured sessions; do not invent green/red), then AI-policy bots /
+design copilot (FP-G4) / phase-12 agents. Do **not** invert that order.
 
 - **GameLens implications report (FP-G1 AI slice)**: balance-config diff (+ measured
   telemetry when G2/G3 exist) → AI report. Framing: model reasoning vs *measured*.
@@ -99,12 +102,12 @@ agents below. Do **not** block bot data collection on LLMPort.
 - **Visual regression assist (FP-T3)**: screenshot diffing with LLM intentionality judgment.
 - **Perf anomaly detection**: threshold learning from PerfProbe series history.
 
-## 5. Free-tier operating notes (2026-07 state — recheck quarterly, tiers churn)
+## 5. Free-tier operating notes (2026-09-10 — recheck quarterly, tiers churn)
 
 | Provider | Free tier | Role |
 |---|---|---|
 | Mistral La Plateforme | ~1B tokens/month | Primary (agents) |
-| Groq | Llama 3.3 70B, ~30 RPM / 1k req/day | Secondary / fast classification |
+| Groq | `openai/gpt-oss-20b` (~30 RPM / 1k req/day); Llama 3.3 70B shut down 2026-08-16 | Secondary / fast classification |
 | Gemini API | ~10–15 RPM Flash | Tertiary |
 | GitHub Models | daily limits, many models | Experiments |
 | Ollama (local) | unlimited, weaker models | Offline demos, CI smoke |

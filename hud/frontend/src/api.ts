@@ -131,6 +131,8 @@ export function listRuns(params: {
 export function getRun(runId: string): Promise<{
   run: RunSummary;
   tests: TestSummary[];
+  ai_calls?: AiCallRow[];
+  ai_cost_total?: number;
   banner: {
     infra_failures: number;
     test_failures: number;
@@ -140,6 +142,19 @@ export function getRun(runId: string): Promise<{
 }> {
   return getJson(`/api/runs/${encodeURIComponent(runId)}`);
 }
+
+export type AiCallRow = {
+  provider?: string | null;
+  model?: string | null;
+  tokens_in?: number | null;
+  tokens_out?: number | null;
+  cost?: number | null;
+  purpose?: string | null;
+  duration_ms?: number | null;
+  outcome?: string | null;
+  cached?: boolean;
+  timestamp?: string | null;
+};
 
 export function getTest(
   runId: string,

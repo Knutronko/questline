@@ -55,9 +55,12 @@ def get_run(run_id: str, request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail=f"run not found: {run_id}")
     tests = [enrich_test(store, t) for t in store.list_tests(run_id)]
     enriched = enrich_run(store, run)
+    ai_calls = _ai_calls_payload(store, run_id)
     return {
         "run": enriched,
         "tests": tests,
+        "ai_calls": ai_calls["calls"],
+        "ai_cost_total": ai_calls["total_usd"],
         "banner": {
             "infra_failures": enriched["infra_failures"],
             "test_failures": enriched["test_failures"],
@@ -112,6 +115,38 @@ def list_run_artifacts(run_id: str, request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail=f"run not found: {run_id}")
     artifacts = [allowlisted_artifact(a) for a in store.list_artifacts(run_id=run_id)]
     return {"artifacts": artifacts}
+
+
+@router.get("/runs/{run_id}/ai-calls")
+def list_run_ai_calls(run_id: str, request: Request) -> dict[str, Any]:
+    store = _store(request)
+    if store.get_run(run_id) is None:
+        raise HTTPException(status_code=404, detail=f"run not found: {run_id}")
+    return _ai_calls_payload(store, run_id)
+
+
+def _ai_calls_payload(store: RunStore, run_id: str) -> dict[str, Any]:
+    rows = store.list_ai_calls(run_id=run_id)
+    calls = []
+    total = 0.0
+    for row in rows:
+        cost = float(row.get("cost") or 0.0)
+        total += cost
+        calls.append(
+            {
+                "provider": row.get("provider"),
+                "model": row.get("model"),
+                "tokens_in": row.get("tokens_in"),
+                "tokens_out": row.get("tokens_out"),
+                "cost": cost,
+                "purpose": row.get("purpose"),
+                "duration_ms": row.get("duration_ms"),
+                "outcome": row.get("outcome"),
+                "cached": bool(row.get("cached")),
+                "timestamp": row.get("timestamp"),
+            }
+        )
+    return {"run_id": run_id, "calls": calls, "total_usd": total}
 
 
 @router.get("/artifacts/file")

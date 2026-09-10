@@ -35,6 +35,10 @@ def render_diff_text(report: DiffReport, *, implications: ImplicationsReport | N
         if implications.pending:
             lines.append(f"pending: {implications.pending}")
         lines.append(f"framing: {implications.framing}")
+        if implications.gaps:
+            lines.append("gaps:")
+            for gap in implications.gaps:
+                lines.append(f"  - {gap}")
         lines.append(implications.summary)
         lines.append("")
 

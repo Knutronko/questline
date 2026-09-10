@@ -25,7 +25,7 @@ jobs:
       - name: Create venv and install dependencies
         run: |
           uv venv --python ${{ matrix.python-version }}
-          uv pip install -e ".[dev,alttester,hud]"
+          uv pip install -e ".[dev,alttester,hud,ai]"
 
       - name: Setup Node (HUD frontend)
         uses: actions/setup-node@v4
@@ -40,6 +40,9 @@ jobs:
 
       - name: Lint
         run: uv run ruff check src/ tests/ examples/demo-tests/ examples/unity-smoke/
+
+      - name: Import lint
+        run: uv run lint-imports
 
       - name: Test
         run: uv run pytest

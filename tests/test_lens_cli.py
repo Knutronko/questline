@@ -53,7 +53,7 @@ def test_lens_snapshot_and_diff_cli(tmp_path: Path) -> None:
     assert text.exit_code == 0, text.output
     assert "unit_beta" in text.output
     assert "added_entity" in text.output or "+ entity unit_beta" in text.output
-    assert "pending: phase-11" in text.output
+    assert "pending: no-provider" in text.output
 
     js = runner.invoke(
         app,

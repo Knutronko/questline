@@ -194,9 +194,10 @@ def test_launch_log_tail_and_error_on_nonzero_exit(client: TestClient) -> None:
     fake.finish(1)
     import time
 
-    for _ in range(50):
+    st = {}
+    for _ in range(80):
         st = client.get("/api/launcher").json()["launcher"]
-        if st["state"] == "finished":
+        if st["state"] == "finished" and "DeviceError" in (st.get("error") or ""):
             break
         time.sleep(0.05)
     assert st["state"] == "finished"

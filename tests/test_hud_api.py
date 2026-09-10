@@ -65,6 +65,18 @@ def test_run_detail_banner(client: TestClient) -> None:
     assert body["banner"]["infra_failures"] == 1
     assert body["banner"]["test_failures"] == 0
     assert len(body["tests"]) == 2
+    assert body["ai_calls"][0]["provider"] == "mistral"
+
+
+def test_run_ai_calls_endpoint(client: TestClient) -> None:
+    res = client.get("/api/runs/run-a/ai-calls")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["run_id"] == "run-a"
+    assert len(body["calls"]) == 2
+    providers = {c["provider"] for c in body["calls"]}
+    assert providers == {"mistral", "groq"}
+    assert any(c["outcome"] == "rate_limited" for c in body["calls"])
 
 
 def test_test_detail_steps_death_artifacts(client: TestClient) -> None:

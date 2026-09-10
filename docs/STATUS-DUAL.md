@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-09-09** (fw **FP-G3** ✅ live matrix 75/75 Editor; game **QL-7** ✅ + `automation/bots`; **11** AI next — see [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md)).
+> Última revisión: **2026-09-10** (fw **phase-11** AI foundation ✅; Mistral live smoke deferred; G3 live 75/75 Editor remains measured data).
 
 ---
 
@@ -12,8 +12,8 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 + **05b–10** + **FP-G1** + **FP-G2** + **FP-G3** ✅ | Live Editor matrix 75 sessions drained; HUD telemetry still deferred | **11** AI foundation | AltTester Desktop fuera del happy path; G2/G3 HUD diferido; 09c parked (hooks sufficient) |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1…3 + QL-5 + QL-6 + QL-7** + Wire + **`automation/bots`** + **D10.5** + **D11 código** | Playtest D11 (feel); merge G3 PRs | Poco = 2º UI (fw 14); IEB-1…5 aún no son SO (hueco GameLens) |
+| **questline** | v0.1 + **05b–10** + **FP-G1** + **FP-G2** + **FP-G3** + **11** ✅ | LLMPort + router + `ai_calls` + HUD cost table; live smoke Groq+Ollama; G3 75/75 Editor still measured | **G1 implications live report** (and/or phase-12) | AltTester Desktop fuera del happy path; G2/G3 HUD diferido; 09c parked (hooks sufficient); INC-0010 open (watchdog, out of 11); **Mistral live smoke deferred** |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1…3 + QL-5 + QL-6 + QL-7** + Wire + **`automation/bots`** + **D10.5** + **D11 código** | Playtest D11 (feel); optional `QUESTLINE_SNAPSHOT_ID` on later bots | Poco = 2º UI (fw 14); IEB-1…5 aún no son SO (hueco GameLens) |
 
 
 **Drivers (prioridad):**
@@ -54,7 +54,7 @@
 | **FP-G1** | GameLens snapshot/diff | ✅ | ADR-0009; CLI `lens`; AI report → tras **11** — [`gamelens.md`](gamelens.md) · [`phase-fp-g1`](phases/phase-fp-g1-gamelens-snapshot.md) |
 | **FP-G2** | Telemetría thin | ✅ | ADR-0010; CLI `telemetry`; HUD diferido — [`telemetry.md`](telemetry.md) · [`phase-fp-g2`](phases/phase-fp-g2-telemetry.md); trigger **QL-6** |
 | **FP-G3** | Bots deterministas | ✅ **live Editor 2026-09-09** | Suite in ElJuegaso `automation/bots`. Matrix B1–B5 × 5 policies × N=3 = **75 passed** (~1h48). All cells `lose` (measured, not a bot fail). `config_snapshot_id=snap-unset` (no `QUESTLINE_SNAPSHOT_ID`). Playability: **hooks sufficient**, 09c parked. HUD telemetry **deferred** (CLI). Brief [`phase-fp-g3`](phases/phase-fp-g3-bots.md). |
-| 11 | AI foundation | ⬜ **siguiente** | LLMPort; consume datos G2/G3; desbloquea informe G1 |
+| 11 | AI foundation | ✅ | LLMPort + adapters + router + hard budgets + `ai_calls` (migration 5) + versioned prompts + doctor ping + HUD cost table. Thin GameLens consumer (measured vs model reasoning). Live smoke: Groq + Ollama **2026-09-10**; **Mistral deferred**. **Not** design copilot / AI bot policies. [`ai-setup.md`](ai-setup.md) · [`ADR-0011`](adr/ADR-0011-llmport-budget.md) · [`phase-11`](phases/phase-11-ai-foundation.md) |
 | 12 | AI agents | ⬜ | |
 | 13 | AI generation + eval | ⬜ | |
 | 14 | **Poco** + UTF | ⬜ | 2º UI backend + UTF; trigger **QL-4** |
@@ -174,9 +174,10 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | Merge G3 PRs ([questline #32](https://github.com/Knutronko/questline/pull/32), [ElJuegaso #48](https://github.com/Knutronko/ElJuegaso/pull/48)) | ambos | Live DoD met; code still on `feat/fp-g3-bots` |
-| 1∥ | Playtest **D11** (feel B1–B5) | ElJuegaso | Código D11 listo; feel humano. Matrix G3 = 75/75 **lose** (dato para retune, no bloquea merge) |
-| 2 | **phase-11** AI foundation | questline | Informe G1 + políticas AI usando sesiones G2/G3 |
+| 1 | **G1 implications live report** (use LLMPort + G2/G3 measured sessions) | questline | Phase-11 substrate landed; do not invent green/red; `snap-unset` and missing KPIs stay gaps |
+| 1∥ | Playtest **D11** (feel B1–B5) | ElJuegaso | Código D11 listo; feel humano. Matrix G3 = 75/75 **lose** (dato para retune) |
+| 1∥ | Optional: attach `QUESTLINE_SNAPSHOT_ID` on later bot runs | ElJuegaso | Live G3 used `snap-unset` |
+| 2 | **phase-12** AI agents (tool loop) | questline | After 11; not required for the implications report |
 | 3 | Wire **09c** stays parked | questline | G3 playability gate = hooks sufficient (no Point-spam / no Drag) |
 | 4 | Rebuild Dev APK (Android Wire v2) | ElJuegaso | Opcional |
 | 5 | **D12** infinito (telemetría más rica: `FUTURE_EVENT_NAMES` en [`telemetry.md`](telemetry.md)) | ElJuegaso | Tras bots baseline; no reinventar nombres; **do not** add `enemy.spawn` “for bots” (they use `BoardState`) |
@@ -227,6 +228,7 @@ Formalizado en: questline `GAME-INTEGRATION.md` + `00-MASTER-PLAN.md` §6 · ElJ
 | Balance automation / GameLens loop | [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md) |
 | GameLens (FP-G1) | [`gamelens.md`](gamelens.md) · [`ADR-0009`](adr/ADR-0009-gamelens-snapshot.md) · [`phase-fp-g1`](phases/phase-fp-g1-gamelens-snapshot.md) |
 | Telemetry (FP-G2) | [`telemetry.md`](telemetry.md) · [`ADR-0010`](adr/ADR-0010-gamelens-telemetry.md) · [`phase-fp-g2`](phases/phase-fp-g2-telemetry.md) |
+| AI foundation (11) | [`ai-setup.md`](ai-setup.md) · [`ADR-0011`](adr/ADR-0011-llmport-budget.md) · [`phase-11`](phases/phase-11-ai-foundation.md) |
 | Phase 05b brief | [`phase-05b-questline-wire.md`](phases/phase-05b-questline-wire.md) |
 | Android / adb | [`android.md`](android.md) |
 | Legacy AltTester setup | [`unity-setup.md`](unity-setup.md) |

@@ -57,7 +57,7 @@ def _make_legacy_db(path: Path) -> None:
 def test_fresh_store_is_at_current_schema_version(tmp_path: Path) -> None:
     with RunStore(tmp_path / "fresh.db") as store:
         assert store.schema_version == CURRENT_SCHEMA_VERSION
-        assert CURRENT_SCHEMA_VERSION >= 3
+        assert CURRENT_SCHEMA_VERSION >= 5
 
 
 def test_v1_store_upgrades_to_feature_id_column(tmp_path: Path) -> None:
@@ -151,6 +151,43 @@ def test_v3_store_upgrades_to_telemetry_tables(tmp_path: Path) -> None:
         probe.close()
         assert "telemetry_sessions" in names
         assert "telemetry_events" in names
+
+
+def test_v4_store_gains_ai_calls_ledger_columns(tmp_path: Path) -> None:
+    """schema_version=4 DB gains cached/outcome/pricing_version via migration 5."""
+    from questline.core.migrations import (
+        _migrate_001_initial_core,
+        _migrate_002_tests_feature_id,
+        _migrate_003_balance_snapshots,
+        _migrate_004_telemetry,
+    )
+
+    db_path = tmp_path / "v4.db"
+    conn = sqlite3.connect(str(db_path))
+    conn.isolation_level = None
+    apply_migrations(
+        conn,
+        (
+            Migration(1, "initial_core_schema", _migrate_001_initial_core),
+            Migration(2, "tests_feature_id", _migrate_002_tests_feature_id),
+            Migration(3, "balance_snapshots", _migrate_003_balance_snapshots),
+            Migration(4, "telemetry", _migrate_004_telemetry),
+        ),
+    )
+    assert get_schema_version(conn) == 4
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(ai_calls)").fetchall()}
+    assert "cached" not in cols
+    conn.close()
+
+    with RunStore(db_path) as store:
+        assert store.schema_version == CURRENT_SCHEMA_VERSION
+        probe = sqlite3.connect(str(db_path))
+        cols = {r[1] for r in probe.execute("PRAGMA table_info(ai_calls)").fetchall()}
+        probe.close()
+        assert "cached" in cols
+        assert "outcome" in cols
+        assert "pricing_version" in cols
+        assert store.list_ai_calls() == []
 
 
 def test_legacy_store_upgrades_cleanly_preserving_data(tmp_path: Path) -> None:

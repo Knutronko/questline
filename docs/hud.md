@@ -27,7 +27,8 @@ the CLI uses — no UI-only code paths).
 | ❌ deferred | **FP-G1** GameLens | CLI `questline lens` only — **no HUD panel yet** (see BACKLOG). Browse after FP-G2/G3 data exists |
 | ❌ deferred | **FP-G2** Telemetry | CLI `questline telemetry` only — **no HUD panel** (BACKLOG). G3 bots did not add one. |
 | ❌ deferred | **FP-G3** bots | Same telemetry CLI; **no HUD panel** (explicit defer). |
-| later | **11–13** AI | Cost per run / triage panels (read store `ai_calls`); GameLens AI implications after 11; action buttons with 12 |
+| ✅ | **11** AI foundation | Run-detail **AI calls / cost** table (`ai_calls`; `GET /api/runs/{id}/ai-calls`). No secrets. GameLens implications stay CLI (`lens diff --ai`). Phase-12: action buttons. |
+| later | **12–13** AI agents | Triage panels / action buttons; eval HUD later |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
 
 ### Gap audit (05b–09b → HUD after 10)
@@ -41,8 +42,9 @@ the CLI uses — no UI-only code paths).
 | PerfProbe series | ✅ Graphs + compare two runs |
 | Wire / drivers / devices | ✅ Launcher profile + device picker (no Wire-specific chrome) |
 | Reporters | ✅ Toggles on launch |
-| GameLens snapshot / diff | ❌ Deferred — CLI (`questline lens`); HUD panel after G2/G3 (BACKLOG) |
+| GameLens snapshot / diff | ❌ Deferred — CLI (`questline lens` / `--ai`); HUD panel after G2/G3 (BACKLOG) |
 | Telemetry sessions / KPIs | ❌ Deferred — CLI (`questline telemetry`); G3 bots did not add a HUD panel (BACKLOG) |
+| AI calls / cost | ✅ Phase 11 — table on run detail (allow-listed; no secrets) |
 | Command palette / arbitrary CLI | ❌ Deferred — CLI until a future BACKLOG item; not a full terminal |
 
 If something cannot fit, defer in this evolution table + [`phases/BACKLOG.md`](phases/BACKLOG.md)
@@ -192,7 +194,8 @@ uv run python scripts/serve_hud_smoke.py --port 8742
 Then in the browser:
 
 1. **Launch** → pick profile `mock` → Launch → confirm redirect to **Live** → **Stop**.
-2. **Runs** → open a run → test detail (verdicts / death-point / artifacts).
+2. **Runs** → open a run → test detail (verdicts / death-point / artifacts). Fixture
+   `run-a` also shows the **AI calls** table (phase-11).
 3. **Perf** → load series → Compare two runs (fixture smoke has `run-a` / `run-b`).
 4. **Quarantine** → add a nodeid → Limbo audit → remove.
 5. **Profiles** → load → Validate (invalid wait → same errors as CLI) → Diff preview.

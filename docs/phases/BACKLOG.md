@@ -29,7 +29,9 @@ Format: `- [ ] (phase-NN) description`
 - [ ] (phase-09c) Wire swipe/drag/long-press — **parked**; FP-G3 playability gate =
       hooks sufficient (BALANCE-AUTOMATION §5 / phase-09c brief). Do not schedule unless
       live G3 cannot finish combat without gestures.
-- [ ] (fp-g1) AI implications live report — deferred to phase-11 (snapshot/diff ships first).
+- [x] (fp-g1) AI implications thin LLMPort consumer — done in phase-11
+      (`build_implications`; measured vs model reasoning). Full design-copilot
+      / retune report still open (G1 implications live report).
 - [ ] (fp-g1) HUD GameLens panel (list snapshots / show typed diff) — deferred until
       FP-G2/G3 produce measured data worth browsing beside config diffs; CLI is MVP.
 - [x] (fp-g2) Thin telemetry before FP-G3 bots — do not wait for D12-only scheduling.
@@ -46,6 +48,11 @@ Format: `- [ ] (phase-NN) description`
 - [x] (fp-g3) Deterministic bots (fake-driver + `automation/bots`). Live Editor matrix
       is maintainer-checked DoD. AI policies after phase-11. HUD: explicit defer (CLI).
       Brief: [`phase-fp-g3-bots.md`](phase-fp-g3-bots.md). Policies: game §11.
+- [x] (phase-11) LLMPort substrate + HUD `ai_calls` table on run detail. Full GameLens
+      design-copilot report and AI bot policies remain follow-ups.
+- [ ] (phase-11) Mistral live smoke (`-p ai_mistral`, `MISTRAL_API_KEY`) — **deferred**
+      2026-09-10. Groq + Ollama verified. Recipe: [`ai-setup.md`](../ai-setup.md)
+      § Live smoke status.
 - [ ] (phase-09) Companion `draw_calls` is a reserved slot (always 0 in Runtime asmdef —
       no UnityEditor dependency). Optional Editor-only extension or game-injected counter.
 - [ ] (phase-09) PerfProbe anomaly detection / soak trend analysis — deferred (phase brief

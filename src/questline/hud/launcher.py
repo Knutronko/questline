@@ -89,6 +89,8 @@ class RunLauncher:
         self._log_lines: list[str] = []
         self._log_lock = threading.Lock()
         self._log_max_lines = 80
+        self._drain_done = threading.Event()
+        self._drain_done.set()
 
     def status(self) -> LaunchStatus:
         self._reconcile_finished()
@@ -165,6 +167,7 @@ class RunLauncher:
             self._proc = proc
             with self._log_lock:
                 self._log_lines = []
+            self._drain_done.clear()
             self._status.state = "running"
             self._status.pid = proc.pid
             self._status.log_tail = ""
@@ -214,6 +217,7 @@ class RunLauncher:
     def _drain_stdout(self, proc: subprocess.Popen[Any]) -> None:
         stream = getattr(proc, "stdout", None)
         if stream is None:
+            self._drain_done.set()
             return
         try:
             for line in stream:
@@ -233,6 +237,7 @@ class RunLauncher:
                 stream.close()
             except Exception:
                 pass
+            self._drain_done.set()
 
     def _log_tail_snapshot(self) -> str:
         with self._log_lock:
@@ -255,16 +260,26 @@ class RunLauncher:
                 self._release_device_lock()
                 self._proc = None
             return
+        self._finalize_exit(code)
+
+    def _finalize_exit(self, code: int | None) -> None:
+        """Waiter and status() reconcile share this so error/log_tail are set together."""
+        self._drain_done.wait(timeout=2.0)
         tail = self._log_tail_snapshot()
         with self._lock:
-            self._status.returncode = code
-            self._status.finished_at = time.time()
-            self._status.state = "finished"
+            if code is not None:
+                self._status.returncode = code
+            self._status.finished_at = self._status.finished_at or time.time()
+            if self._status.state in {"starting", "running", "stopping"}:
+                self._status.state = "finished"
             self._status.pid = None
-            self._status.log_tail = tail
-            if code not in (0, None) and not self._status.error:
-                # Surface pytest/session failures that never became EventBus tests.
-                self._status.error = self._format_exit_error(code, tail)
+            if tail:
+                self._status.log_tail = tail
+            exit_code = self._status.returncode
+            if exit_code not in (0, None):
+                formatted = self._format_exit_error(int(exit_code), tail or self._status.log_tail)
+                if not self._status.error or str(self._status.error).endswith("(see log_tail)"):
+                    self._status.error = formatted
             self._release_device_lock()
             self._proc = None
 
@@ -301,12 +316,7 @@ class RunLauncher:
             code = proc.poll()
             if code is None:
                 return
-            self._status.returncode = code
-            self._status.finished_at = time.time()
-            self._status.state = "finished"
-            self._status.pid = None
-            self._release_device_lock()
-            self._proc = None
+        self._finalize_exit(code)
 
     def _release_device_lock(self) -> None:
         if self._device_lock is not None and self._held_serial:

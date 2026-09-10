@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from questline.core.events import (
+    AiCallMade,
     EventBus,
     PerfSample,
     RunFinished,
@@ -110,6 +111,38 @@ def seed_fixture_store(db_path: Path) -> RunStore:
     assert shot.exists()
     bus.publish(
         RunFinished(run_id="run-a", status="failed", timestamp=t0 + timedelta(seconds=8))
+    )
+
+    bus.publish(
+        AiCallMade(
+            run_id="run-a",
+            provider="mistral",
+            model="mistral-small-latest",
+            tokens_in=120,
+            tokens_out=40,
+            cost=0.000024,
+            purpose="lens.implications",
+            duration_ms=210.0,
+            cached=False,
+            outcome="ok",
+            pricing_version="1",
+            timestamp=t0 + timedelta(seconds=9),
+        )
+    )
+    bus.publish(
+        AiCallMade(
+            run_id="run-a",
+            provider="groq",
+            model="llama-3.3-70b-versatile",
+            tokens_in=0,
+            tokens_out=0,
+            cost=0.0,
+            purpose="lens.implications",
+            duration_ms=80.0,
+            outcome="rate_limited",
+            pricing_version="1",
+            timestamp=t0 + timedelta(seconds=9, milliseconds=100),
+        )
     )
 
     # Perf samples for HUD graphs / compare (phase-10).
