@@ -15,10 +15,13 @@
 | **1** | questline | **Start this** — numbered **phase-12** test agents |
 | **2** | ElJuegaso | **Parallel, human** — D11 feel playtest (not a coding phase) |
 | **3** | ElJuegaso | **Parallel, small code** — optional `QUESTLINE_SNAPSHOT_ID` on later bots |
+| **4** | ElJuegaso | **Optional parallel** — **QL-8** Unity CLI + Pipeline + `unity mcp` dogfood |
 
 **Do not start in these chats:** Wire **09c** (parked), **phase-13** (needs 12),
-**phase-14 / QL-4 Poco**, **D12** (after D11 feel; richer `FUTURE_EVENT_NAMES` later).
+**phase-14 / QL-4 Poco**, **D12** (after D11 feel; richer `FUTURE_EVENT_NAMES` later),
+**FP-U1 / FP-U2** (after 12; live needs QL-8).
 Do not re-build the GameLens balance agent (FP-G4, done).
+QL-8 prompts: [`SESSION-PROMPTS-UNITY-CLI.md`](SESSION-PROMPTS-UNITY-CLI.md).
 
 ---
 
@@ -121,3 +124,11 @@ Out of scope: questline phase-12, retune SOs, changing G3 policies.
 Start with a short plan (where env is read, how HUD/lens will join) and wait for OK.
 Do not merge unless Pablo asks.
 ```
+
+---
+
+## Prompt 4 — ElJuegaso · QL-8 Unity CLI dogfood (optional parallel)
+
+Full prompt lives in [`SESSION-PROMPTS-UNITY-CLI.md`](SESSION-PROMPTS-UNITY-CLI.md)
+(QL-8 block). Workspace: `D:\Projects\ElJuegaso`. Does **not** replace Wire.
+Do not start FP-U1/U2 from that chat.

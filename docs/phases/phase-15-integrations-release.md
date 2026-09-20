@@ -32,9 +32,16 @@ the first release.
 6. **Repo hygiene sweep**: BACKLOG.md groomed into GitHub issues with labels
    (`good-first-phase`, `ai`, `drivers`…); phase briefs marked completed with links to
    their PRs (the build history is part of the portfolio).
+7. **Unity CLI on CI agents (docs + optional job step):** if the Unity CLI is the
+   maintainer's chosen Hub-less install path, document `unity install <editor> -m android
+   --accept-eula --yes` with service-account env **names**
+   (`UNITY_SERVICE_ACCOUNT_ID` / `UNITY_SERVICE_ACCOUNT_SECRET`). Feature-detect; Hub
+   remains valid. See [`unity-cli.md`](../unity-cli.md). Do not fail the release if the
+   CLI is absent. Implementing the FP-U1 Python sidecar is **not** this phase.
 
 ## Out of scope
-Implementing any farm adapter for real; iOS code; MCP server (backlog issue).
+Implementing any farm adapter for real; iOS code; **`questline mcp`** (FP-A1 — distinct
+from `unity mcp` / QL-8).
 
 ## Acceptance criteria
 - [ ] Repo's own CI shows GitHubActionsAdapter output (job summary of the demo suite).
