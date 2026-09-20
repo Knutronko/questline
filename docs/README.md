@@ -21,7 +21,8 @@
 | [resilience.md](resilience.md) | Health, recovery ladder, watchdog, infra vs test verdicts |
 | [reporting.md](reporting.md) | Reporters: console, HTML, Slack, GitHub Issues; secrets; allow-list |
 | [hud.md](hud.md) | Local HUD control center (`questline hud`): APIs, flags, HUD-first contract |
-| [hud-operator-guide.md](hud-operator-guide.md) | **Operator guide:** all current capabilities and how to use them via the HUD |
+| [hud-user-guide.md](hud-user-guide.md) | **Human guide:** what the HUD is, every page/button, live Ask |
+| [hud-operator-guide.md](hud-operator-guide.md) | Operator recipes (capabilities → HUD flows) |
 | [performance.md](performance.md) | PerfProbe: metrics, asserts, `questline perf report`, overhead notes |
 | [GAME-INTEGRATION.md](GAME-INTEGRATION.md) | Reference-game dogfood contract (phase ↔ game triggers) |
 | [BALANCE-AUTOMATION.md](BALANCE-AUTOMATION.md) | **GameLens loop:** SO → snapshot → bots → telemetry → AI |
@@ -61,7 +62,9 @@ GameLens/HUD contracts. Do not put tokens or machine-private data in the repo.
 | FP-G1 | GameLens snapshot/diff | [phase-fp-g1-gamelens-snapshot.md](phases/phase-fp-g1-gamelens-snapshot.md) |
 | FP-G2 | Thin gameplay telemetry | [phase-fp-g2-telemetry.md](phases/phase-fp-g2-telemetry.md) |
 | FP-G3 | Deterministic bots (after QL-6) | [phase-fp-g3-bots.md](phases/phase-fp-g3-bots.md) |
+| FP-G4 | GameLens balance agent + HUD | [phase-fp-g4-balance-agent.md](phases/phase-fp-g4-balance-agent.md) |
 
 Joint-wave prompts: [SESSION-PROMPTS-D11-QL5-FPG1.md](phases/SESSION-PROMPTS-D11-QL5-FPG1.md).
+Post-G4 next chats: [SESSION-PROMPTS-POST-G4.md](phases/SESSION-PROMPTS-POST-G4.md).
 Balance loop: [BALANCE-AUTOMATION.md](BALANCE-AUTOMATION.md).
 

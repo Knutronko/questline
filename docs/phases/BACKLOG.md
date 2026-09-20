@@ -61,9 +61,9 @@ Format: `- [ ] (phase-NN) description`
 - [ ] (phase-10) Command palette / “run any CLI” inside HUD — out of scope; keep
       `questline doctor` / one-off reports as CLI until a future phase claims it.
 - [ ] (phase-12) AI action buttons in HUD (triage/maintainer triggers) — **after FP-G4**.
-- [ ] (fp-g4) Maintainer walks **entire** HUD (08–11 + GameLens/agent) —
-      required in [`phase-fp-g4-balance-agent.md`](phase-fp-g4-balance-agent.md)
-      (Playwright + TestClient done in PR; live Groq walk = Pablo on this PR).
+- [x] (fp-g4) Maintainer walks **entire** HUD (08–11 + GameLens/agent) —
+      smoke fixture 2026-09-19 + live Groq Ask 2026-09-20. PR #36 merged.
+      Human guide: [`hud-user-guide.md`](../hud-user-guide.md).
 - [ ] (phase-09) Document PowerShell clear of `QUESTLINE_PERF_*` in every live how-to that
       follows a perf dogfood (see INC-0001) — done in wire-setup + performance.md; keep
       citing INC when adding new live recipes.

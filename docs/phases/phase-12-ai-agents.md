@@ -3,9 +3,10 @@
 > Session preamble: see `phase-00-bootstrap.md`. Read `docs/02-AI-ROADMAP.md §2–3`
 > carefully — the gates there are the whole point of this phase.
 >
-> **Status (2026-09-10 maintainer lock): PARKED** until **FP-G4** (GameLens
-> balance agent + HUD) merges. Do **not** start this brief next.
-> Immediate next: [`phase-fp-g4-balance-agent.md`](phase-fp-g4-balance-agent.md).
+> **Status (2026-09-20):** FP-G4 merged (PR #36). This brief is **unparked** — it is the
+> next numbered questline phase. Do **not** re-implement the GameLens balance agent
+> (that is G4). Parallel ElJuegaso work: D11 feel playtest + optional snapshot id;
+> see [`SESSION-PROMPTS-POST-G4.md`](SESSION-PROMPTS-POST-G4.md).
 
 ## Context
 Phases 00–11 merged. LLM layer with routing/budgets/cost ledger works.

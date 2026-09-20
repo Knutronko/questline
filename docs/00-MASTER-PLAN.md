@@ -138,16 +138,16 @@ Merge gate: GitHub Actions (lint + type check + unit tests + phase acceptance te
 | 9b | QuestlineWire v2 UI | find / hierarchy / tap / screenshot on Wire (ADR-0008) | Author's Unity game + Dev APK (QL-2c) |
 | 10 | HUD II (control center) | Launch runs, quarantine mgmt, profile editor, perf graphs | Local runs |
 | 11 | AI foundation | LLMPort + adapters (Mistral/Groq/Ollama/Cursor CLI), cost ledger, failover | Live free-tier calls |
-| 12 | AI agents | Triage agent, maintainer agent (diagnose/fix + gates), self-healing locators — **parked until after FP-G4** | Broken-on-purpose tests |
-| **FP-G4** | GameLens balance agent + HUD | Retune *priorities* + browse snapshots/diffs/sessions; maintainer walks the **whole HUD** | Local store + Pablo UI review |
+| 12 | AI agents | Triage agent, maintainer agent (diagnose/fix + gates), self-healing locators — **next after G4** | Broken-on-purpose tests |
+| **FP-G4** | GameLens balance agent + HUD | Retune *priorities* + browse snapshots/diffs/sessions — **✅ PR #36** | Local store + Pablo UI review |
 | 13 | AI generation + eval | Spec→test generator, unit-test generator, eval harness + metrics | Golden set |
 | 14 | **Poco** + UTF | **Second** UI backend (conformance) + Unity Test Framework ingestion | Example game via Poco |
 | 15 | Integrations & release | CIPort + TeamCity adapter, farm stubs, iOS design doc, docs site, v0.1.0 | Tagged release |
 
 Dependency notes: 8→10 (HUD), **G1–G3 → 11 → FP-G4** (balance agent + HUD) → **12**
-(test agents, parked until after G4) → 13 (eval). 2→4→5→**5b**→**9b**, 4→9, 9→9b.
-**GameLens path (2026-09-10):** FP-G1 → FP-G2 → FP-G3 → phase-11 → G1 implications →
-**FP-G4** (agent + HUD) → then phase-12. See [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md).
+(test agents) → 13 (eval). 2→4→5→**5b**→**9b**, 4→9, 9→9b.
+**GameLens path (2026-09-20):** FP-G1 → FP-G2 → FP-G3 → phase-11 → G1 implications →
+**FP-G4** (agent + HUD, merged) → **phase-12**. See [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md).
 Inserted lettered / catalog FPs do not renumber 13–15. HUD-first: operator phases ship
 HUD in the same PR.
 

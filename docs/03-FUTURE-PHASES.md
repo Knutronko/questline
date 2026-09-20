@@ -91,16 +91,16 @@ creature growth curves) — but the module is genre-agnostic by design.
   Playability = hooks (09c parked). HUD telemetry → **FP-G4**. Live Editor matrix
   maintainer-checked DoD.
 
-### FP-G4 — GameLens balance agent + HUD · **M · scheduled NEXT (2026-09-10)**
+### FP-G4 — GameLens balance agent + HUD · **M · ✅ merged 2026-09-20 (PR #36)**
 - Interactive *model reasoning* over snapshots + typed diffs + `telemetry_sessions.summary`
   + persisted implications. Output = retune **priorities**, never SO writes, never
   green/red, never imputed KPIs.
-- HUD: browse G1/G2/G3 **and** run the agent. Pablo reviews the **whole** control center.
-  Operator acceptance is HUD-first (PowerShell extra).
+- HUD: browse G1/G2/G3 **and** run the agent. Maintainer HUD walk + live Groq Ask
+  2026-09-20. Operator acceptance is HUD-first (PowerShell extra).
 - Thin read-only tool loop over LLMPort (not the phase-12 triage/healer kernel).
 - Brief: [`phases/phase-fp-g4-balance-agent.md`](phases/phase-fp-g4-balance-agent.md).
-  Former phase-12b browse-only slice is folded here. Phase-12 test agents wait until
-  after this FP.
+  Former phase-12b browse-only slice is folded here. Phase-12 test agents are **next**
+  (unparked). Human HUD guide: [`hud-user-guide.md`](hud-user-guide.md).
   Event names: thin catalog now; D12 reserved names when present — do not invent aliases.
 
 ---

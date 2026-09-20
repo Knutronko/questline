@@ -90,9 +90,13 @@ see labeled *model reasoning* next to *measured* numbers — without memorizing 
       (fixture store in CI; live store optional).
 - [x] Agent: fake-LLM tool loop; gaps include `snap-unset` / `combat.damage`;
       persist; no live keys in CI.
-- [ ] Maintainer: Groq (and/or Ollama) from **HUD**; numbers match store summaries.
-- [ ] Pablo full-HUD review in Self-review (`Verified in HUD: …`).
-- [x] STATUS-DUAL next-row = phase-12 (parked agents) or whatever Pablo locks.
+- [x] Maintainer: Groq from **HUD** Ask (`ai_groq`, 2026-09-20). `status=ok`,
+      `framing=model reasoning`, config-diff numbers + explicit no-telemetry gaps
+      (`combat.damage` / `FUTURE_EVENT_NAMES` not imputed). Store had no G3 sessions
+      for 1.0.0/1.1.0 — correct. Ollama daemon was down; not required once Groq passed.
+- [x] Pablo full-HUD review: smoke fixture 1–8 (2026-09-19) + live Ask above.
+      Self-review `Verified in HUD` below.
+- [x] STATUS-DUAL next-row = phase-12 (unparked after G4 merge).
 - [x] Self-review + `Incidents: …` or `none`.
 
 ## PR checklist
@@ -109,6 +113,8 @@ Do not merge unless Pablo asks.
 - HUD does not import `questline.ai.factory` (cursor_cli isolation).
 - **Verified in HUD:** Playwright smoke (runs/test/AI-calls, launch→live→stop, perf
   compare, GameLens snapshots→diff→gaps→Ask, telemetry `lose`/`snap-unset`) +
-  TestClient APIs. Maintainer live Groq/Ollama Ask on a real store = Pablo on this PR.
+  TestClient APIs. **Maintainer 2026-09-19/20:** smoke fixture pages 1–8; live HUD
+  (no SMOKE banner) Ask `ai_groq` → `status=ok`, priorities + gaps + measured citations
+  + cost row. PR #36 merged.
 - **Incidents:** none
 

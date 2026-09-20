@@ -83,17 +83,17 @@ the strongest possible portfolio artifact for AI Quality / LLM Evaluation roles.
 
 ## 4. Later candidates (see `03-FUTURE-PHASES.md` + `BALANCE-AUTOMATION.md`)
 
-**Order vs GameLens (2026-09-10):** G1 snapshot/diff, G2 telemetry, G3 bots, phase-11
-LLMPort, G1 implications live report, and **FP-G4** balance agent + HUD are in.
-Numbered **phase-12** (triage/healer) is next. Do **not** invert
+**Order vs GameLens (2026-09-20):** G1 snapshot/diff, G2 telemetry, G3 bots, phase-11
+LLMPort, G1 implications live report, and **FP-G4** balance agent + HUD are **merged**
+(PR #36). Numbered **phase-12** (triage/healer) is next on questline. Do **not** invert
 G1 → G2/G3 → 11. The G4 agent proposes retune *priorities*; it does not write SOs.
 
 - **GameLens implications report (FP-G1 AI slice) ✅**: batch *model reasoning* on
   `lens diff --ai`. Measured input = `telemetry_sessions.summary`; never impute KPIs.
-- **FP-G4 — balance agent + HUD ✅:** interactive priorities + browse snapshots /
-  diffs / sessions / implications in the control center. Pablo full-UI review.
-  Phase-12b browse-only brief is folded here.
-- **Phase-12 test agents (after G4):** triage / diagnose / healer.
+- **FP-G4 — balance agent + HUD ✅ merged PR #36 (2026-09-20):** interactive priorities +
+  browse snapshots / diffs / sessions / implications. Maintainer HUD walk + live Groq
+  Ask. Phase-12b browse-only brief is folded here.
+- **Phase-12 test agents (next):** triage / diagnose / healer. Unparked after G4.
 - **AI bot policies (post FP-G3 deterministic, later):** LLM chooses in-game actions
   under budget; compared to deterministic baselines; not this FP.
 - **AI crash triage (FP-T6)**: dedupe + suspect-area analysis of monkey-run crashes.

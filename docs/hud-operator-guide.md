@@ -4,6 +4,10 @@ This guide explains **what Questline can do today** (framework phases **00–10*
 including **05b** Wire and **09b** Wire v2) and **how to exercise those capabilities
 from the local HUD** (`questline hud`).
 
+If you have not used Questline before, start with the human guide
+([`hud-user-guide.md`](hud-user-guide.md)) — pages, buttons, and what live Ask
+shows. This file is the operator recipe book.
+
 Canonical status: [`STATUS-DUAL.md`](STATUS-DUAL.md).  
 HUD reference (APIs, flags, contracts): [`hud.md`](hud.md).  
 Deep dives: [writing-tests](writing-tests.md), [wire-setup](wire-setup.md),
@@ -414,6 +418,7 @@ Record PR / session notes as: **Verified in HUD:** … vs **CLI-only:** ….
 
 | Doc | When you need it |
 |-----|------------------|
+| [hud-user-guide.md](hud-user-guide.md) | Human / first-time walkthrough (buttons + live Ask) |
 | [hud.md](hud.md) | API tables, flags, HUD-first contract for AI sessions |
 | [writing-tests.md](writing-tests.md) | Pages, steps, markers, quarantine authoring |
 | [wire-setup.md](wire-setup.md) | Live Wire Editor / Android |

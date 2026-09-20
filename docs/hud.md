@@ -7,7 +7,9 @@ run/test detail (verdicts, death-point, artifacts), trends, live WebSocket view,
 
 Stack decision: [ADR-0007](adr/ADR-0007-hud-frontend-stack.md).
 Architecture overview: [`01-ARCHITECTURE.md`](01-ARCHITECTURE.md) §6.
-**Operator walkthrough (all capabilities → HUD flows):**
+**New to the HUD?** Button-by-button human guide:
+[`hud-user-guide.md`](hud-user-guide.md).  
+**Operator walkthrough (capabilities → HUD flows):**
 [`hud-operator-guide.md`](hud-operator-guide.md).
 
 ## Evolution — what later phases add
@@ -25,7 +27,7 @@ the CLI uses — no UI-only code paths).
 | ✅ | **09b** Wire v2 | Richer live/automation runs. **HUD:** no dedicated Wire panel — screenshots via `ArtifactSaved`; launcher picks profile/device |
 | ✅ | **10** HUD II | Launcher, quarantine UI, profile editor, **perf graphs** + run comparison, CSRF + `--read-only` |
 | ✅ | **11** AI foundation | Run-detail **AI calls / cost** table (`ai_calls`; `GET /api/runs/{id}/ai-calls`). No secrets. |
-| ✅ **FP-G4** | **Balance agent + GameLens HUD** | Browse snapshots/diff/implications/sessions + ask retune priorities. **Pablo reviews the whole HUD.** [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) |
+| ✅ **FP-G4** | **Balance agent + GameLens HUD** | Browse snapshots/diff/implications/sessions + ask retune priorities. Maintainer walk + live Groq Ask 2026-09-20. [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) · [`hud-user-guide.md`](hud-user-guide.md) |
 | later | **12** AI agents | Triage / diagnose / healer buttons on failed runs — **after FP-G4** |
 | later | **13** Eval | Eval HUD later |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
