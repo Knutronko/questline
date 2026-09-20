@@ -28,8 +28,8 @@ the CLI uses — no UI-only code paths).
 | ✅ | **10** HUD II | Launcher, quarantine UI, profile editor, **perf graphs** + run comparison, CSRF + `--read-only` |
 | ✅ | **11** AI foundation | Run-detail **AI calls / cost** table (`ai_calls`; `GET /api/runs/{id}/ai-calls`). No secrets. |
 | ✅ **FP-G4** | **Balance agent + GameLens HUD** | Browse snapshots/diff/implications/sessions + ask retune priorities. Maintainer walk + live Groq Ask 2026-09-20. [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) · [`hud-user-guide.md`](hud-user-guide.md) |
-| ✅ **this PR** | **12** AI agents | **Triage this run** / **Diagnose this test** / healer on failed runs. [`ai-agents.md`](ai-agents.md) |
-| later | **13** Eval | Eval HUD later |
+| ✅ **PR #39** | **12** AI agents | **Triage this run** / **Diagnose this test** / healer on failed runs. [`ai-agents.md`](ai-agents.md) |
+| ✅ **this PR** | **13** Eval + generation | **Eval** panel: golden history, compare, fake run, spec→test. [`ai-eval.md`](ai-eval.md) |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
 | later | **FP-U1** Unity CLI sidecar | Launcher **chip**: CLI present / Editor running / play mode + **Ensure Editor**. [`phase-fp-u1`](phases/phase-fp-u1-unity-cli-sidecar.md) |
 | later | **FP-U2** Pipeline commands | Optional allow-listed command **count** on the chip. **No** HUD command executor |
@@ -147,6 +147,7 @@ empty state (not an error).
 | `#/lens/sessions/{id}` | Session summary (allow-listed) |
 | `#/lens/turns` | Persisted balance-agent turns |
 | `#/lens/turns/{id}` | Priorities (*model reasoning*) + gaps + measured citations + cost |
+| `#/eval` | Eval harness history, metric compare, spec→test |
 | `#/runs/{id}` | Tests grid + **infra vs test** banner + **Triage this run** |
 | `#/runs/{id}/tests/{tid}` | Step timeline, death-point, artifacts, history sparkline (`tid` may be a pytest nodeid with `/`) + **Diagnose this test** |
 | `#/trends` | Pass-rate / duration charts, flakiness board, duration-vs-pass correlation |
@@ -159,7 +160,7 @@ empty state (not an error).
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/api/health` | Liveness |
-| GET | `/api/meta` | `read_only`, paths, `api.agents`, `api.revision` |
+| GET | `/api/meta` | `read_only`, paths, `api.agents`, `api.eval`, `api.revision` |
 | GET | `/api/runs` | List + `profile` / `status` filters |
 | GET | `/api/runs/{id}` | Run detail + tests + verdict banner |
 | GET | `/api/runs/{id}/tests/{tid}` | Steps, death-point, artifacts, history (`{tid:path}` — slash-safe nodeids) |
@@ -176,6 +177,9 @@ empty state (not an error).
 | GET | `/api/lens/agent/turns` | Balance-agent turn index |
 | GET | `/api/runs/{id}/agent-tasks` | Phase-12 task index for a pytest run |
 | GET | `/api/agent-tasks/{id}` | Task body (summary, clusters, gate, suggestion) |
+| GET | `/api/eval/runs` | Eval harness history |
+| GET | `/api/eval/runs/{id}` | Eval run + per-case rows |
+| GET | `/api/eval/compare?a=&b=` | Metric delta (B−A) |
 | GET | `/api/devices` | Live adb device list |
 | GET | `/api/profiles` | Profile names |
 | GET | `/api/profiles/{name}` | Public fields + secret env names |
@@ -200,6 +204,9 @@ empty state (not an error).
 | POST | `/api/agents/triage` | Cluster a finished run (read-only) |
 | POST | `/api/agents/diagnose` | Diagnose one test (`fix` opt-in; anti-false-green gate) |
 | POST | `/api/agents/heal` | Suggest `locators.yaml` (never writes) |
+| POST | `/api/agents/generate` | Spec→test (execution gate owns success) |
+| POST | `/api/agents/unit-gen` | Framework unit-gen patch (never auto-commits) |
+| POST | `/api/eval/run` | Offline golden eval (FakeProvider) |
 
 Mutators require cookie `questline_csrf` matching header `X-CSRF-Token`. Non-loopback
 clients receive 403 on mutators.
@@ -231,6 +238,7 @@ Then in the browser:
 8. **Sessions** → `sess-unset`: `lose` = measured play; `snap-unset` = join gap.
 9. **Ask** on the diff (profile `ai_groq` or smoke fake): priorities + gaps + measured citations.
 10. **Triage this run** on fixture `run-a` → clusters. Open `t-infra` → **Diagnose this test**.
+11. **Eval** → fixture `eval-a` / `eval-b` → Compare (B−A table). Optional **Run fake eval**.
 
 **Verified in HUD vs CLI:** note which of the above you clicked vs which you only ran via
 `pytest` / `questline` in the PR Self-review.

@@ -187,9 +187,11 @@ class LLMProvider(Protocol):
   copilot remains FP-G4.
 - Phase-12 **test** agents (`questline.ai.agents`): shared kernel, per-task budget,
   incremental persist. Store index `agent_tasks` (migration 8) plus
-  `artifacts/agents/<id>/`. GameLens Ask stays in `questline.lens.agent`. HUD builds
+  `artifacts/agents/<id>/`. Phase-13 eval index `eval_results` (migration 9) plus
+  `artifacts/eval/<id>/`. GameLens Ask stays in `questline.lens.agent`. HUD builds
   a router **without** importing `questline.ai.factory` / `cursor_cli`. Operator
-  guide: [`ai-agents.md`](ai-agents.md). CLI extra: `questline ai triage|diagnose|heal`.
+  guide: [`ai-agents.md`](ai-agents.md) · [`ai-eval.md`](ai-eval.md).
+  CLI extra: `questline ai triage|diagnose|heal|generate|unit-gen|eval`.
 
 ---
 

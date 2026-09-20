@@ -1,0 +1,17 @@
+id: assertion-packs
+failure_class: assertion
+cause: test-bug
+expected_fix_class: assertion-fix
+agent: maintainer
+mode: fix
+score_fix: true
+gate_green: true
+error_type: AssertionError
+error_message: "expected packs==2, got 1"
+store_verdict: test
+setup: MockDriver GetPacks returns 1 after one buy; test expected 2
+reply:
+  verdict: fixed
+  cause: test-bug
+  fix_class: assertion-fix
+  summary: Pack count assertion off-by-one vs measured GetPacks.

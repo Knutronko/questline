@@ -9,10 +9,12 @@ from urllib.parse import unquote
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from questline.ai.agents.generator import run_generator
 from questline.ai.agents.healer import run_healer
 from questline.ai.agents.maintainer import run_maintainer
 from questline.ai.agents.persist import load_task_artifact
 from questline.ai.agents.triage import run_triage
+from questline.ai.agents.unit_gen import run_unit_gen
 from questline.core.store import RunStore
 from questline.hud.ai_router import build_hud_router
 from questline.lens.browse import public_path
@@ -36,6 +38,18 @@ class DiagnoseBody(BaseModel):
 class HealBody(BaseModel):
     run_id: str
     test_id: str | None = None
+    profile: str | None = None
+
+
+class GenerateBody(BaseModel):
+    spec: str
+    dest: str | None = None
+    rebuild_test_id: str | None = None
+    profile: str | None = None
+
+
+class UnitGenBody(BaseModel):
+    module_path: str
     profile: str | None = None
 
 
@@ -178,6 +192,45 @@ def post_heal(body: HealBody, request: Request) -> dict[str, Any]:
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    row = store.get_agent_task(task.id)
+    if row is None:
+        raise HTTPException(status_code=500, detail="agent task did not persist")
+    return {"task": _task_public(store, row, include_body=True)}
+
+
+@router.post("/agents/generate")
+def post_generate(body: GenerateBody, request: Request) -> dict[str, Any]:
+    store = _store(request)
+    root = _root(request)
+    dest = Path(body.dest) if body.dest else (store.artifacts_dir / "generated")
+    if not dest.is_absolute():
+        dest = root / dest
+    router_impl = build_hud_router(request, store, body.profile, run_id="hud-generate")
+    task = run_generator(
+        store,
+        spec=body.spec,
+        dest=dest,
+        router=router_impl,
+        project_root=root,
+        rebuild_test_id=body.rebuild_test_id,
+    )
+    row = store.get_agent_task(task.id)
+    if row is None:
+        raise HTTPException(status_code=500, detail="agent task did not persist")
+    return {"task": _task_public(store, row, include_body=True)}
+
+
+@router.post("/agents/unit-gen")
+def post_unit_gen(body: UnitGenBody, request: Request) -> dict[str, Any]:
+    store = _store(request)
+    root = _root(request)
+    router_impl = build_hud_router(request, store, body.profile, run_id="hud-unit-gen")
+    task = run_unit_gen(
+        store,
+        module_path=body.module_path,
+        router=router_impl,
+        project_root=root,
+    )
     row = store.get_agent_task(task.id)
     if row is None:
         raise HTTPException(status_code=500, detail="agent task did not persist")

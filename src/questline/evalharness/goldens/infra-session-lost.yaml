@@ -1,0 +1,16 @@
+id: infra-session-lost
+failure_class: infra
+cause: infra
+expected_fix_class: none
+agent: maintainer
+mode: diagnose
+score_fix: false
+error_type: SessionLostError
+error_message: "socket closed 13000"
+store_verdict: infra
+setup: MockDriver session dropped mid-tap (infra, not a test bug)
+reply:
+  verdict: diagnosed
+  cause: infra
+  fix_class: none
+  summary: Wire/session lost; do not patch the test.

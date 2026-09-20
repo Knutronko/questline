@@ -51,3 +51,18 @@ MCP server (`questline mcp` = FP-A1; `unity mcp` = QL-8 / not this phase), flaki
 
 ## PR checklist
 Title `phase-13: ai generation + eval harness`. Update AI-ROADMAP status.
+
+## Self-review (this PR)
+
+- Generator success is owned by pytest execution (`executed` + `expect:` match). A model
+  `passed` claim on a file that does not collect stays `inconclusive`.
+- Eval goldens are MockDriver (shop/coins/HUD), not P1 types/SOs. Sabotage golden must
+  flag `false_green`.
+- HUD Eval is the operator path; CLI is extra. HUD still does not import
+  `questline.ai.factory` / `cursor_cli`.
+- Unit-gen never auto-commits.
+- Live two-provider eval is maintainer-checked (`questline ai eval --live`), not CI.
+- **Incidents:** none
+- **Verified in HUD:** Eval table (`eval-a`/`eval-b`) + Compare B−A (Playwright +
+  TestClient). Generator MockDriver demo via pytest, not a live HUD generate click.
+

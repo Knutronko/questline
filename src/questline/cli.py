@@ -48,7 +48,7 @@ app.add_typer(telemetry_app, name="telemetry")
 
 ai_app = typer.Typer(
     name="ai",
-    help="LLMPort cost ledger, live smoke, and phase-12 test agents.",
+    help="LLMPort cost ledger, test agents, generation, and eval harness.",
     no_args_is_help=True,
 )
 app.add_typer(ai_app, name="ai")
@@ -1179,6 +1179,224 @@ def ai_heal(
     except KeyError as exc:
         typer.secho(str(exc), fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
+    finally:
+        store.close()
+
+
+@ai_app.command("generate")
+def ai_generate(
+    spec: Annotated[
+        Path,
+        typer.Option("--spec", help="Markdown/plain-text spec file"),
+    ],
+    dest: Annotated[
+        Path,
+        typer.Option("--out", help="Directory for the generated pytest file"),
+    ] = Path("generated-tests"),
+    rebuild: Annotated[
+        str | None,
+        typer.Option("--rebuild", help="Prior test id (history + spec)"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store"),
+    ] = None,
+) -> None:
+    """Spec → test. Success only if the generated file executes as specified."""
+    from questline.ai.agents.generator import run_generator
+
+    if not spec.is_file():
+        typer.secho(f"spec not found: {spec}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2)
+    try:
+        settings, store = _open_store(config, profile, store_db)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    text = spec.read_text(encoding="utf-8")
+    try:
+        router = _ai_router_for(settings, store, "cli-generate")
+        task = run_generator(
+            store,
+            spec=text,
+            dest=dest,
+            router=router,
+            project_root=settings.project_root,
+            rebuild_test_id=rebuild,
+        )
+        typer.echo(f"task: {task.id}")
+        typer.echo(f"verdict: {task.verdict} cause: {task.cause}")
+        if task.gate:
+            typer.echo(f"gate: {task.gate}")
+        if not (task.gate or {}).get("accepted"):
+            raise typer.Exit(code=1)
+    finally:
+        store.close()
+
+
+@ai_app.command("unit-gen")
+def ai_unit_gen(
+    module_path: Annotated[
+        str,
+        typer.Argument(help="Framework module (e.g. questline.core.errors)"),
+    ],
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store"),
+    ] = None,
+    coverage: Annotated[
+        bool,
+        typer.Option("--coverage", help="Measure coverage while running the proposed file"),
+    ] = False,
+) -> None:
+    """Propose framework unit tests as a patch. Never auto-commits."""
+    from questline.ai.agents.unit_gen import run_unit_gen
+
+    try:
+        settings, store = _open_store(config, profile, store_db)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    try:
+        router = _ai_router_for(settings, store, "cli-unit-gen")
+        task = run_unit_gen(
+            store,
+            module_path=module_path,
+            router=router,
+            project_root=settings.project_root,
+            measure_coverage=coverage,
+        )
+        typer.echo(f"task: {task.id}")
+        typer.echo(f"verdict: {task.verdict}")
+        if task.gate:
+            typer.echo(f"gate: {task.gate}")
+            if task.gate.get("patch"):
+                typer.echo(f"patch: {task.gate['patch']}")
+        typer.echo("auto-commit: no")
+    finally:
+        store.close()
+
+
+@ai_app.command("eval")
+def ai_eval(
+    agent: Annotated[
+        str,
+        typer.Option("--agent", help="maintainer (default) or all"),
+    ] = "maintainer",
+    provider: Annotated[
+        str,
+        typer.Option("--provider", help="fake (CI) or a live profile provider name"),
+    ] = "fake",
+    prompt_version: Annotated[
+        str,
+        typer.Option("--prompt-version"),
+    ] = "v1",
+    live: Annotated[
+        bool,
+        typer.Option("--live", help="Use the configured LLM router (maintainer-checked)"),
+    ] = False,
+    compare_a: Annotated[
+        str | None,
+        typer.Option("--compare-a", help="Existing eval id (left)"),
+    ] = None,
+    compare_b: Annotated[
+        str | None,
+        typer.Option("--compare-b", help="Existing eval id (right)"),
+    ] = None,
+    export: Annotated[
+        str | None,
+        typer.Option("--export", help="deepeval or langfuse stub JSON to stdout"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store"),
+    ] = None,
+) -> None:
+    """Run the golden eval matrix, or compare two stored runs."""
+    from questline.evalharness.compare import compare_eval_runs
+    from questline.evalharness.exporters import to_deepeval, to_langfuse
+    from questline.evalharness.persist import load_eval_artifact
+    from questline.evalharness.runner import run_eval
+
+    try:
+        settings, store = _open_store(config, profile, store_db)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    try:
+        if compare_a and compare_b:
+            ra = store.get_eval_result(compare_a)
+            rb = store.get_eval_result(compare_b)
+            if ra is None or rb is None:
+                typer.secho("eval id not found", fg=typer.colors.RED, err=True)
+                raise typer.Exit(code=1)
+            left = dict(ra)
+            right = dict(rb)
+            body_a = load_eval_artifact(ra.get("artifact_path")) or {}
+            body_b = load_eval_artifact(rb.get("artifact_path")) or {}
+            left["metrics"] = body_a.get("metrics") or ra
+            right["metrics"] = body_b.get("metrics") or rb
+            report = compare_eval_runs(left, right)
+            typer.echo(str(report))
+            return
+        router = _ai_router_for(settings, store, "cli-eval") if live else None
+        run = run_eval(
+            store,
+            agent=agent,
+            provider=provider,
+            prompt_version=prompt_version,
+            router=router,
+        )
+        typer.echo(f"eval: {run.id}")
+        typer.echo(
+            f"diagnosis_accuracy={run.diagnosis_accuracy or 0.0:.3f} "
+            f"fix_correctness={run.fix_correctness or 0.0:.3f} "
+            f"false_green_rate={run.false_green_rate or 0.0:.3f} "
+            f"iterations_avg={run.iterations_avg or 0.0:.2f} "
+            f"cost_usd={run.cost_usd or 0.0:.4f} n={run.case_count}"
+        )
+        payload = run.to_dict()
+        if export == "deepeval":
+            typer.echo(str(to_deepeval(payload)))
+        elif export == "langfuse":
+            typer.echo(str(to_langfuse(payload)))
+        sabotaged = [c for c in run.cases if c.get("sabotage") and c.get("false_green")]
+        if any(c.get("sabotage") for c in run.cases) and not sabotaged:
+            typer.secho("sabotage golden was not flagged false-green", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
     finally:
         store.close()
 

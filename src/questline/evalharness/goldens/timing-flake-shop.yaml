@@ -1,0 +1,16 @@
+id: timing-flake-shop
+failure_class: timing
+cause: flaky
+expected_fix_class: wait-budget
+agent: maintainer
+mode: diagnose
+score_fix: false
+error_type: ElementNotFoundError
+error_message: "not found: id=shop.root (deadline)"
+store_verdict: test
+setup: MockDriver shop root sometimes misses a 50ms wait
+reply:
+  verdict: diagnosed
+  cause: flaky
+  fix_class: wait-budget
+  summary: Shop open race; increase wait, do not rewrite locator.

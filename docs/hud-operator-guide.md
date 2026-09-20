@@ -386,6 +386,7 @@ Others can browse Runs/Perf/Trends; mutators stay off.
 | One-off pytest outside launcher | `uv run pytest … --questline-profile …` |
 | Arbitrary CLI / shell in browser | Deferred (BACKLOG) |
 | AI actions on a failed run | Phase 12 — **Triage this run** / **Diagnose this test** |
+| Eval harness / spec→test | Phase 13 — **Eval** ([`ai-eval.md`](ai-eval.md)) |
 | Poco / UTF C# results UI extras | Phase 14 (results still land in same store later) |
 
 ---

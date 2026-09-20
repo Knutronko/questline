@@ -61,3 +61,5 @@ cannot spend another test’s turns. USD ceilings are still ADR-0011
 
 Migration **8** adds `agent_tasks`. Artifacts under `artifacts/agents/<id>/`.
 GameLens turns stay in `lens_agent_turns` (migration 7).
+
+Spec→test, unit-gen, and the eval harness are **phase 13** — [`ai-eval.md`](ai-eval.md).

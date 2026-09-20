@@ -27,6 +27,7 @@ You use it to:
 | Edit `questline.toml` profiles (no secrets) | **Profiles** |
 | Compare FPS / memory across two runs | **Perf** |
 | Browse balance snapshots and ask “what should we retune?” | **GameLens** |
+| See agent eval scores (diagnosis / false-green) | **Eval** |
 | See pass-rate and flaky tests over time | **Trends** |
 | Watch events while a run is in progress | **Live** |
 
@@ -430,6 +431,7 @@ priorities / gaps / citations again.
 | Import a balance snapshot | CLI `questline lens` — see [`gamelens.md`](gamelens.md) |
 | Drain telemetry files | CLI `questline telemetry` — see [`telemetry.md`](telemetry.md) |
 | AI triage / diagnose / heal a failed test | HUD run/test detail (phase-12). CLI extra: `questline ai triage|diagnose|heal` — [`ai-agents.md`](ai-agents.md) |
+| Eval goldens / spec→test | HUD **Eval** (phase-13). CLI extra: `questline ai eval|generate` — [`ai-eval.md`](ai-eval.md) |
 | Poco / second UI backend | Not built (phase-14) |
 | Command palette / arbitrary shell | Not in the HUD |
 

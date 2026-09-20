@@ -43,7 +43,13 @@ export type Meta = {
   project_root: string;
   quarantine_path: string;
   reporters: string[];
-  api?: { test_by_query?: boolean; lens?: boolean; agents?: boolean; revision?: number };
+  api?: {
+    test_by_query?: boolean;
+    lens?: boolean;
+    agents?: boolean;
+    eval?: boolean;
+    revision?: number;
+  };
 };
 
 export type LauncherStatus = {
@@ -509,6 +515,57 @@ export function runHeal(body: {
   profile?: string;
 }): Promise<{ task: AgentTask }> {
   return mutateJson("POST", "/api/agents/heal", body);
+}
+
+export type EvalRun = {
+  id: string;
+  agent?: string;
+  provider?: string | null;
+  prompt_version?: string;
+  status?: string;
+  diagnosis_accuracy?: number | null;
+  fix_correctness?: number | null;
+  false_green_rate?: number | null;
+  iterations_avg?: number | null;
+  cost_usd?: number | null;
+  case_count?: number;
+  created_at?: string | null;
+  cases?: Array<Record<string, unknown>>;
+  metrics?: Record<string, unknown>;
+};
+
+export function listEvalRuns(): Promise<{ runs: EvalRun[]; empty: boolean }> {
+  return getJson("/api/eval/runs");
+}
+
+export function getEvalRun(id: string): Promise<{ run: EvalRun }> {
+  return getJson(`/api/eval/runs/${encodeURIComponent(id)}`);
+}
+
+export function compareEvalRuns(
+  a: string,
+  b: string,
+): Promise<{ compare: Record<string, unknown> }> {
+  return getJson(
+    `/api/eval/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`,
+  );
+}
+
+export function runEval(body: {
+  agent?: string;
+  provider?: string;
+  prompt_version?: string;
+}): Promise<{ run: EvalRun }> {
+  return mutateJson("POST", "/api/eval/run", body);
+}
+
+export function runGenerate(body: {
+  spec: string;
+  dest?: string;
+  rebuild_test_id?: string;
+  profile?: string;
+}): Promise<{ task: AgentTask }> {
+  return mutateJson("POST", "/api/agents/generate", body);
 }
 
 export function fmtDur(s: number | null | undefined): string {

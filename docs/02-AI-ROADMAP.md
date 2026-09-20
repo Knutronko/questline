@@ -24,7 +24,7 @@ See [`ai-setup.md`](ai-setup.md) and [`ADR-0011`](adr/ADR-0011-llmport-budget.md
   index. Does **not** complete design-copilot (FP-G4) or AI bot policies.
   Phase-12 agents are test triage/healer, not a balance-retune loop.
 
-## 2. Agent kernel (Phase 12) — **this PR**
+## 2. Agent kernel (Phase 12) — **shipped (PR #39)**
 
 Shared loop for all **test** agents (not GameLens retune):
 - Allow-listed tools per agent (read_file, grep, run_test, read_screenshot, hierarchy, …).
@@ -58,17 +58,17 @@ On ElementNotFound: diff the expected locator against the live hierarchy snapsho
 candidate locators (structural + semantic similarity), emit a suggested `locators.yaml`
 diff. Human approves. Metric: healing suggestion acceptance rate.
 
-### 3.4 Test generation (Phase 13)
+### 3.4 Test generation (Phase 13) — **this PR**
 Spec (Markdown/plain text) → test code using the authoring layer and existing pages;
 missing pages/locators are generated as explicit TODOs with hierarchy-assisted suggestions.
 Gate: generated test must execute (green, or red for the *stated* reason) before it can be
 committed. Includes a "rebuild this flaky test" mode.
 
-### 3.5 Unit-test generation for the framework itself (Phase 13)
+### 3.5 Unit-test generation for the framework itself (Phase 13) — **this PR**
 Agent proposes pytest unit tests for core modules; coverage delta measured; human reviews.
 Dogfood value: the framework's own CI consumes its own AI.
 
-### 3.6 Eval harness (Phase 13) — the flagship
+### 3.6 Eval harness (Phase 13) — the flagship — **this PR**
 A benchmark that measures the agents, built on a **golden set**: intentionally broken tests
 (and/or historical bugs) with known root causes and known-good fixes.
 Metrics per agent/model/prompt version:
@@ -85,7 +85,8 @@ the strongest possible portfolio artifact for AI Quality / LLM Evaluation roles.
 
 **Order vs GameLens (2026-09-20):** G1 snapshot/diff, G2 telemetry, G3 bots, phase-11
 LLMPort, G1 implications live report, and **FP-G4** balance agent + HUD are **merged**
-(PR #36). Numbered **phase-12** (triage/healer) is next on questline. Do **not** invert
+(PR #36). Numbered **phase-12** test agents shipped **PR #39**. **Phase-13**
+(generation + eval harness) is this PR. Do **not** invert
 G1 → G2/G3 → 11. The G4 agent proposes retune *priorities*; it does not write SOs.
 
 - **GameLens implications report (FP-G1 AI slice) ✅**: batch *model reasoning* on
@@ -93,7 +94,8 @@ G1 → G2/G3 → 11. The G4 agent proposes retune *priorities*; it does not writ
 - **FP-G4 — balance agent + HUD ✅ merged PR #36 (2026-09-20):** interactive priorities +
   browse snapshots / diffs / sessions / implications. Maintainer HUD walk + live Groq
   Ask. Phase-12b browse-only brief is folded here.
-- **Phase-12 test agents (this PR):** triage / diagnose / healer. Kernel + HUD buttons. Unparked after G4.
+- **Phase-12 test agents ✅ merged PR #39 (2026-09-20):** triage / diagnose / healer. Kernel + HUD buttons.
+- **Phase-13 generation + eval (this PR):** spec→test gate, unit-gen patch, golden harness, HUD Eval.
 - **AI bot policies (post FP-G3 deterministic, later):** LLM chooses in-game actions
   under budget; compared to deterministic baselines; not this FP.
 - **AI crash triage (FP-T6)**: dedupe + suspect-area analysis of monkey-run crashes.

@@ -1,0 +1,16 @@
+id: assertion-text
+failure_class: assertion
+cause: test-bug
+expected_fix_class: assertion-fix
+agent: maintainer
+mode: diagnose
+score_fix: false
+error_type: AssertionError
+error_message: "expected Buy Pack, got Buy"
+store_verdict: test
+setup: MockDriver shop buy button label mismatch in test
+reply:
+  verdict: diagnosed
+  cause: test-bug
+  fix_class: assertion-fix
+  summary: Test expected stale shop button copy.

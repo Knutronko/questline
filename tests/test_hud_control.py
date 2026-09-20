@@ -242,7 +242,8 @@ def test_meta_exposes_api_revision(client: TestClient) -> None:
     assert meta["api"]["test_by_query"] is True
     assert meta["api"]["lens"] is True
     assert meta["api"]["agents"] is True
-    assert meta["api"]["revision"] >= 5
+    assert meta["api"]["eval"] is True
+    assert meta["api"]["revision"] >= 6
 
 
 def test_launch_spawn_failure_surfaces_500(client: TestClient) -> None:

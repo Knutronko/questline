@@ -145,3 +145,23 @@ def test_ai_triage_diagnose_heal(tmp_path: Path) -> None:
     assert "verdict:" in heal.stdout
     empty = runner.invoke(app, ["ai", "heal", "run-b", *common])
     assert empty.exit_code == 1
+
+
+def test_ai_eval_offline(tmp_path: Path) -> None:
+    cfg = _fake_toml(tmp_path / "questline.toml")
+    result = runner.invoke(
+        app,
+        [
+            "ai",
+            "eval",
+            "--config",
+            str(cfg),
+            "--profile",
+            "fake_ai",
+            "--store",
+            str(tmp_path / "store.db"),
+        ],
+    )
+    assert result.exit_code == 0, result.stdout + result.stderr
+    assert "diagnosis_accuracy=" in result.stdout
+    assert "false_green_rate=" in result.stdout

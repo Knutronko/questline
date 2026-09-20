@@ -1,0 +1,16 @@
+id: locator-rename-play
+failure_class: locator
+cause: test-bug
+expected_fix_class: locator-update
+agent: maintainer
+mode: diagnose
+score_fix: false
+error_type: ElementNotFoundError
+error_message: "not found: id=main.play"
+store_verdict: test
+setup: MockDriver MainMenu.play_button id renamed from main.play
+reply:
+  verdict: diagnosed
+  cause: test-bug
+  fix_class: locator-update
+  summary: Play button locator id drifted.

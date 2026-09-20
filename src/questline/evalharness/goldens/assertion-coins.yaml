@@ -1,0 +1,17 @@
+id: assertion-coins
+failure_class: assertion
+cause: test-bug
+expected_fix_class: assertion-fix
+agent: maintainer
+mode: fix
+score_fix: true
+gate_green: true
+error_type: AssertionError
+error_message: "expected Coins: 50, got Coins: 100"
+store_verdict: test
+setup: MockDriver shop buy pack — test asserted wrong coin remainder
+reply:
+  verdict: fixed
+  cause: test-bug
+  fix_class: assertion-fix
+  summary: Assertion used the pre-purchase coin string.

@@ -31,6 +31,7 @@
 | [telemetry.md](telemetry.md) | **FP-G2 operator guide:** thin events, CLI `telemetry`, later catalog, drain |
 | [ai-setup.md](ai-setup.md) | LLMPort keys (env **names**), profiles, budgets, live smoke |
 | [ai-agents.md](ai-agents.md) | **Phase-12** test agents: kernel gates, HUD buttons, how to trust |
+| [ai-eval.md](ai-eval.md) | **Phase-13** eval harness: goldens, metrics, honest limits, spec→test |
 | [STATUS-DUAL.md](STATUS-DUAL.md) | **Vista de una pasada:** estado + roadmaps questline ↔ P1 + orden propuesto |
 | [INCIDENTS.md](INCIDENTS.md) | **Lessons log:** maintainer-visible traps (env/races/sync) for future AI sessions |
 | [FEATURE-PIPELINE-PLAN.md](FEATURE-PIPELINE-PLAN.md) | Feature→tests pipeline plan + phase addendums |

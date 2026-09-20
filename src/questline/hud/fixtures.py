@@ -283,8 +283,69 @@ def seed_fixture_store(db_path: Path) -> RunStore:
         )
 
     _seed_gamelens(store)
+    _seed_eval_results(store)
     store.detach()
     return store
+
+
+def _seed_eval_results(store: RunStore) -> None:
+    """Two fake eval runs so Playwright can render history + compare without POST."""
+    from questline.evalharness.persist import persist_eval_run
+    from questline.evalharness.schema import EvalRun
+
+    cases_a = [
+        {
+            "id": "locator-rename-play",
+            "failure_class": "locator",
+            "diagnosis_ok": True,
+            "false_green": False,
+            "cause_expected": "test-bug",
+            "cause_actual": "test-bug",
+        },
+        {
+            "id": "sabotage-bypass-gate",
+            "failure_class": "assertion",
+            "diagnosis_ok": True,
+            "false_green": True,
+            "sabotage": True,
+            "cause_expected": "test-bug",
+            "cause_actual": "test-bug",
+        },
+    ]
+    a = EvalRun(
+        id="eval-a",
+        agent="maintainer",
+        provider="fake",
+        prompt_version="v1",
+        status="ok",
+        diagnosis_accuracy=0.92,
+        fix_correctness=0.67,
+        false_green_rate=0.08,
+        iterations_avg=1.0,
+        cost_usd=0.0,
+        case_count=12,
+        cases=cases_a,
+        created_at="2026-09-20T10:00:00+00:00",
+        meta={"seed": True},
+    )
+    b = EvalRun(
+        id="eval-b",
+        agent="maintainer",
+        provider="fake-b",
+        prompt_version="v1",
+        status="ok",
+        diagnosis_accuracy=0.75,
+        fix_correctness=0.50,
+        false_green_rate=0.16,
+        iterations_avg=2.0,
+        cost_usd=0.12,
+        case_count=12,
+        cases=list(cases_a),
+        created_at="2026-09-20T11:00:00+00:00",
+        meta={"seed": True},
+    )
+    persist_eval_run(store, a)
+    persist_eval_run(store, b)
 
 
 def _entity(eid: str, system: str, fields: dict[str, object]) -> dict[str, object]:
