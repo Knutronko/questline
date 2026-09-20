@@ -108,3 +108,40 @@ def test_ai_costs_from_store(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.stdout + result.stderr
     assert "ollama" in result.stdout
     assert "0.000000" in result.stdout
+
+
+def test_ai_triage_diagnose_heal(tmp_path: Path) -> None:
+    from questline.hud.fixtures import seed_fixture_store
+
+    store = seed_fixture_store(tmp_path / "store.db")
+    store.close()
+    cfg = _fake_toml(tmp_path / "questline.toml")
+    (tmp_path / "locators.yaml").write_text(
+        "pages:\n  MainMenu:\n    play_button:\n      by: id\n      value: main.play\n",
+        encoding="utf-8",
+    )
+    common = [
+        "--config",
+        str(cfg),
+        "--profile",
+        "fake_ai",
+        "--store",
+        str(tmp_path / "store.db"),
+    ]
+    triage = runner.invoke(app, ["ai", "triage", "run-a", *common])
+    assert triage.exit_code == 0, triage.stdout + triage.stderr
+    assert "clusters:" in triage.stdout
+    diagnose = runner.invoke(app, ["ai", "diagnose", "run-a", "t-infra", *common])
+    assert diagnose.exit_code == 0, diagnose.stdout + diagnose.stderr
+    assert "verdict:" in diagnose.stdout
+    missing = runner.invoke(app, ["ai", "diagnose", "run-a", "nope", *common])
+    assert missing.exit_code == 1
+    locators = str(tmp_path / "locators.yaml")
+    heal = runner.invoke(
+        app,
+        ["ai", "heal", "run-a", "--test", "t-locator", "--locators", locators, *common],
+    )
+    assert heal.exit_code == 0, heal.stdout + heal.stderr
+    assert "verdict:" in heal.stdout
+    empty = runner.invoke(app, ["ai", "heal", "run-b", *common])
+    assert empty.exit_code == 1

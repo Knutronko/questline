@@ -1,4 +1,14 @@
-import { artifactUrl, esc, fmtDur, getTest } from "../api";
+import {
+  artifactUrl,
+  esc,
+  fmtDur,
+  getMeta,
+  getTest,
+  listAgentTasks,
+  runDiagnose,
+  runHeal,
+  type AgentTask,
+} from "../api";
 
 export async function renderTest(runId: string, testId: string): Promise<string> {
   const data = await getTest(runId, testId);
@@ -43,6 +53,22 @@ export async function renderTest(runId: string, testId: string): Promise<string>
     })
     .join("");
 
+  const failed = t.status === "failed" || t.status === "error";
+  let canMutate = true;
+  try {
+    canMutate = !(await getMeta()).read_only;
+  } catch {
+    canMutate = true;
+  }
+  const locatorMiss = String(t.error_type ?? "").includes("ElementNotFound");
+  let tasks: AgentTask[] = [];
+  try {
+    const listed = await listAgentTasks(runId);
+    tasks = (listed.tasks || []).filter((x) => !x.test_id || x.test_id === testId);
+  } catch {
+    tasks = [];
+  }
+
   return `
     <p class="meta">
       <a href="#/">Runs</a> /
@@ -54,6 +80,23 @@ export async function renderTest(runId: string, testId: string): Promise<string>
       verdict=<span class="verdict-${esc(t.verdict ?? "")}">${esc(t.verdict ?? "—")}</span> ·
       duration=${esc(fmtDur(t.duration_s))}
     </div>
+
+    ${
+      failed && canMutate
+        ? `<div class="toolbar" data-testid="agent-test-actions">
+      <button type="button" id="diagnose-test" data-testid="diagnose-test">Diagnose this test</button>
+      <button type="button" id="fix-test" data-testid="fix-test">Fix this test</button>
+      ${
+        locatorMiss
+          ? `<button type="button" id="heal-test" data-testid="heal-test">Suggest locator</button>`
+          : ""
+      }
+      <span id="diagnose-msg" class="meta" data-testid="diagnose-msg"></span>
+    </div>
+    <div id="diagnose-result" data-testid="diagnose-result">${renderTaskList(tasks)}</div>
+    <script type="application/json" id="test-agent-ctx">${JSON.stringify({ runId, testId, locatorMiss })}</script>`
+        : ""
+    }
 
     <div class="panel death ${verdictClass}" data-testid="death-point">
       <h2>Death point</h2>
@@ -72,4 +115,73 @@ export async function renderTest(runId: string, testId: string): Promise<string>
     <h2>Artifacts</h2>
     <div class="art-grid" data-testid="artifacts">${arts || "<span class='meta'>none</span>"}</div>
   `;
+}
+
+export function wireTest(): void {
+  const ctxEl = document.getElementById("test-agent-ctx");
+  let runId = "";
+  let testId = "";
+  try {
+    const ctx = JSON.parse(ctxEl?.textContent || "{}") as {
+      runId?: string;
+      testId?: string;
+    };
+    runId = ctx.runId || "";
+    testId = ctx.testId || "";
+  } catch {
+    return;
+  }
+  const msg = () => document.getElementById("diagnose-msg");
+  const mount = () => document.getElementById("diagnose-result");
+  document.getElementById("diagnose-test")?.addEventListener("click", () => {
+    void runAction("diagnose", runId, testId, msg(), mount());
+  });
+  document.getElementById("fix-test")?.addEventListener("click", () => {
+    if (!window.confirm("Fix mode writes files under the project jail and re-runs the test. Continue?")) {
+      return;
+    }
+    void runAction("fix", runId, testId, msg(), mount());
+  });
+  document.getElementById("heal-test")?.addEventListener("click", () => {
+    void runAction("heal", runId, testId, msg(), mount());
+  });
+}
+
+async function runAction(
+  kind: "diagnose" | "fix" | "heal",
+  runId: string,
+  testId: string,
+  msg: HTMLElement | null,
+  mount: HTMLElement | null,
+): Promise<void> {
+  if (!runId || !testId) return;
+  if (msg) msg.textContent = "running…";
+  try {
+    const res =
+      kind === "heal"
+        ? await runHeal({ run_id: runId, test_id: testId })
+        : await runDiagnose({ run_id: runId, test_id: testId, fix: kind === "fix" });
+    if (msg) msg.textContent = `status=${res.task.status} verdict=${res.task.verdict}`;
+    if (mount) mount.innerHTML = renderTaskPanel(res.task);
+  } catch (err) {
+    if (msg) msg.textContent = String(err);
+  }
+}
+
+function renderTaskList(tasks: AgentTask[]): string {
+  if (!tasks.length) return "";
+  return tasks.map(renderTaskPanel).join("");
+}
+
+function renderTaskPanel(task: AgentTask): string {
+  const sug = task.suggestion || {};
+  const diff = typeof sug.yaml_diff === "string" ? sug.yaml_diff : "";
+  const gate = task.gate ? `gate accepted=${esc(String(task.gate.accepted ?? ""))}` : "";
+  return `
+    <div class="panel" data-testid="agent-task" data-task-kind="${esc(task.kind ?? "")}">
+      <div class="meta">kind=${esc(task.kind ?? "")} · verdict=${esc(task.verdict ?? "")}
+        · cause=${esc(task.cause ?? "")} ${gate}</div>
+      <p>${esc(task.summary ?? "")}</p>
+      ${diff ? `<pre data-testid="heal-diff">${esc(diff)}</pre>` : ""}
+    </div>`;
 }

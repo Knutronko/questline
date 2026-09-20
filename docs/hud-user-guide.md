@@ -136,6 +136,10 @@ keys. Empty until something actually called an LLM in that run.
 **Tests** table: click a **nodeid** (pytest path) to drill in. **Death step** is
 the last step that started before the failure.
 
+If the run failed, **Triage this run** clusters failures (read-only). Results
+attach to the run (`verdict` / `cause` / clusters). The model does **not** own
+green/red.
+
 If the run failed with **no tests**, session setup died before pytest collected
 anything (typical: Editor still owning port 13000 while you wanted Android, or
 adb lock). Check Launch → **Status** `error` / `log_tail`.
@@ -148,6 +152,10 @@ adb lock). Check Launch → **Status** `error` / `log_tail`.
 | **History** | Sparkline of the *same* nodeid across previous runs (pass/fail height). |
 | **Step timeline** | Ordered steps with status and error text. |
 | **Artifacts** | Screenshots / logs written under the store jail. Click to open. |
+
+Failed tests also show **Diagnose this test** (default, read-only) and **Fix this
+test** (opt-in confirm; the gate re-runs pytest). **Suggest locator** appears on
+`ElementNotFoundError` and never writes `locators.yaml`.
 
 **Verdict words you will see**
 
@@ -421,7 +429,7 @@ priorities / gaps / citations again.
 | `questline doctor` (ping providers) | CLI |
 | Import a balance snapshot | CLI `questline lens` — see [`gamelens.md`](gamelens.md) |
 | Drain telemetry files | CLI `questline telemetry` — see [`telemetry.md`](telemetry.md) |
-| AI triage / auto-fix a failed test | Not built (phase-12, parked) |
+| AI triage / diagnose / heal a failed test | HUD run/test detail (phase-12). CLI extra: `questline ai triage|diagnose|heal` — [`ai-agents.md`](ai-agents.md) |
 | Poco / second UI backend | Not built (phase-14) |
 | Command palette / arbitrary shell | Not in the HUD |
 

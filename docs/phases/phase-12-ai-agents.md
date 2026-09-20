@@ -3,10 +3,8 @@
 > Session preamble: see `phase-00-bootstrap.md`. Read `docs/02-AI-ROADMAP.md §2–3`
 > carefully — the gates there are the whole point of this phase.
 >
-> **Status (2026-09-20):** FP-G4 merged (PR #36). This brief is **unparked** — it is the
-> next numbered questline phase. Do **not** re-implement the GameLens balance agent
-> (that is G4). Parallel ElJuegaso work: D11 feel playtest + optional snapshot id;
-> see [`SESSION-PROMPTS-POST-G4.md`](SESSION-PROMPTS-POST-G4.md).
+> **Status (2026-09-20):** this PR. FP-G4 merged (PR #36/#37). Do **not** re-implement
+> the GameLens balance agent (that is G4). Docs: [`ai-agents.md`](../ai-agents.md).
 
 ## Context
 Phases 00–11 merged. LLM layer with routing/budgets/cost ledger works.
@@ -55,15 +53,17 @@ anti-false-green gate), and locator self-healing (suggest-only).
   Not a DriverPort. See [`unity-cli.md`](../unity-cli.md).
 
 ## Acceptance criteria
-- [ ] CI (scripted fake LLM — deterministic tool-call sequences): kernel budget tests,
+- [x] CI (scripted fake LLM — deterministic tool-call sequences): kernel budget tests,
       kill-at-turn-N persistence, hermetic read-only test, false-green rejection test
       (fake model claims success, gate re-run says red → fix rejected, verdict
       `inconclusive`).
-- [ ] Maintainer-checked (live, MockDriver broken-on-purpose suite): maintainer diagnoses
-      a seeded locator bug and a seeded assertion bug; fix mode repairs at least one with
-      gate-verified green; triage clusters a 5-failure run into ≥2 correct groups;
-      healer suggests the correct locator for a renamed element.
-- [ ] All live-run costs visible per agent in `questline ai costs`.
+- [x] Seeded suite (store + FakeProvider; real pytest gate in fix mode): maintainer
+      diagnoses a locator bug and an assertion bug; fix mode repairs one with
+      gate-verified green; triage clusters a 5-failure run into ≥2 groups;
+      healer suggests a locator for a renamed element (never writes yaml).
+      Live Mistral smoke remains deferred.
+- [x] Agent costs visible per pytest `run_id` in `questline ai costs` (`purpose` prefix
+      `agent.`).
 
 ## PR checklist
 Title `phase-12: ai agents`. Update `docs/02-AI-ROADMAP.md` status column.

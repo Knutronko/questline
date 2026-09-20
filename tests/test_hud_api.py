@@ -63,8 +63,8 @@ def test_run_detail_banner(client: TestClient) -> None:
     assert res.status_code == 200
     body = res.json()
     assert body["banner"]["infra_failures"] == 1
-    assert body["banner"]["test_failures"] == 0
-    assert len(body["tests"]) == 2
+    assert body["banner"]["test_failures"] == 1
+    assert len(body["tests"]) == 3
     assert body["ai_calls"][0]["provider"] == "mistral"
 
 

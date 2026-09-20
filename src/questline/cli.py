@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -48,7 +48,7 @@ app.add_typer(telemetry_app, name="telemetry")
 
 ai_app = typer.Typer(
     name="ai",
-    help="LLMPort cost ledger and live smoke (phase-11).",
+    help="LLMPort cost ledger, live smoke, and phase-12 test agents.",
     no_args_is_help=True,
 )
 app.add_typer(ai_app, name="ai")
@@ -994,6 +994,191 @@ def ai_costs(
             )
         typer.echo(f"rows: {len(rows)}")
         typer.echo(f"total_usd: {total:.6f}")
+    finally:
+        store.close()
+
+
+def _open_store(
+    config: Path | None, profile: str | None, store_db: Path | None
+) -> tuple[Any, Any]:
+    from questline.core.store import RunStore
+
+    settings = load_settings(config_path=config, profile=profile)
+    db_path = Path(store_db) if store_db is not None else settings.store_db
+    artifacts = settings.artifacts_dir if store_db is None else (db_path.parent / "artifacts")
+    store = RunStore(db_path, artifacts_dir=artifacts)
+    return settings, store
+
+
+def _ai_router_for(settings: Any, store: Any, run_id: str) -> Any:
+    from questline.ai.factory import build_router
+
+    return build_router(settings, store=store, run_id=run_id)
+
+
+@ai_app.command("triage")
+def ai_triage(
+    run_id: Annotated[str, typer.Argument(help="Finished run id")],
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="AI profile (ai_groq / ai_ollama)"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store", help="Override path to store.db"),
+    ] = None,
+) -> None:
+    """Read-only failure clusters for a finished run (HUD is the operator path)."""
+    from questline.ai.agents.triage import run_triage
+
+    try:
+        settings, store = _open_store(config, profile, store_db)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    try:
+        router = _ai_router_for(settings, store, run_id)
+        task = run_triage(
+            store,
+            run_id=run_id,
+            router=router,
+            project_root=settings.project_root,
+        )
+        typer.echo(f"task: {task.id}")
+        typer.echo(f"verdict: {task.verdict} cause: {task.cause} status: {task.status}")
+        typer.echo(f"clusters: {len(task.clusters)}")
+        for cluster in task.clusters:
+            typer.echo(
+                f"  [{cluster.get('bucket')}] {cluster.get('error_type')} "
+                f"x{len(cluster.get('test_ids') or [])}"
+            )
+    except KeyError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    finally:
+        store.close()
+
+
+@ai_app.command("diagnose")
+def ai_diagnose(
+    run_id: Annotated[str, typer.Argument(help="Run id")],
+    test_id: Annotated[str, typer.Argument(help="Test id (store id, not only nodeid)")],
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="AI profile"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store"),
+    ] = None,
+    fix: Annotated[
+        bool,
+        typer.Option("--fix", help="Opt-in fix mode (anti-false-green gate re-runs the test)"),
+    ] = False,
+    flaky_guard: Annotated[
+        bool,
+        typer.Option("--flaky-guard", help="Re-run a green gate twice"),
+    ] = False,
+) -> None:
+    """Diagnose one failing test (default). --fix is opt-in."""
+    from questline.ai.agents.maintainer import run_maintainer
+
+    try:
+        settings, store = _open_store(config, profile, store_db)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    try:
+        router = _ai_router_for(settings, store, run_id)
+        root = settings.project_root
+        task = run_maintainer(
+            store,
+            run_id=run_id,
+            test_id=test_id,
+            router=router,
+            project_root=root,
+            fix=fix,
+            flaky_guard=flaky_guard,
+        )
+        typer.echo(f"task: {task.id}")
+        typer.echo(f"verdict: {task.verdict} cause: {task.cause} status: {task.status}")
+        if task.gate:
+            typer.echo(f"gate: {task.gate}")
+        if task.summary:
+            typer.echo(task.summary[:500])
+    except KeyError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    finally:
+        store.close()
+
+
+@ai_app.command("heal")
+def ai_heal(
+    run_id: Annotated[str, typer.Argument(help="Run id with ElementNotFound artifacts")],
+    test_id: Annotated[
+        str | None,
+        typer.Option("--test", help="Specific test id (default: first ElementNotFound)"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store"),
+    ] = None,
+    locators: Annotated[
+        Path | None,
+        typer.Option("--locators", help="Path to locators.yaml (never written)"),
+    ] = None,
+) -> None:
+    """Suggest a locators.yaml diff. Never writes."""
+    from questline.ai.agents.healer import run_healer
+
+    try:
+        settings, store = _open_store(config, profile, store_db)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    try:
+        router = _ai_router_for(settings, store, run_id)
+        task = run_healer(
+            store,
+            run_id=run_id,
+            test_id=test_id,
+            router=router,
+            project_root=settings.project_root,
+            locators_path=locators,
+        )
+        typer.echo(f"task: {task.id}")
+        typer.echo(f"verdict: {task.verdict} cause: {task.cause}")
+        sug = task.suggestion or {}
+        typer.echo(sug.get("yaml_diff") or task.summary or "(no suggestion)")
+    except KeyError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
     finally:
         store.close()
 

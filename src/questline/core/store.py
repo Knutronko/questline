@@ -758,6 +758,99 @@ class RunStore:
             out.append(data)
         return out
 
+    def save_agent_task(
+        self,
+        *,
+        task_id: str,
+        kind: str,
+        run_id: str | None,
+        test_id: str | None,
+        status: str,
+        verdict: str | None,
+        cause: str | None,
+        prompt_version: str,
+        artifact_path: str,
+        created_at: str | None = None,
+        meta: dict[str, Any] | None = None,
+    ) -> None:
+        """Index a persisted phase-12 test-agent task (incremental upsert)."""
+        ts = created_at or datetime.now().astimezone().isoformat()
+        meta_json = json.dumps(meta or {}, sort_keys=True)
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                self._conn.execute(
+                    """
+                    INSERT OR REPLACE INTO agent_tasks (
+                        id, kind, run_id, test_id, status, verdict, cause,
+                        prompt_version, artifact_path, created_at, meta
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        task_id,
+                        kind,
+                        run_id,
+                        test_id,
+                        status,
+                        verdict,
+                        cause,
+                        prompt_version,
+                        artifact_path,
+                        ts,
+                        meta_json,
+                    ),
+                )
+                self._conn.execute("COMMIT")
+            except Exception:
+                self._conn.execute("ROLLBACK")
+                raise
+
+    def get_agent_task(self, task_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT * FROM agent_tasks WHERE id = ?", (task_id,)
+            ).fetchone()
+        if row is None:
+            return None
+        data = dict(row)
+        data["meta"] = _json_obj(data.get("meta"))
+        return data
+
+    def list_agent_tasks(
+        self,
+        *,
+        run_id: str | None = None,
+        test_id: str | None = None,
+        kind: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if run_id:
+            clauses.append("run_id = ?")
+            params.append(run_id)
+        if test_id:
+            clauses.append("test_id = ?")
+            params.append(test_id)
+        if kind:
+            clauses.append("kind = ?")
+            params.append(kind)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = (
+            f"SELECT * FROM agent_tasks {where} "
+            f"ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?"
+        )
+        params.extend([max(0, int(limit)), max(0, int(offset))])
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            data["meta"] = _json_obj(data.get("meta"))
+            out.append(data)
+        return out
+
     def save_telemetry_session(
         self,
         *,

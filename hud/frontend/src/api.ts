@@ -43,7 +43,7 @@ export type Meta = {
   project_root: string;
   quarantine_path: string;
   reporters: string[];
-  api?: { test_by_query?: boolean; lens?: boolean; revision?: number };
+  api?: { test_by_query?: boolean; lens?: boolean; agents?: boolean; revision?: number };
 };
 
 export type LauncherStatus = {
@@ -461,6 +461,54 @@ export function runBalanceAgent(body: {
   profile?: string;
 }): Promise<{ turn: AgentTurn }> {
   return mutateJson("POST", "/api/lens/agent/run", body);
+}
+
+export type AgentTask = {
+  id: string;
+  kind?: string;
+  run_id?: string | null;
+  test_id?: string | null;
+  status?: string;
+  verdict?: string | null;
+  cause?: string | null;
+  summary?: string;
+  pending?: string | null;
+  clusters?: Array<Record<string, unknown>>;
+  evidence?: unknown[];
+  suggestion?: Record<string, unknown> | null;
+  gate?: Record<string, unknown> | null;
+  tool_log?: Array<Record<string, unknown>>;
+  created_at?: string | null;
+};
+
+export function listAgentTasks(
+  runId: string,
+): Promise<{ tasks: AgentTask[]; empty: boolean }> {
+  return getJson(`/api/runs/${encodeURIComponent(runId)}/agent-tasks`);
+}
+
+export function runTriage(body: {
+  run_id: string;
+  profile?: string;
+}): Promise<{ task: AgentTask }> {
+  return mutateJson("POST", "/api/agents/triage", body);
+}
+
+export function runDiagnose(body: {
+  run_id: string;
+  test_id: string;
+  profile?: string;
+  fix?: boolean;
+}): Promise<{ task: AgentTask }> {
+  return mutateJson("POST", "/api/agents/diagnose", body);
+}
+
+export function runHeal(body: {
+  run_id: string;
+  test_id?: string;
+  profile?: string;
+}): Promise<{ task: AgentTask }> {
+  return mutateJson("POST", "/api/agents/heal", body);
 }
 
 export function fmtDur(s: number | null | undefined): string {

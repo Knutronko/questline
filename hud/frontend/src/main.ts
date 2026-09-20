@@ -1,7 +1,7 @@
 import "./style.css";
 import { ensureCsrf, esc, fmtDur, getMeta, listRuns, type RunSummary } from "./api";
-import { renderRun } from "./pages/run";
-import { renderTest } from "./pages/test";
+import { renderRun, wireRun } from "./pages/run";
+import { renderTest, wireTest } from "./pages/test";
 import { renderTrends } from "./pages/trends";
 import { renderLive, startLive } from "./pages/live";
 import { renderLaunch, wireLaunch } from "./pages/launch";
@@ -269,6 +269,8 @@ function wire(name: string): void {
   if (name === "perf") wirePerf();
   if (name === "lens") wireLensHome();
   if (name === "lens-diff") wireLensDiff();
+  if (name === "run") wireRun();
+  if (name === "test") wireTest();
 }
 
 async function boot(): Promise<void> {
@@ -276,7 +278,7 @@ async function boot(): Promise<void> {
     const meta = await getMeta();
     readOnly = !!meta.read_only;
     smokeMode = !!meta.smoke;
-    staleApi = !meta.api?.test_by_query || !meta.api?.lens;
+    staleApi = !meta.api?.test_by_query || !meta.api?.lens || !meta.api?.agents;
     if (!readOnly) await ensureCsrf();
   } catch {
     readOnly = false;

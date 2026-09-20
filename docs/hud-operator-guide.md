@@ -35,7 +35,8 @@ Questline is a **local-first game-automation framework** for Unity (and mock/CI)
 | **HUD** | Viewer (08) + control center (10) | This app |
 
 **Not in the HUD yet (use CLI / later phases):** `questline doctor`, arbitrary shell /
-command palette, AI triage buttons (phase 12), Poco/UTF (phase 14).
+command palette, Poco/UTF (phase 14). Phase-12 triage/diagnose/heal **are** in the HUD
+on failed runs/tests ([`ai-agents.md`](ai-agents.md)).
 
 ---
 
@@ -384,7 +385,7 @@ Others can browse Runs/Perf/Trends; mutators stay off.
 | Quarantine without HUD | `questline quarantine add\|remove\|audit` |
 | One-off pytest outside launcher | `uv run pytest … --questline-profile …` |
 | Arbitrary CLI / shell in browser | Deferred (BACKLOG) |
-| AI actions on a failed run | Phase 12 |
+| AI actions on a failed run | Phase 12 — **Triage this run** / **Diagnose this test** |
 | Poco / UTF C# results UI extras | Phase 14 (results still land in same store later) |
 
 ---

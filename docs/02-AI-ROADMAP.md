@@ -24,7 +24,7 @@ See [`ai-setup.md`](ai-setup.md) and [`ADR-0011`](adr/ADR-0011-llmport-budget.md
   index. Does **not** complete design-copilot (FP-G4) or AI bot policies.
   Phase-12 agents are test triage/healer, not a balance-retune loop.
 
-## 2. Agent kernel (Phase 12)
+## 2. Agent kernel (Phase 12) — **this PR**
 
 Shared loop for all **test** agents (not GameLens retune):
 - Allow-listed tools per agent (read_file, grep, run_test, read_screenshot, hierarchy, …).
@@ -93,7 +93,7 @@ G1 → G2/G3 → 11. The G4 agent proposes retune *priorities*; it does not writ
 - **FP-G4 — balance agent + HUD ✅ merged PR #36 (2026-09-20):** interactive priorities +
   browse snapshots / diffs / sessions / implications. Maintainer HUD walk + live Groq
   Ask. Phase-12b browse-only brief is folded here.
-- **Phase-12 test agents (next):** triage / diagnose / healer. Unparked after G4.
+- **Phase-12 test agents (this PR):** triage / diagnose / healer. Kernel + HUD buttons. Unparked after G4.
 - **AI bot policies (post FP-G3 deterministic, later):** LLM chooses in-game actions
   under budget; compared to deterministic baselines; not this FP.
 - **AI crash triage (FP-T6)**: dedupe + suspect-area analysis of monkey-run crashes.

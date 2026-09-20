@@ -112,6 +112,49 @@ def seed_fixture_store(db_path: Path) -> RunStore:
     )
     assert shot.exists()
     bus.publish(
+        TestStarted(
+            run_id="run-a",
+            test_id="t-locator",
+            nodeid="tests/demo.py::test_play",
+            timestamp=t0 + timedelta(seconds=7, milliseconds=200),
+        )
+    )
+    bus.publish(
+        TestFinished(
+            run_id="run-a",
+            test_id="t-locator",
+            nodeid="tests/demo.py::test_play",
+            status="failed",
+            verdict="test",
+            error_type="ElementNotFoundError",
+            error_message="not found: id=main.play",
+            timestamp=t0 + timedelta(seconds=7, milliseconds=500),
+        )
+    )
+    hier = {
+        "roots": [
+            {
+                "element": {
+                    "id": "main.play",
+                    "name": "PlayButton",
+                    "path": "/Canvas/MainMenu/Play",
+                    "text": "Play",
+                    "visible": True,
+                    "enabled": True,
+                },
+                "children": [],
+            }
+        ]
+    }
+    store.save_artifact(
+        json.dumps(hier).encode("utf-8"),
+        run_id="run-a",
+        test_id="t-locator",
+        name="hierarchy.json",
+        kind="hierarchy",
+        bus=bus,
+    )
+    bus.publish(
         RunFinished(run_id="run-a", status="failed", timestamp=t0 + timedelta(seconds=8))
     )
 
@@ -393,6 +436,59 @@ class ScriptedBalanceProvider:
 
         usage = TokenUsage(tokens_in=10, tokens_out=20)
         saw_tools = any("TOOL RESULTS" in (m.content or "") for m in req.messages)
+        tool_names = _tool_names(req)
+        purpose = req.purpose_tag or ""
+        if purpose.startswith("agent."):
+            if req.tools and not saw_tools:
+                if "healer" in purpose and "hierarchy_snapshot" in tool_names:
+                    name = "hierarchy_snapshot"
+                elif "maintainer" in purpose and "read_screenshot" in tool_names:
+                    name = "read_screenshot"
+                else:
+                    name = (
+                        "store_query"
+                        if "store_query" in tool_names
+                        else next(iter(tool_names), "store_query")
+                    )
+                return LlmResponse(
+                    text="",
+                    tool_calls=(ToolCall(id="c1", name=name, arguments="{}"),),
+                    usage=usage,
+                    provider=self.name,
+                    model=self.model,
+                    duration_ms=1.0,
+                )
+            if "healer" in purpose:
+                payload = {
+                    "verdict": "diagnosed",
+                    "cause": "test-bug",
+                    "summary": "Suggested locator main.play (does not write yaml).",
+                    "suggestion": {"writes": False, "expected": "main.play"},
+                }
+            elif "maintainer" in purpose:
+                payload = {
+                    "verdict": "diagnosed",
+                    "cause": "infra",
+                    "summary": "SessionLostError at open_shop; lab socket closed.",
+                    "evidence": ["death_point"],
+                }
+            else:
+                payload = {
+                    "verdict": "diagnosed",
+                    "cause": "infra",
+                    "summary": "Two failure groups: infra session-lost vs locator miss.",
+                    "clusters": [
+                        {"key": "infra", "hypothesis": "Wire session dropped"},
+                        {"key": "locator", "hypothesis": "element rename"},
+                    ],
+                }
+            return LlmResponse(
+                text=json.dumps(payload),
+                usage=usage,
+                provider=self.name,
+                model=self.model,
+                duration_ms=1.0,
+            )
         if req.tools and not saw_tools:
             return LlmResponse(
                 text="",
@@ -417,3 +513,13 @@ class ScriptedBalanceProvider:
             model=self.model,
             duration_ms=1.0,
         )
+
+
+def _tool_names(req: Any) -> set[str]:
+    names: set[str] = set()
+    for spec in req.tools or ():
+        if isinstance(spec, dict):
+            fn = spec.get("function") or {}
+            if isinstance(fn, dict) and fn.get("name"):
+                names.add(str(fn["name"]))
+    return names
