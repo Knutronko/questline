@@ -92,7 +92,8 @@ pronto, incluso antes de la fase 11.
     enriquecida); páginas/locators desconocidos → TODOs con sugerencias desde hierarchy.
   - **unit C# (UTF)**: generación nueva — tests NUnit para la lógica detectada (economía,
     crianza, torres), escritos en una RAMA del repo del juego, nunca directo a main;
-    ejecutables vía la orquestación batchmode de la fase 14; tu review antes de merge.
+    ejecutables vía la orquestación UTF de la fase 14 (`unity command run_tests` si
+    el sidecar FP-U1 ve Pipeline; si no, batchmode `-runTests`); tu review antes de merge.
   - **API**: si el coverage plan lo incluye, suites del módulo `questline.api` (FP-T1),
     contra mock server si aún no hay backend real.
   - **perf**: no genera tests — añade la feature a los escenarios de PerfProbe con

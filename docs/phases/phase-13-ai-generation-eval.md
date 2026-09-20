@@ -37,7 +37,7 @@ measures every agent with reproducible metrics.
    section (n, variance, what these numbers do and don't claim).
 
 ## Out of scope
-MCP server, flakiness predictor, visual regression (BACKLOG.md).
+MCP server (`questline mcp` = FP-A1; `unity mcp` = QL-8 / not this phase), flakiness predictor, visual regression (BACKLOG.md).
 
 ## Acceptance criteria
 - [ ] CI (fake LLM): generator gate test — generated test that fails to execute is
