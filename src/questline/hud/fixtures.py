@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 from questline.core.events import (
     AiCallMade,
@@ -237,5 +239,181 @@ def seed_fixture_store(db_path: Path) -> RunStore:
             )
         )
 
+    _seed_gamelens(store)
     store.detach()
     return store
+
+
+def _entity(eid: str, system: str, fields: dict[str, object]) -> dict[str, object]:
+    return {"id": eid, "system": system, "kind": "config", "fields": fields}
+
+
+def _seed_gamelens(store: RunStore) -> None:
+    """Snapshots + sessions + implications + one agent turn for HUD GameLens smoke."""
+    snap_a = {
+        "schema_version": 1,
+        "meta": {"game_version": "1.0.0", "feature_id": None, "git_commit": None},
+        "entities": {
+            "economy": _entity(
+                "economy",
+                "economy",
+                {"amber_per_tick": {"type": "number", "value": 1.5}},
+            ),
+            "unit_alpha": _entity(
+                "unit_alpha",
+                "creatures",
+                {"dps": {"type": "number", "value": 10.0}},
+            ),
+        },
+        "supplementary": [],
+    }
+    snap_b = {
+        "schema_version": 1,
+        "meta": {"game_version": "1.1.0", "feature_id": None, "git_commit": None},
+        "entities": {
+            "economy": _entity(
+                "economy",
+                "economy",
+                {"amber_per_tick": {"type": "number", "value": 2.0}},
+            ),
+            "unit_alpha": _entity(
+                "unit_alpha",
+                "creatures",
+                {"dps": {"type": "number", "value": 12.0}},
+            ),
+            "unit_beta": _entity(
+                "unit_beta",
+                "creatures",
+                {"dps": {"type": "number", "value": 8.0}},
+            ),
+        },
+        "supplementary": [],
+    }
+    store.save_balance_snapshot(
+        snapshot_id="1.0.0",
+        game_version="1.0.0",
+        payload=json.dumps(snap_a, sort_keys=True),
+    )
+    store.save_balance_snapshot(
+        snapshot_id="1.1.0",
+        game_version="1.1.0",
+        payload=json.dumps(snap_b, sort_keys=True),
+    )
+    store.save_telemetry_session(
+        session={
+            "id": "sess-unset",
+            "game_version": "1.1.0",
+            "source": "import",
+            "config_snapshot_id": "snap-unset",
+            "policy_id": "balanced",
+            "seed": "1",
+            "outcome": "lose",
+            "started_at": "2026-09-09T10:00:00+00:00",
+            "finished_at": "2026-09-09T10:05:00+00:00",
+        },
+        summary={
+            "outcome": "lose",
+            "deploy_count": 4,
+            "leak_count": 3,
+            "waves_started": 2,
+        },
+        events=[],
+    )
+    store.save_telemetry_session(
+        session={
+            "id": "sess-joined",
+            "game_version": "1.1.0",
+            "source": "import",
+            "config_snapshot_id": "1.1.0",
+            "policy_id": "rush",
+            "seed": "2",
+            "outcome": "lose",
+            "started_at": "2026-09-09T11:00:00+00:00",
+            "finished_at": "2026-09-09T11:04:00+00:00",
+        },
+        summary={
+            "outcome": "lose",
+            "deploy_count": 6,
+            "leak_count": 1,
+            "waves_started": 3,
+        },
+        events=[],
+    )
+    from questline.ai.port import ToolCall
+    from questline.ai.providers.fake import FakeProvider
+    from questline.ai.router import ProviderRouter
+    from questline.lens.agent import run_balance_agent
+    from questline.lens.browse import diff_from_store
+    from questline.lens.report import collect_measured, implications_stub, persist_implications
+
+    report = diff_from_store(store, "1.0.0", "1.1.0")
+    measured, gaps = collect_measured(store, report)
+    persist_implications(
+        store, report, implications_stub(report, measured=measured, gaps=gaps)
+    )
+    fake = FakeProvider()
+    fake.enqueue_tools(ToolCall(id="c1", name="collect_measured", arguments="{}"))
+    fake.enqueue(
+        json.dumps(
+            {
+                "priorities": [
+                    "Look at measured leak_count on joined sessions; do not impute combat.damage.",
+                    "snap-unset sessions stay unjoined until QUESTLINE_SNAPSHOT_ID is set.",
+                ],
+                "gaps": ["combat.damage", "snap-unset"],
+            }
+        )
+    )
+    router = ProviderRouter(
+        [fake],
+        budget_per_call_usd=10.0,
+        budget_per_run_usd=10.0,
+        store=store,
+        run_id="ba-fixture",
+    )
+    run_balance_agent(
+        store,
+        snapshot_a="1.0.0",
+        snapshot_b="1.1.0",
+        question="What should I retune?",
+        router=router,
+        turn_id="ba-fixture",
+    )
+
+
+class ScriptedBalanceProvider:
+    """Deterministic tool loop for HUD smoke / Playwright (no network)."""
+
+    name = "fake"
+    model = "fake-test"
+    kind = "fake"
+
+    def complete(self, req: Any) -> Any:
+        from questline.ai.port import LlmResponse, TokenUsage, ToolCall
+
+        usage = TokenUsage(tokens_in=10, tokens_out=20)
+        saw_tools = any("TOOL RESULTS" in (m.content or "") for m in req.messages)
+        if req.tools and not saw_tools:
+            return LlmResponse(
+                text="",
+                tool_calls=(ToolCall(id="c1", name="collect_measured", arguments="{}"),),
+                usage=usage,
+                provider=self.name,
+                model=self.model,
+                duration_ms=1.0,
+            )
+        return LlmResponse(
+            text=json.dumps(
+                {
+                    "priorities": [
+                        "Look at measured leak_count; do not impute combat.damage.",
+                        "snap-unset sessions stay unjoined.",
+                    ],
+                    "gaps": ["combat.damage", "snap-unset"],
+                }
+            ),
+            usage=usage,
+            provider=self.name,
+            model=self.model,
+            duration_ms=1.0,
+        )

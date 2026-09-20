@@ -671,6 +671,93 @@ class RunStore:
             out.append(data)
         return out
 
+    def save_lens_agent_turn(
+        self,
+        *,
+        turn_id: str,
+        snapshot_id_a: str | None,
+        snapshot_id_b: str | None,
+        question: str,
+        status: str,
+        framing: str,
+        prompt_version: str,
+        artifact_path: str,
+        created_at: str | None = None,
+        meta: dict[str, Any] | None = None,
+    ) -> None:
+        """Index a persisted GameLens balance-agent turn (FP-G4)."""
+        ts = created_at or datetime.now().astimezone().isoformat()
+        meta_json = json.dumps(meta or {}, sort_keys=True)
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                self._conn.execute(
+                    """
+                    INSERT OR REPLACE INTO lens_agent_turns (
+                        id, snapshot_id_a, snapshot_id_b, question, status,
+                        framing, prompt_version, artifact_path, created_at, meta
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        turn_id,
+                        snapshot_id_a,
+                        snapshot_id_b,
+                        question,
+                        status,
+                        framing,
+                        prompt_version,
+                        artifact_path,
+                        ts,
+                        meta_json,
+                    ),
+                )
+                self._conn.execute("COMMIT")
+            except Exception:
+                self._conn.execute("ROLLBACK")
+                raise
+
+    def get_lens_agent_turn(self, turn_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT * FROM lens_agent_turns WHERE id = ?", (turn_id,)
+            ).fetchone()
+        if row is None:
+            return None
+        data = dict(row)
+        data["meta"] = _json_obj(data.get("meta"))
+        return data
+
+    def list_lens_agent_turns(
+        self,
+        *,
+        snapshot_id_a: str | None = None,
+        snapshot_id_b: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if snapshot_id_a:
+            clauses.append("snapshot_id_a = ?")
+            params.append(snapshot_id_a)
+        if snapshot_id_b:
+            clauses.append("snapshot_id_b = ?")
+            params.append(snapshot_id_b)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = (
+            f"SELECT * FROM lens_agent_turns {where} "
+            f"ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?"
+        )
+        params.extend([max(0, int(limit)), max(0, int(offset))])
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            data["meta"] = _json_obj(data.get("meta"))
+            out.append(data)
+        return out
+
     def save_telemetry_session(
         self,
         *,

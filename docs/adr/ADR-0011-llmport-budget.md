@@ -28,10 +28,11 @@
      *model reasoning*. Figures come from `telemetry_sessions.summary`.
      Missing KPIs (e.g. `combat.damage`, `snap-unset`) are listed as gaps —
      never imputed. The G1 implications **live report** persists JSON/MD + a
-     `lens_implications` index (migration 6). Design-copilot chat remains FP-G4.
+     `lens_implications` index (migration 6). FP-G4 balance-agent chat persists
+     `lens_agent_turns` (migration 7) and is driven from the HUD.
   7. **HUD:** run-detail `ai_calls` table + `GET /api/runs/{id}/ai-calls`
-     (allow-listed fields). CLI: `questline doctor` ping, `questline ai
-     complete`, `questline ai costs`.
+     (allow-listed fields). FP-G4: GameLens browse + `POST /api/lens/agent/run`.
+     CLI: `questline doctor` ping, `questline ai complete`, `questline ai costs`.
 - **Consequences:**
   - Phase 12 agents import LLMPort + router only; they must not import
     `cursor_cli`.

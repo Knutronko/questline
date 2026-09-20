@@ -5,7 +5,8 @@
 > Brief: [`phases/phase-fp-g2-telemetry.md`](phases/phase-fp-g2-telemetry.md).
 > Loop: [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md).
 
-HUD telemetry view: **FP-G4** (CLI until then). Same owner as the GameLens HUD panel.
+HUD telemetry view: **FP-G4** (`#/lens/sessions` in `questline hud`). CLI `questline telemetry`
+remains for CI/scripting. Same owner as the GameLens HUD panel.
 
 ## Thin catalog (locked)
 

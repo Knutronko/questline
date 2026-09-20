@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from questline.core.events import EventBus
-from questline.hud.fixtures import seed_fixture_store
+from questline.hud.fixtures import ScriptedBalanceProvider, seed_fixture_store
 from questline.hud.launcher import LaunchRequest, LaunchStatus, RunLauncher
 from questline.hud.server import create_app
 
@@ -140,11 +140,12 @@ def main() -> None:
     )
     print(f"seeded HUD SMOKE store at {args.db}")
     print(
-        f"WARNING: this is the Playwright fixture server (fake launcher). "
-        f"For real runs use: uv run questline hud --open  (port 8741)"
+        "WARNING: this is the Playwright fixture server (fake launcher). "
+        "For real runs use: uv run questline hud --open  (port 8741)"
     )
-    print(f"smoke HUD → http://{args.host}:{args.port}/")
+    print(f"smoke HUD -> http://{args.host}:{args.port}/")
     app.state.smoke = True
+    app.state.llm_provider = ScriptedBalanceProvider()
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 
 

@@ -24,8 +24,8 @@ the CLI uses — no UI-only code paths).
 | ✅ | **09** PerfProbe | Samples → `perf_samples` / `PerfSample` events (store) |
 | ✅ | **09b** Wire v2 | Richer live/automation runs. **HUD:** no dedicated Wire panel — screenshots via `ArtifactSaved`; launcher picks profile/device |
 | ✅ | **10** HUD II | Launcher, quarantine UI, profile editor, **perf graphs** + run comparison, CSRF + `--read-only` |
-| ✅ | **11** AI foundation | Run-detail **AI calls / cost** table (`ai_calls`; `GET /api/runs/{id}/ai-calls`). No secrets. GameLens implications stay CLI until **FP-G4**. |
-| ⬜ **FP-G4** | **Balance agent + GameLens HUD** | **Next.** Browse snapshots/diff/implications/sessions + ask retune priorities. **Pablo reviews the whole HUD.** [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) |
+| ✅ | **11** AI foundation | Run-detail **AI calls / cost** table (`ai_calls`; `GET /api/runs/{id}/ai-calls`). No secrets. |
+| ✅ **FP-G4** | **Balance agent + GameLens HUD** | Browse snapshots/diff/implications/sessions + ask retune priorities. **Pablo reviews the whole HUD.** [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) |
 | later | **12** AI agents | Triage / diagnose / healer buttons on failed runs — **after FP-G4** |
 | later | **13** Eval | Eval HUD later |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
@@ -41,9 +41,9 @@ the CLI uses — no UI-only code paths).
 | PerfProbe series | ✅ Graphs + compare two runs |
 | Wire / drivers / devices | ✅ Launcher profile + device picker (no Wire-specific chrome) |
 | Reporters | ✅ Toggles on launch |
-| GameLens snapshot / diff / implications | ⬜ **FP-G4** — CLI until then (`questline lens diff --ai`) |
-| Telemetry sessions / KPIs | ⬜ **FP-G4** — CLI until then (`questline telemetry`) |
-| AI calls / cost | ✅ Phase 11 — table on run detail (allow-listed; no secrets) |
+| GameLens snapshot / diff / implications | ✅ **FP-G4** — `#/lens` + `#/lens/diff` (`questline lens` still for CI/scripting) |
+| Telemetry sessions / KPIs | ✅ **FP-G4** — `#/lens/sessions` (`questline telemetry` still for CI/scripting) |
+| AI calls / cost | ✅ Phase 11 — table on run detail (allow-listed; no secrets). Agent turn cost on GameLens Ask. |
 | Command palette / arbitrary CLI | ❌ Deferred — CLI until a future BACKLOG item; not a full terminal |
 
 If something cannot fit, defer in this evolution table + [`phases/BACKLOG.md`](phases/BACKLOG.md)
@@ -135,6 +135,12 @@ empty state (not an error).
 | `#/quarantine` | Ledger list; add/remove; limbo audit |
 | `#/profiles` | Edit `questline.toml` profiles (validate + diff preview); secrets = env names |
 | `#/perf` | PerfProbe series graphs + build-over-build compare |
+| `#/lens` | GameLens snapshots; pick A/B → typed diff |
+| `#/lens/diff?a=&b=` | Typed diff + persisted implications + **Ask** balance agent |
+| `#/lens/sessions` | Telemetry sessions (`lose` = measured play; `snap-unset` = gap) |
+| `#/lens/sessions/{id}` | Session summary (allow-listed) |
+| `#/lens/turns` | Persisted balance-agent turns |
+| `#/lens/turns/{id}` | Priorities (*model reasoning*) + gaps + measured citations + cost |
 | `#/runs/{id}` | Tests grid + **infra vs test** banner |
 | `#/runs/{id}/tests/{tid}` | Step timeline, death-point, artifacts, history sparkline (`tid` may be a pytest nodeid with `/`) |
 | `#/trends` | Pass-rate / duration charts, flakiness board, duration-vs-pass correlation |
@@ -157,6 +163,11 @@ empty state (not an error).
 | GET | `/api/perf/{run_id}` | Perf series + summary |
 | GET | `/api/perf/compare?a=&b=` | Build-over-build deltas + series |
 | GET | `/api/perf/correlation` | Duration-vs-pass points for flaky board |
+| GET | `/api/lens/snapshots` | Balance snapshot index (no home paths) |
+| GET | `/api/lens/diff?a=&b=` | Typed diff + persisted implications |
+| GET | `/api/lens/implications` | Implications index |
+| GET | `/api/telemetry/sessions` | Session list + `lose` / `snap-unset` notes |
+| GET | `/api/lens/agent/turns` | Balance-agent turn index |
 | GET | `/api/devices` | Live adb device list |
 | GET | `/api/profiles` | Profile names |
 | GET | `/api/profiles/{name}` | Public fields + secret env names |
@@ -177,6 +188,7 @@ empty state (not an error).
 | POST | `/api/profiles/{name}/validate` | Validate with pydantic `load_settings` |
 | POST | `/api/profiles/{name}` | Diff preview (`apply=false`) or save |
 | POST | `/api/live/ingest` | Forwarded events from HUD-launched pytest |
+| POST | `/api/lens/agent/run` | Balance-agent Ask (read-only tools; CSRF; 403 in `--read-only`) |
 
 Mutators require cookie `questline_csrf` matching header `X-CSRF-Token`. Non-loopback
 clients receive 403 on mutators.
@@ -204,6 +216,9 @@ Then in the browser:
 4. **Quarantine** → add a nodeid → Limbo audit → remove.
 5. **Profiles** → load → Validate (invalid wait → same errors as CLI) → Diff preview.
 6. Optional maintainer: Launch against a real device (profile + serial); watch Live; stop.
+7. **GameLens** → snapshots → Open typed diff → gaps (`snap-unset`, `combat.damage`) stay visible.
+8. **Sessions** → `sess-unset`: `lose` = measured play; `snap-unset` = join gap.
+9. **Ask** on the diff (profile `ai_groq` or smoke fake): priorities + gaps + measured citations.
 
 **Verified in HUD vs CLI:** note which of the above you clicked vs which you only ran via
 `pytest` / `questline` in the PR Self-review.

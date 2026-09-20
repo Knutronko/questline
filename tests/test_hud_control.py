@@ -240,7 +240,8 @@ def test_format_exit_error_prefers_device_errors() -> None:
 def test_meta_exposes_api_revision(client: TestClient) -> None:
     meta = client.get("/api/meta").json()
     assert meta["api"]["test_by_query"] is True
-    assert meta["api"]["revision"] >= 2
+    assert meta["api"]["lens"] is True
+    assert meta["api"]["revision"] >= 4
 
 
 def test_launch_spawn_failure_surfaces_500(client: TestClient) -> None:

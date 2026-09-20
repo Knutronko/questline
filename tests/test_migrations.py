@@ -57,7 +57,7 @@ def _make_legacy_db(path: Path) -> None:
 def test_fresh_store_is_at_current_schema_version(tmp_path: Path) -> None:
     with RunStore(tmp_path / "fresh.db") as store:
         assert store.schema_version == CURRENT_SCHEMA_VERSION
-        assert CURRENT_SCHEMA_VERSION >= 6
+        assert CURRENT_SCHEMA_VERSION >= 7
 
 
 def test_v1_store_upgrades_to_feature_id_column(tmp_path: Path) -> None:
@@ -230,6 +230,50 @@ def test_v5_store_gains_lens_implications_table(tmp_path: Path) -> None:
         probe.close()
         assert "lens_implications" in names
         assert store.list_lens_implications() == []
+
+
+def test_v6_store_gains_lens_agent_turns_table(tmp_path: Path) -> None:
+    """schema_version=6 DB gains lens_agent_turns via migration 7 (FP-G4)."""
+    from questline.core.migrations import (
+        _migrate_001_initial_core,
+        _migrate_002_tests_feature_id,
+        _migrate_003_balance_snapshots,
+        _migrate_004_telemetry,
+        _migrate_005_ai_calls_ledger,
+        _migrate_006_lens_implications,
+    )
+
+    db_path = tmp_path / "v6.db"
+    conn = sqlite3.connect(str(db_path))
+    conn.isolation_level = None
+    apply_migrations(
+        conn,
+        (
+            Migration(1, "initial_core_schema", _migrate_001_initial_core),
+            Migration(2, "tests_feature_id", _migrate_002_tests_feature_id),
+            Migration(3, "balance_snapshots", _migrate_003_balance_snapshots),
+            Migration(4, "telemetry", _migrate_004_telemetry),
+            Migration(5, "ai_calls_ledger", _migrate_005_ai_calls_ledger),
+            Migration(6, "lens_implications", _migrate_006_lens_implications),
+        ),
+    )
+    assert get_schema_version(conn) == 6
+    names = {
+        r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+    }
+    assert "lens_agent_turns" not in names
+    conn.close()
+
+    with RunStore(db_path) as store:
+        assert store.schema_version == CURRENT_SCHEMA_VERSION
+        probe = sqlite3.connect(str(db_path))
+        names = {
+            r[0]
+            for r in probe.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+        }
+        probe.close()
+        assert "lens_agent_turns" in names
+        assert store.list_lens_agent_turns() == []
 
 
 def test_legacy_store_upgrades_cleanly_preserving_data(tmp_path: Path) -> None:

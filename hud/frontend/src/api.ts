@@ -43,7 +43,7 @@ export type Meta = {
   project_root: string;
   quarantine_path: string;
   reporters: string[];
-  api?: { test_by_query?: boolean; revision?: number };
+  api?: { test_by_query?: boolean; lens?: boolean; revision?: number };
 };
 
 export type LauncherStatus = {
@@ -345,6 +345,122 @@ export function getPerfCorrelation(limit = 50): Promise<{
 
 export function artifactUrl(path: string): string {
   return `/api/artifacts/file?path=${encodeURIComponent(path)}`;
+}
+
+export type LensSnapshot = {
+  id: string;
+  game_version: string;
+  git_commit?: string | null;
+  feature_id?: string | null;
+  created_at?: string | null;
+  artifact?: string | null;
+};
+
+export type LensImplications = {
+  id?: string;
+  status?: string;
+  framing?: string;
+  summary?: string;
+  pending?: string | null;
+  gaps?: string[];
+  measured?: Record<string, unknown>;
+  snapshot_id_a?: string | null;
+  snapshot_id_b?: string | null;
+  version_a?: string | null;
+  version_b?: string | null;
+  gap_count?: number;
+  session_count?: number;
+  unjoined_count?: number;
+};
+
+export type LensDiffEntry = {
+  kind: string;
+  system: string;
+  entity_id: string;
+  path?: string | null;
+  before?: unknown;
+  after?: unknown;
+  delta?: number | null;
+  pct?: number | null;
+};
+
+export type TelSession = {
+  id: string;
+  game_version?: string | null;
+  config_snapshot_id?: string | null;
+  policy_id?: string | null;
+  seed?: string | null;
+  outcome?: string | null;
+  source?: string | null;
+  notes?: string[];
+  summary?: Record<string, unknown>;
+  event_count?: number;
+  started_at?: string | null;
+};
+
+export type AgentTurn = {
+  id: string;
+  snapshot_id_a?: string | null;
+  snapshot_id_b?: string | null;
+  question?: string;
+  status?: string;
+  framing?: string;
+  summary?: string;
+  pending?: string | null;
+  priorities?: string[];
+  gaps?: string[];
+  citations?: Record<string, unknown>;
+  tool_log?: Array<Record<string, unknown>>;
+  ai_calls?: AiCallRow[];
+  ai_cost_total?: number;
+  created_at?: string | null;
+};
+
+export function listLensSnapshots(): Promise<{ snapshots: LensSnapshot[]; empty: boolean }> {
+  return getJson("/api/lens/snapshots");
+}
+
+export function getLensDiff(
+  a: string,
+  b: string,
+): Promise<{
+  diff: {
+    version_a: string;
+    version_b: string;
+    snapshot_id_a?: string | null;
+    snapshot_id_b?: string | null;
+    entries: LensDiffEntry[];
+    by_system?: Record<string, LensDiffEntry[]>;
+  };
+  implications: LensImplications | null;
+}> {
+  const q = new URLSearchParams({ a, b });
+  return getJson(`/api/lens/diff?${q.toString()}`);
+}
+
+export function listTelemetrySessions(): Promise<{ sessions: TelSession[]; empty: boolean }> {
+  return getJson("/api/telemetry/sessions");
+}
+
+export function getTelemetrySession(id: string): Promise<{ session: TelSession }> {
+  return getJson(`/api/telemetry/sessions/${encodeURIComponent(id)}`);
+}
+
+export function listAgentTurns(): Promise<{ turns: AgentTurn[]; empty: boolean }> {
+  return getJson("/api/lens/agent/turns");
+}
+
+export function getAgentTurn(id: string): Promise<{ turn: AgentTurn }> {
+  return getJson(`/api/lens/agent/turns/${encodeURIComponent(id)}`);
+}
+
+export function runBalanceAgent(body: {
+  snapshot_a: string;
+  snapshot_b: string;
+  question?: string;
+  profile?: string;
+}): Promise<{ turn: AgentTurn }> {
+  return mutateJson("POST", "/api/lens/agent/run", body);
 }
 
 export function fmtDur(s: number | null | undefined): string {

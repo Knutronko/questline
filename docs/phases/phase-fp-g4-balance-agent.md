@@ -86,14 +86,14 @@ see labeled *model reasoning* next to *measured* numbers — without memorizing 
 
 ## Acceptance criteria
 
-- [ ] HUD: snapshots, one typed diff, one implications artifact, telemetry list
+- [x] HUD: snapshots, one typed diff, one implications artifact, telemetry list
       (fixture store in CI; live store optional).
-- [ ] Agent: fake-LLM tool loop; gaps include `snap-unset` / `combat.damage`;
+- [x] Agent: fake-LLM tool loop; gaps include `snap-unset` / `combat.damage`;
       persist; no live keys in CI.
 - [ ] Maintainer: Groq (and/or Ollama) from **HUD**; numbers match store summaries.
 - [ ] Pablo full-HUD review in Self-review (`Verified in HUD: …`).
-- [ ] STATUS-DUAL next-row = phase-12 (parked agents) or whatever Pablo locks.
-- [ ] Self-review + `Incidents: …` or `none`.
+- [x] STATUS-DUAL next-row = phase-12 (parked agents) or whatever Pablo locks.
+- [x] Self-review + `Incidents: …` or `none`.
 
 ## PR checklist
 
@@ -102,4 +102,13 @@ Do not merge unless Pablo asks.
 
 ## Self-review
 
-(fill at close-out)
+- HUD browse: snapshots, typed diff, persisted implications, telemetry sessions
+  (`lose` = measured play; `snap-unset` / `combat.damage` stay gaps).
+- Agent: allow-listed read tools only; persist `lens_agent_turns` (migration 7);
+  fake-LLM CI; HUD Ask uses injected fake in smoke, Groq/Ollama from live profiles.
+- HUD does not import `questline.ai.factory` (cursor_cli isolation).
+- **Verified in HUD:** Playwright smoke (runs/test/AI-calls, launch→live→stop, perf
+  compare, GameLens snapshots→diff→gaps→Ask, telemetry `lose`/`snap-unset`) +
+  TestClient APIs. Maintainer live Groq/Ollama Ask on a real store = Pablo on this PR.
+- **Incidents:** none
+

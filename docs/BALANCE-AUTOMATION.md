@@ -90,12 +90,11 @@ hooks + telemetry, not an LLM.
 | 2c | **Wire playability gate** (see §5) — **09c** only if needed | questline (+ game) | Confirm bots can complete a normal combat loop |
 | 3 | **FP-G3** deterministic bots + measured curves | questline + game `automation/` | After **QL-7**. Playtest automation |
 | 4 | **phase-11** AI foundation | questline | LLMPort + budget |
-| 5 | FP-G1 AI implications ✅; **FP-G4** balance agent + HUD (next); later AI bot policies | questline | Use *measured* data; never replace it |
+| 5 | FP-G1 AI implications ✅; **FP-G4** balance agent + HUD ✅; later AI bot policies | questline | Use *measured* data; never replace it |
 | later | **phase-12** test agents (after G4); 13 eval; D12; G3 soak | both | Scale |
 
-**Immediate next:** **FP-G4** GameLens balance agent + HUD (retune *priorities* in the
-control center; Pablo reviews the whole UI). Numbered **phase-12** (triage/healer) is
-**parked** until after G4. Former 12b HUD-only brief is folded into G4. G1 implications
+**Immediate next:** numbered **phase-12** (triage/healer) after FP-G4 merges.
+Former 12b HUD-only brief is folded into G4. G1 implications
 live report ✅. Optional: `QUESTLINE_SNAPSHOT_ID` on later bots. Do not invert
 G1 → G2/G3 → 11. Brief: [`phase-fp-g4-balance-agent.md`](phases/phase-fp-g4-balance-agent.md).
 
@@ -191,4 +190,5 @@ Starter prompts for the joint wave live in
 | 2026-09-09 | **phase-11 landed:** LLMPort + ProviderRouter + hard budgets + `ai_calls` (migration 5) + versioned prompts + doctor ping + HUD cost table. Thin GameLens `--ai` consumer (measured vs model reasoning; no imputation). **Not** design copilot / AI bot policies. Immediate next = G1 implications live report (and/or 12). |
 | 2026-09-10 | **phase-11 live smoke:** Groq (`openai/gpt-oss-20b`) + Ollama (`llama3.2`, cost 0) verified. **Mistral postponed** (no La Plateforme key). Not a merge blocker. |
 | 2026-09-10 | **G1 implications live report:** persist `artifacts/lens/<a>__<b>/implications.json` + `.md` and `lens_implications` (migration 6). `snap-unset` / NULL sessions go to `unjoined` (never a silent `game_version` join). `combat.damage` and other `FUTURE_EVENT_NAMES` stay gaps. **Maintainer live (fixtures):** Groq (`ai_groq`) produced usable *model reasoning* over pack-a→pack-b (`session_count=0` — `.questline-tmp-lens.db` has no G3). Ollama `llama3.2` completed the path but confused gaps with missing KPIs — prefer Groq for implications; Ollama remains a zero-cost smoke. **Mistral** still deferred. HUD GameLens/telemetry panels scheduled as **phase-12b after phase-12** (Pablo full-HUD review). Phase-12 is test agents, not a retune copilot (FP-G4 later). |
-| 2026-09-10 | **Maintainer reorder:** Immediate next = **FP-G4** (balance agent + HUD). Numbered **phase-12** parked until after G4. **12b folded into G4**. HUD-first lock: new operator phases ship HUD in the same PR (PowerShell is extra). The agent proposes retune *priorities* only — never writes SOs, never invents green/red. |
+| 2026-09-10 | **Maintainer reorder:** Immediate next was **FP-G4** (balance agent + HUD). Numbered **phase-12** parked until after G4. **12b folded into G4**. HUD-first lock: new operator phases ship HUD in the same PR (PowerShell is extra). The agent proposes retune *priorities* only — never writes SOs, never invents green/red. |
+| 2026-09-10 | **FP-G4 landed:** GameLens HUD browse (snapshots, typed diff, implications, telemetry sessions) + thin read-only balance agent over LLMPort. Priorities only; no SO writes; `snap-unset` / `combat.damage` stay gaps. Fake-LLM CI; Groq/Ollama from HUD. Next = phase-12 test agents. |

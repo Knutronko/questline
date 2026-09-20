@@ -128,7 +128,8 @@ report. HUD browse of this artifact is **FP-G4**.
 
 Run detail (`#/runs/:id`) shows an **AI calls** table (provider, tokens, cost,
 outcome). Allow-listed API: `GET /api/runs/{id}/ai-calls`. No secret values.
-GameLens / telemetry operator panels: **FP-G4** (before numbered phase-12).
+GameLens / telemetry / balance-agent Ask: **FP-G4** (`#/lens`). Prefer `-p ai_groq`
+in the HUD profile picker; Mistral remains deferred.
 
 ## CI
 

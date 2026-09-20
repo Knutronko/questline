@@ -247,6 +247,32 @@ def _migrate_006_lens_implications(conn: sqlite3.Connection) -> None:
     )
 
 
+def _migrate_007_lens_agent_turns(conn: sqlite3.Connection) -> None:
+    """FP-G4: persist GameLens balance-agent turns (priorities, not SO writes)."""
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS lens_agent_turns (
+            id TEXT PRIMARY KEY,
+            snapshot_id_a TEXT,
+            snapshot_id_b TEXT,
+            question TEXT NOT NULL,
+            status TEXT NOT NULL,
+            framing TEXT NOT NULL,
+            prompt_version TEXT NOT NULL,
+            artifact_path TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            meta TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_lens_agent_created
+            ON lens_agent_turns(created_at);
+        CREATE INDEX IF NOT EXISTS idx_lens_agent_snap_a
+            ON lens_agent_turns(snapshot_id_a);
+        CREATE INDEX IF NOT EXISTS idx_lens_agent_snap_b
+            ON lens_agent_turns(snapshot_id_b);
+        """
+    )
+
+
 # Append-only: new modules add the next integer version here.
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_core_schema", _migrate_001_initial_core),
@@ -255,6 +281,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(4, "telemetry", _migrate_004_telemetry),
     Migration(5, "ai_calls_ledger", _migrate_005_ai_calls_ledger),
     Migration(6, "lens_implications", _migrate_006_lens_implications),
+    Migration(7, "lens_agent_turns", _migrate_007_lens_agent_turns),
 )
 
 CURRENT_SCHEMA_VERSION: int = MIGRATIONS[-1].version

@@ -446,3 +446,27 @@ a.btn:hover {
   background: var(--bad);
 }
 
+.subnav {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 0 0 1rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+.gap-list {
+  color: var(--warn);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+.pre-json {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 18rem;
+  border: 1px solid var(--line);
+  background: #0a0e14;
+  padding: 0.6rem;
+}
+
