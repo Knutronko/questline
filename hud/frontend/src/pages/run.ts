@@ -1,4 +1,12 @@
-import { esc, fmtDur, getRun } from "../api";
+import {
+  esc,
+  fmtDur,
+  getMeta,
+  getRun,
+  listAgentTasks,
+  runTriage,
+  type AgentTask,
+} from "../api";
 
 export async function renderRun(runId: string): Promise<string> {
   const data = await getRun(runId);
@@ -34,6 +42,21 @@ export async function renderRun(runId: string): Promise<string> {
       )
       .join("") || `<tr><td colspan="7">No AI calls for this run.</td></tr>`;
 
+  const failed = data.tests.some((t) => t.status === "failed" || t.status === "error");
+  let canMutate = true;
+  try {
+    canMutate = !(await getMeta()).read_only;
+  } catch {
+    canMutate = true;
+  }
+  let tasks: AgentTask[] = [];
+  try {
+    const listed = await listAgentTasks(runId);
+    tasks = listed.tasks || [];
+  } catch {
+    tasks = [];
+  }
+
   return `
     <p class="meta"><a href="#/">← Runs</a> · ${esc(r.id)}</p>
     <h1>Run detail</h1>
@@ -49,6 +72,16 @@ export async function renderRun(runId: string): Promise<string> {
       <div class="stat test"><span>test</span><b>${b.test_failures}</b></div>
       <div class="stat"><span>authoring</span><b>${b.authoring_failures}</b></div>
     </div>
+    ${
+      failed && canMutate
+        ? `<div class="toolbar" data-testid="agent-run-actions">
+      <button type="button" id="triage-run" data-testid="triage-run">Triage this run</button>
+      <span id="triage-msg" class="meta" data-testid="triage-msg"></span>
+    </div>
+    <div id="triage-result" data-testid="triage-result">${renderTaskList(tasks)}</div>
+    <script type="application/json" id="run-agent-ctx">${JSON.stringify({ runId })}</script>`
+        : ""
+    }
     <h2>AI calls</h2>
     <div class="meta">total_usd=${esc(fmtUsd(data.ai_cost_total))}</div>
     <div class="table-wrap">
@@ -79,6 +112,56 @@ export async function renderRun(runId: string): Promise<string> {
       </table>
     </div>
   `;
+}
+
+export function wireRun(): void {
+  const btn = document.getElementById("triage-run");
+  btn?.addEventListener("click", () => {
+    void (async () => {
+      const msg = document.getElementById("triage-msg");
+      const mount = document.getElementById("triage-result");
+      const raw = document.getElementById("run-agent-ctx")?.textContent;
+      let runId = "";
+      try {
+        runId = String((JSON.parse(raw || "{}") as { runId?: string }).runId || "");
+      } catch {
+        /* ignore */
+      }
+      if (!runId) return;
+      if (msg) msg.textContent = "running…";
+      try {
+        const res = await runTriage({ run_id: runId });
+        if (msg) msg.textContent = `status=${res.task.status} verdict=${res.task.verdict}`;
+        if (mount) mount.innerHTML = renderTaskPanel(res.task);
+      } catch (err) {
+        if (msg) msg.textContent = String(err);
+      }
+    })();
+  });
+}
+
+function renderTaskList(tasks: AgentTask[]): string {
+  if (!tasks.length) return `<p class="meta">No agent tasks yet.</p>`;
+  return tasks.map(renderTaskPanel).join("");
+}
+
+function renderTaskPanel(task: AgentTask): string {
+  const clusters = (task.clusters || [])
+    .map((c) => {
+      const bucket = String(c.bucket ?? c.key ?? "");
+      const err = String(c.error_type ?? "");
+      const n = Array.isArray(c.test_ids) ? c.test_ids.length : "";
+      const hypo = String(c.hypothesis ?? c.signature ?? "");
+      return `<li>${esc(bucket)} · ${esc(err)} x${esc(n)} — ${esc(hypo)}</li>`;
+    })
+    .join("");
+  return `
+    <div class="panel" data-testid="agent-task" data-task-kind="${esc(task.kind ?? "")}">
+      <div class="meta">kind=${esc(task.kind ?? "")} · verdict=${esc(task.verdict ?? "")}
+        · cause=${esc(task.cause ?? "")} · status=${esc(task.status ?? "")}</div>
+      <p>${esc(task.summary ?? "")}</p>
+      ${clusters ? `<ul data-testid="triage-clusters">${clusters}</ul>` : ""}
+    </div>`;
 }
 
 function fmtUsd(n: number | null | undefined): string {

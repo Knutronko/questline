@@ -273,6 +273,33 @@ def _migrate_007_lens_agent_turns(conn: sqlite3.Connection) -> None:
     )
 
 
+def _migrate_008_agent_tasks(conn: sqlite3.Connection) -> None:
+    """Phase-12: persist test-agent tasks (triage / diagnose / fix / heal)."""
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS agent_tasks (
+            id TEXT PRIMARY KEY,
+            kind TEXT NOT NULL,
+            run_id TEXT,
+            test_id TEXT,
+            status TEXT NOT NULL,
+            verdict TEXT,
+            cause TEXT,
+            prompt_version TEXT NOT NULL,
+            artifact_path TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            meta TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_agent_tasks_created
+            ON agent_tasks(created_at);
+        CREATE INDEX IF NOT EXISTS idx_agent_tasks_run
+            ON agent_tasks(run_id);
+        CREATE INDEX IF NOT EXISTS idx_agent_tasks_kind
+            ON agent_tasks(kind);
+        """
+    )
+
+
 # Append-only: new modules add the next integer version here.
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_core_schema", _migrate_001_initial_core),
@@ -282,6 +309,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(5, "ai_calls_ledger", _migrate_005_ai_calls_ledger),
     Migration(6, "lens_implications", _migrate_006_lens_implications),
     Migration(7, "lens_agent_turns", _migrate_007_lens_agent_turns),
+    Migration(8, "agent_tasks", _migrate_008_agent_tasks),
 )
 
 CURRENT_SCHEMA_VERSION: int = MIGRATIONS[-1].version

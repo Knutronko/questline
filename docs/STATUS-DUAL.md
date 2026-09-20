@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-09-20** (FP-G4 ✅ merged PR #36; live Groq Ask in HUD; **next = phase-12** test agents).
+> Última revisión: **2026-09-20** (phase-12 this PR; FP-G4 ✅ PR #36/#37).
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 + **05b–11** + **FP-G1** + **FP-G2** + **FP-G3** + **FP-G4** ✅ | G4 merged (PR #36); HUD walk + live Groq Ask 2026-09-20 | **phase-12** test agents (triage / diagnose / healer). Parallel: D11 feel playtest + optional `QUESTLINE_SNAPSHOT_ID` on ElJuegaso | AltTester Desktop fuera del happy path; 09c parked; INC-0010 open; **Mistral live smoke deferred** |
+| **questline** | v0.1 + **05b–11** + **FP-G1** + **FP-G2** + **FP-G3** + **FP-G4** ✅ + **phase-12** | G4 merged (PR #36); phase-12 kernel + HUD triage/diagnose | **phase-12** PR (do not merge unless asked). Parallel: D11 feel playtest + optional `QUESTLINE_SNAPSHOT_ID` on ElJuegaso | AltTester Desktop fuera del happy path; 09c parked; INC-0010 open; **Mistral live smoke deferred** |
 | **ElJuegaso P1** | Proto D (feel) | **QL-1…3 + QL-5 + QL-6 + QL-7** + Wire + **`automation/bots`** + **D10.5** + **D11 código** | Playtest D11 (feel); optional `QUESTLINE_SNAPSHOT_ID` on later bots | Poco = 2º UI (fw 14); IEB-1…5 aún no son SO (hueco GameLens) |
 
 
@@ -56,7 +56,7 @@
 | **FP-G3** | Bots deterministas | ✅ **live Editor 2026-09-09** | Suite in ElJuegaso `automation/bots`. Matrix B1–B5 × 5 policies × N=3 = **75 passed** (~1h48). All cells `lose` (measured, not a bot fail). `config_snapshot_id=snap-unset` (no `QUESTLINE_SNAPSHOT_ID`). Playability: **hooks sufficient**, 09c parked. HUD telemetry → **FP-G4**. Brief [`phase-fp-g3`](phases/phase-fp-g3-bots.md). |
 | 11 | AI foundation | ✅ | LLMPort + adapters + router + hard budgets + `ai_calls` (migration 5) + versioned prompts + doctor ping + HUD cost table. Thin GameLens consumer (measured vs model reasoning). Live smoke: Groq + Ollama **2026-09-10**; **Mistral deferred**. [`ai-setup.md`](ai-setup.md) · [`ADR-0011`](adr/ADR-0011-llmport-budget.md) · [`phase-11`](phases/phase-11-ai-foundation.md) |
 | **FP-G4** | Balance agent + HUD | ✅ **merged 2026-09-20** PR #36 | Interactive *model reasoning* retune priorities + GameLens/telemetry HUD. Maintainer: smoke 1–8 + live Ask `ai_groq` (`status=ok`, gaps not imputed). Guide [`hud-user-guide.md`](hud-user-guide.md). Brief [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) |
-| 12 | AI agents | ⬜ **next** | Kernel + triage / maintainer / healer. **Not** the GameLens balance agent (that is G4). Brief [`phase-12`](phases/phase-12-ai-agents.md) · prompts [`SESSION-PROMPTS-POST-G4.md`](phases/SESSION-PROMPTS-POST-G4.md) |
+| 12 | AI agents | 🔧 **this PR** | Kernel + triage / maintainer / healer. **Not** the GameLens balance agent (G4). Brief [`phase-12`](phases/phase-12-ai-agents.md) · [`ai-agents.md`](ai-agents.md) |
 | **12b** | HUD GameLens (browse-only) | ✅ **folded into G4** | Do not start. Browse + agent shipped as FP-G4. Historical brief [`phase-12b`](phases/phase-12b-hud-gamelens.md) |
 | 13 | AI generation + eval | ⬜ | |
 | 14 | **Poco** + UTF | ⬜ | 2º UI backend + UTF; trigger **QL-4** |
@@ -176,7 +176,7 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | **phase-12** AI agents (tool loop) | questline | G4 merged. Triage / diagnose / heal **tests**, not SOs. Brief [`phase-12`](phases/phase-12-ai-agents.md) |
+| 1 | **phase-12** AI agents (tool loop) | questline | **This PR.** Triage / diagnose / heal **tests**, not SOs. Brief [`phase-12`](phases/phase-12-ai-agents.md) |
 | 1∥ | Playtest **D11** (feel B1–B5) | ElJuegaso | **Parallel** (game repo / human). Código D11 listo. Matrix G3 = 75/75 **lose** (dato para retune) |
 | 1∥ | Optional: attach `QUESTLINE_SNAPSHOT_ID` on later bot runs | ElJuegaso | **Parallel** (game). Live G3 used `snap-unset`; G1 report shows the join gap |
 | 3 | Wire **09c** stays parked | questline | G3 playability gate = hooks sufficient (no Point-spam / no Drag) |
@@ -188,7 +188,7 @@ flowchart TB
 **Stack live:** Wire = hooks + hierarchy/find/tap (**09b** ✅). **Poco** = 2º adapter.
 **AltTester** = legacy remoto. Prompts QL-6/QL-7/G3: [`SESSION-PROMPTS-QL6-FPG3.md`](phases/SESSION-PROMPTS-QL6-FPG3.md).
 Prompts G1 implications: [`SESSION-PROMPTS-G1-IMPLICATIONS.md`](phases/SESSION-PROMPTS-G1-IMPLICATIONS.md) (historical).
-**Next (questline):** phase-12 test agents — [`phase-12-ai-agents.md`](phases/phase-12-ai-agents.md).
+**Next (questline):** finish/merge phase-12 test agents — [`phase-12-ai-agents.md`](phases/phase-12-ai-agents.md) · [`ai-agents.md`](ai-agents.md).
 **Parallel (ElJuegaso):** D11 feel playtest; optional `QUESTLINE_SNAPSHOT_ID`.
 Prompts: [`SESSION-PROMPTS-POST-G4.md`](phases/SESSION-PROMPTS-POST-G4.md).
 Phase-12b folded into G4. Do **not** start 09c, phase-13, or phase-14 yet.
@@ -236,7 +236,7 @@ Formalizado en: questline `GAME-INTEGRATION.md` + `00-MASTER-PLAN.md` §6 · ElJ
 | FP-G4 balance agent + HUD | [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) · prompts [`SESSION-PROMPTS-G4-BALANCE-AGENT.md`](phases/SESSION-PROMPTS-G4-BALANCE-AGENT.md) |
 | Telemetry (FP-G2) | [`telemetry.md`](telemetry.md) · [`ADR-0010`](adr/ADR-0010-gamelens-telemetry.md) · [`phase-fp-g2`](phases/phase-fp-g2-telemetry.md) |
 | AI foundation (11) | [`ai-setup.md`](ai-setup.md) · [`ADR-0011`](adr/ADR-0011-llmport-budget.md) · [`phase-11`](phases/phase-11-ai-foundation.md) |
-| AI agents (12, next) | [`02-AI-ROADMAP.md`](02-AI-ROADMAP.md) · [`phase-12`](phases/phase-12-ai-agents.md) · [`SESSION-PROMPTS-POST-G4.md`](phases/SESSION-PROMPTS-POST-G4.md) |
+| AI agents (12) | [`ai-agents.md`](ai-agents.md) · [`02-AI-ROADMAP.md`](02-AI-ROADMAP.md) · [`phase-12`](phases/phase-12-ai-agents.md) |
 | Phase 05b brief | [`phase-05b-questline-wire.md`](phases/phase-05b-questline-wire.md) |
 | Android / adb | [`android.md`](android.md) |
 | Legacy AltTester setup | [`unity-setup.md`](unity-setup.md) |

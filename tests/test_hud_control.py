@@ -241,7 +241,8 @@ def test_meta_exposes_api_revision(client: TestClient) -> None:
     meta = client.get("/api/meta").json()
     assert meta["api"]["test_by_query"] is True
     assert meta["api"]["lens"] is True
-    assert meta["api"]["revision"] >= 4
+    assert meta["api"]["agents"] is True
+    assert meta["api"]["revision"] >= 5
 
 
 def test_launch_spawn_failure_surfaces_500(client: TestClient) -> None:

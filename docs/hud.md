@@ -28,7 +28,7 @@ the CLI uses — no UI-only code paths).
 | ✅ | **10** HUD II | Launcher, quarantine UI, profile editor, **perf graphs** + run comparison, CSRF + `--read-only` |
 | ✅ | **11** AI foundation | Run-detail **AI calls / cost** table (`ai_calls`; `GET /api/runs/{id}/ai-calls`). No secrets. |
 | ✅ **FP-G4** | **Balance agent + GameLens HUD** | Browse snapshots/diff/implications/sessions + ask retune priorities. Maintainer walk + live Groq Ask 2026-09-20. [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) · [`hud-user-guide.md`](hud-user-guide.md) |
-| later | **12** AI agents | Triage / diagnose / healer buttons on failed runs — **after FP-G4** |
+| ✅ **this PR** | **12** AI agents | **Triage this run** / **Diagnose this test** / healer on failed runs. [`ai-agents.md`](ai-agents.md) |
 | later | **13** Eval | Eval HUD later |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
 
@@ -45,7 +45,8 @@ the CLI uses — no UI-only code paths).
 | Reporters | ✅ Toggles on launch |
 | GameLens snapshot / diff / implications | ✅ **FP-G4** — `#/lens` + `#/lens/diff` (`questline lens` still for CI/scripting) |
 | Telemetry sessions / KPIs | ✅ **FP-G4** — `#/lens/sessions` (`questline telemetry` still for CI/scripting) |
-| AI calls / cost | ✅ Phase 11 — table on run detail (allow-listed; no secrets). Agent turn cost on GameLens Ask. |
+| AI calls / cost | ✅ Phase 11 — table on run detail (allow-listed; no secrets). Agent turn cost on GameLens Ask. Phase-12 `agent.*` costs on the same table. |
+| Test AI agents (triage / diagnose / heal) | ✅ **Phase 12** — run/test buttons. CLI extra. |
 | Command palette / arbitrary CLI | ❌ Deferred — CLI until a future BACKLOG item; not a full terminal |
 
 If something cannot fit, defer in this evolution table + [`phases/BACKLOG.md`](phases/BACKLOG.md)
@@ -143,8 +144,8 @@ empty state (not an error).
 | `#/lens/sessions/{id}` | Session summary (allow-listed) |
 | `#/lens/turns` | Persisted balance-agent turns |
 | `#/lens/turns/{id}` | Priorities (*model reasoning*) + gaps + measured citations + cost |
-| `#/runs/{id}` | Tests grid + **infra vs test** banner |
-| `#/runs/{id}/tests/{tid}` | Step timeline, death-point, artifacts, history sparkline (`tid` may be a pytest nodeid with `/`) |
+| `#/runs/{id}` | Tests grid + **infra vs test** banner + **Triage this run** |
+| `#/runs/{id}/tests/{tid}` | Step timeline, death-point, artifacts, history sparkline (`tid` may be a pytest nodeid with `/`) + **Diagnose this test** |
 | `#/trends` | Pass-rate / duration charts, flakiness board, duration-vs-pass correlation |
 | `#/live` | WebSocket stream (`/live` or `/api/live`) of EventBus (+ forwarded) events |
 
@@ -155,7 +156,7 @@ empty state (not an error).
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/api/health` | Liveness |
-| GET | `/api/meta` | `read_only`, paths, known reporters |
+| GET | `/api/meta` | `read_only`, paths, `api.agents`, `api.revision` |
 | GET | `/api/runs` | List + `profile` / `status` filters |
 | GET | `/api/runs/{id}` | Run detail + tests + verdict banner |
 | GET | `/api/runs/{id}/tests/{tid}` | Steps, death-point, artifacts, history (`{tid:path}` — slash-safe nodeids) |
@@ -170,6 +171,8 @@ empty state (not an error).
 | GET | `/api/lens/implications` | Implications index |
 | GET | `/api/telemetry/sessions` | Session list + `lose` / `snap-unset` notes |
 | GET | `/api/lens/agent/turns` | Balance-agent turn index |
+| GET | `/api/runs/{id}/agent-tasks` | Phase-12 task index for a pytest run |
+| GET | `/api/agent-tasks/{id}` | Task body (summary, clusters, gate, suggestion) |
 | GET | `/api/devices` | Live adb device list |
 | GET | `/api/profiles` | Profile names |
 | GET | `/api/profiles/{name}` | Public fields + secret env names |
@@ -191,6 +194,9 @@ empty state (not an error).
 | POST | `/api/profiles/{name}` | Diff preview (`apply=false`) or save |
 | POST | `/api/live/ingest` | Forwarded events from HUD-launched pytest |
 | POST | `/api/lens/agent/run` | Balance-agent Ask (read-only tools; CSRF; 403 in `--read-only`) |
+| POST | `/api/agents/triage` | Cluster a finished run (read-only) |
+| POST | `/api/agents/diagnose` | Diagnose one test (`fix` opt-in; anti-false-green gate) |
+| POST | `/api/agents/heal` | Suggest `locators.yaml` (never writes) |
 
 Mutators require cookie `questline_csrf` matching header `X-CSRF-Token`. Non-loopback
 clients receive 403 on mutators.
@@ -221,6 +227,7 @@ Then in the browser:
 7. **GameLens** → snapshots → Open typed diff → gaps (`snap-unset`, `combat.damage`) stay visible.
 8. **Sessions** → `sess-unset`: `lose` = measured play; `snap-unset` = join gap.
 9. **Ask** on the diff (profile `ai_groq` or smoke fake): priorities + gaps + measured citations.
+10. **Triage this run** on fixture `run-a` → clusters. Open `t-infra` → **Diagnose this test**.
 
 **Verified in HUD vs CLI:** note which of the above you clicked vs which you only ran via
 `pytest` / `questline` in the PR Self-review.

@@ -110,6 +110,12 @@ def main() -> None:
             '[profile.mock]\ndriver = "mock"\nreporters = ["console"]\n',
             encoding="utf-8",
         )
+    locators = root / "locators.yaml"
+    if not locators.is_file():
+        locators.write_text(
+            "pages:\n  MainMenu:\n    play_button:\n      by: id\n      value: main.play\n",
+            encoding="utf-8",
+        )
 
     def spawn(*_a: Any, **_k: Any) -> _SmokeProc:
         return _SmokeProc()

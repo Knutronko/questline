@@ -54,6 +54,22 @@ test("HUD GameLens: snapshots → diff → gaps → ask agent", async ({ page })
   await expect(page.getByTestId("agent-gaps")).toContainText("combat.damage");
 });
 
+test("HUD agents: triage run + diagnose test", async ({ page }) => {
+  await page.goto("/#/");
+  await expect(page.getByTestId("runs-table")).toBeVisible({ timeout: 15_000 });
+  const runA = page.locator('[data-testid="run-row"][data-run-id="run-a"]');
+  await runA.locator("a").first().click();
+  await expect(page.getByTestId("triage-run")).toBeVisible();
+  await page.getByTestId("triage-run").click();
+  await expect(page.getByTestId("agent-task").first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("triage-clusters")).toBeVisible();
+  await page.locator('[data-testid="test-row"][data-test-id="t-infra"] a').click();
+  await expect(page.getByTestId("diagnose-test")).toBeVisible();
+  await page.getByTestId("diagnose-test").click();
+  await expect(page.getByTestId("agent-task").first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("diagnose-msg")).toContainText("diagnosed");
+});
+
 test("HUD telemetry: lose is measured; snap-unset is a gap", async ({ page }) => {
   await page.goto("/#/lens/sessions");
   await expect(page.getByTestId("tel-sessions")).toBeVisible({ timeout: 15_000 });

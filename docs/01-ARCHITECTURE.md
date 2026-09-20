@@ -185,6 +185,11 @@ class LLMProvider(Protocol):
   `telemetry_sessions.summary`; missing KPIs are gaps (never imputed). Live report
   persists `implications.json` / `.md` + `lens_implications` (migration 6). Design
   copilot remains FP-G4.
+- Phase-12 **test** agents (`questline.ai.agents`): shared kernel, per-task budget,
+  incremental persist. Store index `agent_tasks` (migration 8) plus
+  `artifacts/agents/<id>/`. GameLens Ask stays in `questline.lens.agent`. HUD builds
+  a router **without** importing `questline.ai.factory` / `cursor_cli`. Operator
+  guide: [`ai-agents.md`](ai-agents.md). CLI extra: `questline ai triage|diagnose|heal`.
 
 ---
 

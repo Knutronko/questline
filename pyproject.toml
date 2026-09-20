@@ -126,3 +126,14 @@ source_modules = [
 forbidden_modules = [
     "questline.ai.providers.cursor_cli",
 ]
+
+[[tool.importlinter.contracts]]
+name = "HUD does not import AI factory or Cursor CLI"
+type = "forbidden"
+source_modules = [
+    "questline.hud",
+]
+forbidden_modules = [
+    "questline.ai.factory",
+    "questline.ai.providers.cursor_cli",
+]

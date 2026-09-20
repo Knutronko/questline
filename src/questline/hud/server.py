@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from questline.core.events import EventBus
 from questline.core.store import RunStore
 from questline.hud import static_dir
+from questline.hud.agents_api import router as agents_router
 from questline.hud.api import router as api_router
 from questline.hud.control import router as control_router
 from questline.hud.launcher import RunLauncher
@@ -98,6 +99,7 @@ def create_app(
     app.include_router(api_router)
     app.include_router(control_router)
     app.include_router(lens_router)
+    app.include_router(agents_router)
 
     @app.websocket("/api/live")
     async def live_ws(websocket: WebSocket) -> None:

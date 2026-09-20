@@ -60,7 +60,7 @@ Format: `- [ ] (phase-NN) description`
 - [x] (phase-09) HUD graphs / compare — done in phase-10.
 - [ ] (phase-10) Command palette / “run any CLI” inside HUD — out of scope; keep
       `questline doctor` / one-off reports as CLI until a future phase claims it.
-- [ ] (phase-12) AI action buttons in HUD (triage/maintainer triggers) — **after FP-G4**.
+- [x] (phase-12) AI action buttons in HUD (triage/maintainer/healer) — this PR.
 - [x] (fp-g4) Maintainer walks **entire** HUD (08–11 + GameLens/agent) —
       smoke fixture 2026-09-19 + live Groq Ask 2026-09-20. PR #36 merged.
       Human guide: [`hud-user-guide.md`](../hud-user-guide.md).
