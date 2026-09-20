@@ -2,8 +2,8 @@
 
 > **Superseded 2026-09-10 (maintainer lock):** do **not** start this brief as a
 > HUD-only phase. Browse panels + the balance agent ship together as
-> **[FP-G4](phase-fp-g4-balance-agent.md)**. Numbered phase-12 (test agents) is
-> parked until after G4.
+> **[FP-G4](phase-fp-g4-balance-agent.md)** (merged PR #36). Numbered phase-12 (test agents)
+> is **next**, not this brief.
 >
 > Session preamble: see `phase-00-bootstrap.md`. Read [`hud.md`](../hud.md),
 > [`gamelens.md`](../gamelens.md), [`telemetry.md`](../telemetry.md),
