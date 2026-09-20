@@ -5,6 +5,8 @@ First-party live driver: TCP + NDJSON on **127.0.0.1:13000** (ADR-0005 / ADR-000
 
 This is the **default** live path. For legacy AltTester (Desktop hub), see
 [unity-setup.md](unity-setup.md) — remote option only, not €0 happy path.
+**Opening the Editor / Play** from a terminal is the Unity CLI sidecar
+([unity-cli.md](unity-cli.md), **FP-U1**, after phase-12) — not a second driver.
 
 ## Driver priority
 

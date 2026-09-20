@@ -233,9 +233,16 @@ class LLMProvider(Protocol):
   or future **Poco** — same hooks API. Never ship instrumentation in release builds.
 
 ### 5.2 Unity Test Framework orchestration
-`questline unity-test run` launches Unity in batchmode (`-runTests -testResults results.xml`),
-parses NUnit XML, ingests into the same run store → C# unit/integration tests appear in HUD
-next to Python UI tests.
+`questline unity-test run` (phase-14) ingests C# UTF results into the same run store →
+HUD next to Python UI tests. **Preferred transport** when the FP-U1 sidecar sees
+Pipeline: `unity command run_tests`. **Fallback:** Unity batchmode
+(`-runTests -testResults results.xml`) + NUnit XML. [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md).
+
+### 5.3 Unity CLI sidecar (FP-U1 / FP-U2)
+Experimental `unity` CLI + optional `com.unity.pipeline` **orchestrate the Editor/CI**
+(open, play, UTF, builds, Cursor `unity mcp`). Not a `DriverPort`. Live gameplay
+stays QuestlineWire. Optional companion `[CliCommand]` wrappers **delegate** to
+existing hooks. See [`unity-cli.md`](unity-cli.md).
 
 ---
 
@@ -248,11 +255,11 @@ next to Python UI tests.
   screenshots, hierarchy snapshots, death-point report), trends, flakiness view
   (pass-rate per test over time).
 - **AI cost per run (phase-11 ✅):** run detail table over `ai_calls` (allow-listed).
-  Triage action buttons remain Phase 12.
+  Phase-12 triage / diagnose / heal buttons on failed runs (same PR).
 - **Control center** (Phase 10 ✅): launch/stop runs (profile picker, marker/test selection,
   device picker), quarantine management (ledger-backed), profile/config editor with
-  validation, perf graphs (PerfProbe series from phase 09, threshold overlays). AI actions
-  (trigger triage/maintainer on a failed run) land with Phase 12.
+  validation, perf graphs (PerfProbe series from phase 09, threshold overlays). Phase-12
+  AI actions (triage / diagnose / heal) ship on failed run/test pages.
 - **Integration rule:** new observables land in the store/bus first; each phase either
   extends the HUD (API + SPA + `docs/hud.md`) or **explicitly defers** UI. After phase 10,
   prefer HUD-first verification — see [`docs/hud.md`](hud.md) § HUD-first verification.

@@ -16,6 +16,7 @@
 | [drivers.md](drivers.md) | How to write a DriverPort adapter + conformance |
 | [writing-tests.md](writing-tests.md) | Authoring layer: plugin, pages, steps, quarantine |
 | [wire-setup.md](wire-setup.md) | **Happy-path live** — QuestlineWire (phase-05b) |
+| [unity-cli.md](unity-cli.md) | Unity CLI + Pipeline **sidecar** (Editor/CI; not a driver) · ADR-0012 · FP-U1/U2 |
 | [unity-setup.md](unity-setup.md) | Legacy AltTester only (Desktop; not €0) |
 | [android.md](android.md) | Local adb + Wire `android_local` |
 | [resilience.md](resilience.md) | Health, recovery ladder, watchdog, infra vs test verdicts |
@@ -28,6 +29,8 @@
 | [BALANCE-AUTOMATION.md](BALANCE-AUTOMATION.md) | **GameLens loop:** SO → snapshot → bots → telemetry → AI |
 | [gamelens.md](gamelens.md) | **FP-G1 operator guide:** manifest, CLI `lens`, fixtures, Editor export |
 | [telemetry.md](telemetry.md) | **FP-G2 operator guide:** thin events, CLI `telemetry`, later catalog, drain |
+| [ai-setup.md](ai-setup.md) | LLMPort keys (env **names**), profiles, budgets, live smoke |
+| [ai-agents.md](ai-agents.md) | **Phase-12** test agents: kernel gates, HUD buttons, how to trust |
 | [STATUS-DUAL.md](STATUS-DUAL.md) | **Vista de una pasada:** estado + roadmaps questline ↔ P1 + orden propuesto |
 | [INCIDENTS.md](INCIDENTS.md) | **Lessons log:** maintainer-visible traps (env/races/sync) for future AI sessions |
 | [FEATURE-PIPELINE-PLAN.md](FEATURE-PIPELINE-PLAN.md) | Feature→tests pipeline plan + phase addendums |
@@ -63,8 +66,11 @@ GameLens/HUD contracts. Do not put tokens or machine-private data in the repo.
 | FP-G2 | Thin gameplay telemetry | [phase-fp-g2-telemetry.md](phases/phase-fp-g2-telemetry.md) |
 | FP-G3 | Deterministic bots (after QL-6) | [phase-fp-g3-bots.md](phases/phase-fp-g3-bots.md) |
 | FP-G4 | GameLens balance agent + HUD | [phase-fp-g4-balance-agent.md](phases/phase-fp-g4-balance-agent.md) |
+| FP-U1 | Unity CLI sidecar (after 12) | [phase-fp-u1-unity-cli-sidecar.md](phases/phase-fp-u1-unity-cli-sidecar.md) |
+| FP-U2 | Companion Pipeline `[CliCommand]` | [phase-fp-u2-pipeline-commands.md](phases/phase-fp-u2-pipeline-commands.md) |
 
 Joint-wave prompts: [SESSION-PROMPTS-D11-QL5-FPG1.md](phases/SESSION-PROMPTS-D11-QL5-FPG1.md).
 Post-G4 next chats: [SESSION-PROMPTS-POST-G4.md](phases/SESSION-PROMPTS-POST-G4.md).
+Unity CLI / QL-8: [SESSION-PROMPTS-UNITY-CLI.md](phases/SESSION-PROMPTS-UNITY-CLI.md).
 Balance loop: [BALANCE-AUTOMATION.md](BALANCE-AUTOMATION.md).
 

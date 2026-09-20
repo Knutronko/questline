@@ -49,6 +49,8 @@ anti-false-green gate), and locator self-healing (suggest-only).
 - **GameLens “how to retune” agent + HUD browse** — that is **FP-G4** (before this
   phase). Do not duplicate it here.
 - AI-controlled bot policies (later add-on vs deterministic G3)
+- **Unity CLI / Pipeline / `unity mcp`** — catalog **FP-U1 / FP-U2** + game **QL-8**.
+  Not a DriverPort. See [`unity-cli.md`](../unity-cli.md).
 
 ## Acceptance criteria
 - [x] CI (scripted fake LLM — deterministic tool-call sequences): kernel budget tests,

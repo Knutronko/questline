@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-09-20** (phase-12 this PR; FP-G4 ✅ PR #36/#37).
+> Última revisión: **2026-09-20** (phase-12 this PR; Unity CLI catalogued **FP-U1/U2** + game **QL-8**; FP-G4 ✅ PR #36/#37/#38).
 
 ---
 
@@ -12,8 +12,8 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 + **05b–11** + **FP-G1** + **FP-G2** + **FP-G3** + **FP-G4** ✅ + **phase-12** | G4 merged (PR #36); phase-12 kernel + HUD triage/diagnose | **phase-12** PR (do not merge unless asked). Parallel: D11 feel playtest + optional `QUESTLINE_SNAPSHOT_ID` on ElJuegaso | AltTester Desktop fuera del happy path; 09c parked; INC-0010 open; **Mistral live smoke deferred** |
-| **ElJuegaso P1** | Proto D (feel) | **QL-1…3 + QL-5 + QL-6 + QL-7** + Wire + **`automation/bots`** + **D10.5** + **D11 código** | Playtest D11 (feel); optional `QUESTLINE_SNAPSHOT_ID` on later bots | Poco = 2º UI (fw 14); IEB-1…5 aún no son SO (hueco GameLens) |
+| **questline** | v0.1 + **05b–11** + **FP-G1** + **FP-G2** + **FP-G3** + **FP-G4** ✅ + **phase-12** | G4 merged (PR #36); phase-12 kernel + HUD triage/diagnose; **FP-U1/U2** catalogued (Unity CLI sidecar — after 12) | **phase-12** PR (do not merge unless asked). Parallel: D11 feel playtest; optional **QL-8** | AltTester Desktop fuera del happy path; 09c parked; INC-0010 open; **Mistral live smoke deferred** |
+| **ElJuegaso P1** | Proto D (feel) | **QL-1…3 + QL-5 + QL-6 + QL-7** + Wire + **`automation/bots`** + **D10.5** + **D11 código** | Playtest D11 (feel); optional `QUESTLINE_SNAPSHOT_ID`; optional **QL-8** (Unity CLI + Pipeline + `unity mcp`) | Poco = 2º UI (fw 14); IEB-1…5 aún no son SO (hueco GameLens) |
 
 
 **Drivers (prioridad):**
@@ -58,9 +58,11 @@
 | **FP-G4** | Balance agent + HUD | ✅ **merged 2026-09-20** PR #36 | Interactive *model reasoning* retune priorities + GameLens/telemetry HUD. Maintainer: smoke 1–8 + live Ask `ai_groq` (`status=ok`, gaps not imputed). Guide [`hud-user-guide.md`](hud-user-guide.md). Brief [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) |
 | 12 | AI agents | 🔧 **this PR** | Kernel + triage / maintainer / healer. **Not** the GameLens balance agent (G4). Brief [`phase-12`](phases/phase-12-ai-agents.md) · [`ai-agents.md`](ai-agents.md) |
 | **12b** | HUD GameLens (browse-only) | ✅ **folded into G4** | Do not start. Browse + agent shipped as FP-G4. Historical brief [`phase-12b`](phases/phase-12b-hud-gamelens.md) |
+| **FP-U1** | Unity CLI sidecar | ⬜ catalog | Editor lifecycle / doctor / HUD chip. **After 12**, prefer before 14. Does **not** replace Wire. [`phase-fp-u1`](phases/phase-fp-u1-unity-cli-sidecar.md) · [`unity-cli.md`](unity-cli.md) · [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) |
+| **FP-U2** | Companion `[CliCommand]` | ⬜ catalog | Optional Pipeline wrappers over hooks. After **QL-8**. [`phase-fp-u2`](phases/phase-fp-u2-pipeline-commands.md) |
 | 13 | AI generation + eval | ⬜ | |
-| 14 | **Poco** + UTF | ⬜ | 2º UI backend + UTF; trigger **QL-4** |
-| 15 | Integrations & release | ⬜ | v0.1.0 |
+| 14 | **Poco** + UTF | ⬜ | 2º UI backend + UTF; trigger **QL-4**. UTF **prefers** Pipeline `run_tests` if U1 sidecar sees it |
+| 15 | Integrations & release | ⬜ | v0.1.0; CI docs may use `unity install` |
 
 **Wire follow-ups (no renumeran 06–15):**
 
@@ -73,6 +75,7 @@
 | Wire play gestures (swipe/drag) | ⬜ **09c parked** — G3 playability gate = hooks sufficient ([`phase-09c`](phases/phase-09c-wire-play-gestures.md)) |
 
 Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md) · [`wire-setup.md`](wire-setup.md) ·
+[`unity-cli.md`](unity-cli.md) · [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) ·
 [`ADR-0005`](adr/ADR-0005-questline-wire.md) · [`ADR-0008`](adr/ADR-0008-wire-v2-ui.md) ·
 [`phase-09b`](phases/phase-09b-wire-v2.md) · [`performance.md`](performance.md) ·
 [`resilience.md`](resilience.md) ·
@@ -100,6 +103,7 @@ Detalle: [`00-MASTER-PLAN.md`](00-MASTER-PLAN.md) §5 · [`BALANCE-AUTOMATION.md
 | **QL-5** | Manifest SOs (GameLens) | ✅ | `balance_manifest.json` ADR-0009; companion `QuestlineBalanceExport`; IEB-1…5 no son assets |
 | **QL-6** | Telemetría | ✅ | `P1QuestlineTelemetry` → ADR-0010; Editor spool importado 2026-08-13. Labels reales + gaps: game `integracion-questline.md` §10.4 · **antes de bots** |
 | **QL-7** | Combat hooks for bots | ✅ **game** | `DeployAt` / `CollectPickups` / `BoardState` / CastSkill+Relocate; finite `LoadIeb`. Spec game §11. Consumed by FP-G3 `automation/bots`. |
+| **QL-8** | Unity CLI + Pipeline + MCP | ⬜ | Install `unity` CLI + `com.unity.pipeline`; Cursor `unity mcp`; pin versions. **Does not replace Wire.** Spec: [`unity-cli.md`](unity-cli.md) · prompts [`SESSION-PROMPTS-UNITY-CLI.md`](phases/SESSION-PROMPTS-UNITY-CLI.md). Unblocks FP-U1 live / FP-U2. Parallel with phase-12 OK |
 | exit | Scaffold `automation/` | ✅ coverage-demo + **FP-G3 bots** | Hooks ✅; live matrix 75/75 Editor 2026-09-09. UI find/tap → **QL-2c** (fw 09b ✅; Poco = 14) |
 
 Contrato espejo: [`GAME-INTEGRATION.md`](GAME-INTEGRATION.md).
@@ -132,6 +136,9 @@ flowchart TB
     Q9b --> Q14[14 Poco/UTF second UI]
     Q11 --> Q15[15 Release]
     Q14 --> Q15
+    Q11 -.-> FPU1[FP-U1 Unity CLI sidecar]
+    FPU1 -.-> Q14
+    FPU1 -.-> FPU2[FP-U2 CliCommands]
   end
 
   subgraph Game[ElJuegaso P1]
@@ -157,6 +164,7 @@ flowchart TB
     QL7 -.-> FPG3
     D12 -.-> QL6
     Auto -->|feeds| FPG3
+    LiveEd -.-> QL8[QL-8 CLI+Pipeline]
   end
 
   Q4 -.->|trigger| QL1
@@ -166,6 +174,8 @@ flowchart TB
   Q9 -.->|trigger| QL3
   Q9b -.->|trigger| QL2c
   Q14 -.->|trigger| QL4[QL-4 UTF+Poco]
+  QL8 -.-> FPU1
+  QL8 -.-> FPU2
   Auto -->|feeds| Q7
   Auto -->|feeds| Q8
   Auto -->|feeds| Q11
@@ -179,19 +189,21 @@ flowchart TB
 | 1 | **phase-12** AI agents (tool loop) | questline | **This PR.** Triage / diagnose / heal **tests**, not SOs. Brief [`phase-12`](phases/phase-12-ai-agents.md) |
 | 1∥ | Playtest **D11** (feel B1–B5) | ElJuegaso | **Parallel** (game repo / human). Código D11 listo. Matrix G3 = 75/75 **lose** (dato para retune) |
 | 1∥ | Optional: attach `QUESTLINE_SNAPSHOT_ID` on later bot runs | ElJuegaso | **Parallel** (game). Live G3 used `snap-unset`; G1 report shows the join gap |
+| 1∥ | Optional **QL-8** Unity CLI + Pipeline + `unity mcp` | ElJuegaso | **Parallel** (game). Dogfood only; does not replace Wire. Prompts [`SESSION-PROMPTS-UNITY-CLI.md`](phases/SESSION-PROMPTS-UNITY-CLI.md) |
 | 3 | Wire **09c** stays parked | questline | G3 playability gate = hooks sufficient (no Point-spam / no Drag) |
 | 4 | Rebuild Dev APK (Android Wire v2) | ElJuegaso | Opcional |
-| 5 | **D12** infinito (telemetría más rica: `FUTURE_EVENT_NAMES` en [`telemetry.md`](telemetry.md)) | ElJuegaso | Tras bots baseline; no reinventar nombres; **do not** add `enemy.spawn` “for bots” (they use `BoardState`) |
-| 6 | **phase-14 Poco + QL-4** | ambos | 2º UI backend + UTF |
+| 5 | **FP-U1 / FP-U2** Unity CLI sidecar | questline | **After phase-12.** Prefer U1 before 14 (UTF transport). QL-8 unblocks live |
+| 6 | **D12** infinito (telemetría más rica: `FUTURE_EVENT_NAMES` en [`telemetry.md`](telemetry.md)) | ElJuegaso | Tras bots baseline; no reinventar nombres; **do not** add `enemy.spawn` “for bots” (they use `BoardState`) |
+| 7 | **phase-14 Poco + QL-4** | ambos | 2º UI backend + UTF (Pipeline `run_tests` if U1 present) |
 
 
 **Stack live:** Wire = hooks + hierarchy/find/tap (**09b** ✅). **Poco** = 2º adapter.
 **AltTester** = legacy remoto. Prompts QL-6/QL-7/G3: [`SESSION-PROMPTS-QL6-FPG3.md`](phases/SESSION-PROMPTS-QL6-FPG3.md).
 Prompts G1 implications: [`SESSION-PROMPTS-G1-IMPLICATIONS.md`](phases/SESSION-PROMPTS-G1-IMPLICATIONS.md) (historical).
 **Next (questline):** finish/merge phase-12 test agents — [`phase-12-ai-agents.md`](phases/phase-12-ai-agents.md) · [`ai-agents.md`](ai-agents.md).
-**Parallel (ElJuegaso):** D11 feel playtest; optional `QUESTLINE_SNAPSHOT_ID`.
-Prompts: [`SESSION-PROMPTS-POST-G4.md`](phases/SESSION-PROMPTS-POST-G4.md).
-Phase-12b folded into G4. Do **not** start 09c, phase-13, or phase-14 yet.
+**Parallel (ElJuegaso):** D11 feel playtest; optional `QUESTLINE_SNAPSHOT_ID`; optional **QL-8**.
+Prompts: [`SESSION-PROMPTS-POST-G4.md`](phases/SESSION-PROMPTS-POST-G4.md) · Unity CLI [`SESSION-PROMPTS-UNITY-CLI.md`](phases/SESSION-PROMPTS-UNITY-CLI.md).
+Phase-12b folded into G4. Do **not** start 09c, phase-13, phase-14, or **FP-U1/U2** until 12 is merged.
 
 ---
 
@@ -239,6 +251,7 @@ Formalizado en: questline `GAME-INTEGRATION.md` + `00-MASTER-PLAN.md` §6 · ElJ
 | AI agents (12) | [`ai-agents.md`](ai-agents.md) · [`02-AI-ROADMAP.md`](02-AI-ROADMAP.md) · [`phase-12`](phases/phase-12-ai-agents.md) |
 | Phase 05b brief | [`phase-05b-questline-wire.md`](phases/phase-05b-questline-wire.md) |
 | Android / adb | [`android.md`](android.md) |
+| Unity CLI / Pipeline (sidecar) | [`unity-cli.md`](unity-cli.md) · [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) · [`phase-fp-u1`](phases/phase-fp-u1-unity-cli-sidecar.md) · [`phase-fp-u2`](phases/phase-fp-u2-pipeline-commands.md) · prompts [`SESSION-PROMPTS-UNITY-CLI.md`](phases/SESSION-PROMPTS-UNITY-CLI.md) |
 | Legacy AltTester setup | [`unity-setup.md`](unity-setup.md) |
 | P1 integración QL | [integracion-questline.md](https://github.com/Knutronko/ElJuegaso/blob/main/docs/prototipos/P1/integracion-questline.md) |
 | P1 roadmap post-D6 | [roadmap-post-d6.md](https://github.com/Knutronko/ElJuegaso/blob/main/docs/prototipos/P1/roadmap-post-d6.md) |

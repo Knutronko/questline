@@ -102,11 +102,12 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | **09b** | Companion Wire v2 UI ops (`hierarchy`/`find`/`tap`/`screenshot`); rebuild Dev APK | **QL-2c** ✅ companion (PR #41); Android APK rebuild optional |
 | 10–13 | Nothing new; agents/eval run against the §3 suite and the mock game | — |
 | **14** | Test assembly (asmdef) + UTF C# tests + **Poco** SDK (second UI backend) | **QL-4** |
-| 15 | Nothing new | — |
+| 15 | Nothing new (CI may use Unity CLI install — [`unity-cli.md`](unity-cli.md)) | — |
 | FP-G1 | SO **export manifest** (which ScriptableObjects are balance data) | **QL-5** |
 | FP-G2 | Game code calls the telemetry API (existing debug-event convention maps ~1:1) | **QL-6 ✅** (2026-08-13 Editor dogfood). Mapping/labels/gaps: game `integracion-questline.md` §10. Contract: [`telemetry.md`](telemetry.md) · ADR-0010. |
 | — | Combat hooks for bots (`DeployAt`, collect, `BoardState`, skill-by-cell, finite `LoadIeb`) | **QL-7 ✅** (2026-08-13). Spec: game `integracion-questline.md` §11 |
 | FP-G3 | Bot scenarios / policies in `automation/` (hooks-first); drain via `drain_telemetry`; set `policy_id` / `seed` / `config_snapshot_id` | ElJuegaso `automation/bots` ✅ live Editor 2026-09-09 (75/75) — brief [`phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md); policies game §11 |
+| **FP-U1 / FP-U2** | Running Editor with **Pipeline** + CLI on PATH (live ensure-editor / CliCommands). Mock CI does not wait. | **QL-8** — install `unity` CLI + `com.unity.pipeline` + Cursor `unity mcp`; pin versions in game docs. **Does not replace Wire.** [`unity-cli.md`](unity-cli.md) · [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) |
 | FP-F1+ | Game repo path configured; feature descriptions at scan time | — |
 
 **Rule for phase sessions:** if your phase's acceptance needs game-side work that is not
@@ -148,4 +149,5 @@ gate fails (see BALANCE-AUTOMATION §5).
 
 **FP-G2 docs:** [`telemetry.md`](telemetry.md) · [`ADR-0010`](adr/ADR-0010-gamelens-telemetry.md).
 **FP-G1 docs:** [`gamelens.md`](gamelens.md) · [`ADR-0009`](adr/ADR-0009-gamelens-snapshot.md).
+**Unity CLI sidecar:** [`unity-cli.md`](unity-cli.md) · [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) — Editor/CI only; live tests stay Wire.
 

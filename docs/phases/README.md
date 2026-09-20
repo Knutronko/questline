@@ -13,6 +13,7 @@ Scheduled catalog FPs may use `phase-fp-*.md` (e.g. FP-G1) until numbered.
 **G1 implications live report:** [`SESSION-PROMPTS-G1-IMPLICATIONS.md`](SESSION-PROMPTS-G1-IMPLICATIONS.md) · brief [`phase-fp-g1-implications-live.md`](phase-fp-g1-implications-live.md) — **merged**.
 **FP-G4:** [`SESSION-PROMPTS-G4-BALANCE-AGENT.md`](SESSION-PROMPTS-G4-BALANCE-AGENT.md) · brief [`phase-fp-g4-balance-agent.md`](phase-fp-g4-balance-agent.md) — **merged PR #36**.
 **Next (after this close-out):** [`SESSION-PROMPTS-POST-G4.md`](SESSION-PROMPTS-POST-G4.md) · [`phase-12-ai-agents.md`](phase-12-ai-agents.md).
+**Unity CLI (catalog, after 12):** [`SESSION-PROMPTS-UNITY-CLI.md`](SESSION-PROMPTS-UNITY-CLI.md) · [`phase-fp-u1-unity-cli-sidecar.md`](phase-fp-u1-unity-cli-sidecar.md) · [`phase-fp-u2-pipeline-commands.md`](phase-fp-u2-pipeline-commands.md). Game **QL-8** may run in parallel with 12.
 **Folded:** [`phase-12b-hud-gamelens.md`](phase-12b-hud-gamelens.md) → G4.
 
 

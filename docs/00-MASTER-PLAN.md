@@ -140,14 +140,18 @@ Merge gate: GitHub Actions (lint + type check + unit tests + phase acceptance te
 | 11 | AI foundation | LLMPort + adapters (Mistral/Groq/Ollama/Cursor CLI), cost ledger, failover | Live free-tier calls |
 | 12 | AI agents | Triage agent, maintainer agent (diagnose/fix + gates), self-healing locators — **next after G4** | Broken-on-purpose tests |
 | **FP-G4** | GameLens balance agent + HUD | Retune *priorities* + browse snapshots/diffs/sessions — **✅ PR #36** | Local store + Pablo UI review |
+| **FP-U1** | Unity CLI sidecar | Editor ensure / doctor / HUD chip — catalog, after 12 | Maintainer Editor (QL-8) |
+| **FP-U2** | Companion Pipeline commands | Optional `[CliCommand]` → hooks — catalog, after QL-8 | Reference game with Pipeline |
 | 13 | AI generation + eval | Spec→test generator, unit-test generator, eval harness + metrics | Golden set |
-| 14 | **Poco** + UTF | **Second** UI backend (conformance) + Unity Test Framework ingestion | Example game via Poco |
+| 14 | **Poco** + UTF | **Second** UI backend (conformance) + Unity Test Framework ingestion (Pipeline `run_tests` if U1) | Example game via Poco |
 | 15 | Integrations & release | CIPort + TeamCity adapter, farm stubs, iOS design doc, docs site, v0.1.0 | Tagged release |
 
 Dependency notes: 8→10 (HUD), **G1–G3 → 11 → FP-G4** (balance agent + HUD) → **12**
 (test agents) → 13 (eval). 2→4→5→**5b**→**9b**, 4→9, 9→9b.
 **GameLens path (2026-09-20):** FP-G1 → FP-G2 → FP-G3 → phase-11 → G1 implications →
-**FP-G4** (agent + HUD, merged) → **phase-12**. See [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md).
+**FP-G4** (agent + HUD, merged) → **phase-12**. **Unity CLI sidecar (FP-U1/U2)** after 12
+(prefer before 14); game **QL-8** may run in parallel. See [`BALANCE-AUTOMATION.md`](BALANCE-AUTOMATION.md)
+and [`unity-cli.md`](unity-cli.md).
 Inserted lettered / catalog FPs do not renumber 13–15. HUD-first: operator phases ship
 HUD in the same PR.
 
@@ -191,7 +195,7 @@ HUD in the same PR.
 ## 7. Beyond v0.1
 
 The expansion catalog (iOS, HUD desktop app, API/backend testing module, GameLens
-design-and-balance intelligence, chaos/monkey/soak/visual/localization testing, MCP server,
+design-and-balance intelligence, Unity CLI/Pipeline sidecar, chaos/monkey/soak/visual/localization testing, MCP server,
 nightly autonomous pipeline…) lives in `03-FUTURE-PHASES.md` as unnumbered candidate phases.
 An FP is scheduled by giving it the next phase number and a full brief — same template,
-same rules.
+same rules. `unity mcp` (Editor) is **not** `questline mcp` (FP-A1).

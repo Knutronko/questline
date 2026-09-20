@@ -97,7 +97,8 @@ G1 → G2/G3 → 11. The G4 agent proposes retune *priorities*; it does not writ
 - **AI bot policies (post FP-G3 deterministic, later):** LLM chooses in-game actions
   under budget; compared to deterministic baselines; not this FP.
 - **AI crash triage (FP-T6)**: dedupe + suspect-area analysis of monkey-run crashes.
-- **MCP server (FP-A1)**: expose run/query/triage/GameLens as MCP tools. High keyword value.
+- **MCP server (FP-A1)**: expose run/query/triage/GameLens as MCP tools. High keyword
+  value. Distinct from Unity's `unity mcp` (Editor — QL-8 / FP-U2); load both, do not merge.
 - **Nightly auto-triage pipeline (FP-A2)**: scheduled run → triage digest → issues filed.
 - **Flakiness predictor (FP-A3)**: classic ML (no LLM) over run-store history.
 - **Self-healing auto-PR mode (FP-A4)**: agents open PRs autonomously only after the eval

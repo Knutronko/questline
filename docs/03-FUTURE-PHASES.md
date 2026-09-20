@@ -11,7 +11,8 @@ S = 1–2 sessions, M = 3–4, L = 5+.
 **D11 + QL-5 + FP-G1** → **FP-G2 / QL-6** → **FP-G3** (deterministic bots; Wire 09c
 only if playability gate fails) → **phase-11** AI foundation → **G1 implications live
 report** ✅ → **FP-G4** balance agent + HUD (Pablo reviews the whole UI) → **phase-12**
-test agents → then other FPs (T2/T1/P3/…) as curiosity allows.
+test agents → optional **QL-8** (game, parallel OK) → **FP-U1 / FP-U2** Unity CLI
+sidecar (after 12, prefer before 14) → then other FPs (T2/T1/P3/…) as curiosity allows.
 
 Older catalog wave (FP-T* interleaved before bots) is **superseded** for the reference
 game's balance goals. iOS (FP-P1) whenever curiosity wins.
@@ -102,6 +103,35 @@ creature growth curves) — but the module is genre-agnostic by design.
   Former phase-12b browse-only slice is folded here. Phase-12 test agents are **next**
   (unparked). Human HUD guide: [`hud-user-guide.md`](hud-user-guide.md).
   Event names: thin catalog now; D12 reserved names when present — do not invent aliases.
+
+---
+
+## Group U — Unity CLI, Pipeline, MCP (Editor/CI sidecar)
+
+Unity's experimental `unity` binary + `com.unity.pipeline` drive the **Editor and CI**.
+They do **not** replace QuestlineWire. Decision: [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md).
+Operator map: [`unity-cli.md`](unity-cli.md). Game dogfood is **QL-8** (not a numbered
+questline phase). Do **not** schedule FP-U1/U2 before phase-12.
+
+### FP-U1 — Unity CLI sidecar · **S–M · after phase-12** (prefer before 14)
+- Python wrapper around `unity` (JSON, feature-detect, no crash if missing).
+- `questline doctor` row + `ensure-editor` (open + `editor_play` + wait Wire `:13000`).
+- HUD launcher chip + Ensure Editor (HUD-first). No command palette.
+- Live maintainer check needs **QL-8**; CI stays fake-subprocess.
+- Brief: [`phases/phase-fp-u1-unity-cli-sidecar.md`](phases/phase-fp-u1-unity-cli-sidecar.md).
+- **Non-goals:** DriverPort, `eval` as verdict, Android via Pipeline runtime.
+
+### FP-U2 — Companion `[CliCommand]` wrappers · **S · after QL-8**
+- Optional asmdef slice: Pipeline commands **delegate** to `QuestlineHooks` / Wire
+  ensure / existing lens export. Core companion compiles **without** Pipeline.
+- Cursor `unity mcp` then sees the same allow-listed game API. Game-specific
+  commands (if any) live in the **game** repo, not `unity-package/`.
+- HUD command executor deferred (BACKLOG palette).
+- Brief: [`phases/phase-fp-u2-pipeline-commands.md`](phases/phase-fp-u2-pipeline-commands.md).
+
+Phase-14 UTF **prefers** `unity command run_tests` when the U1 sidecar sees Pipeline;
+else `-batchmode -runTests`. Phase-15 documents `unity install` for CI agents.
+Prompts: [`phases/SESSION-PROMPTS-UNITY-CLI.md`](phases/SESSION-PROMPTS-UNITY-CLI.md).
 
 ---
 
@@ -203,8 +233,11 @@ creature growth curves) — but the module is genre-agnostic by design.
 
 ### FP-A1 — MCP server · **S-M · priority MEDIA**
 - `questline mcp`: expose runs/results/triage/GameLens queries as MCP tools so any MCP
-  client (Claude, Cursor, custom agents) can drive the framework conversationally.
+  client (Claude, Cursor, custom agents) can drive the **framework** conversationally.
   High keyword value; thin layer over existing APIs. Prereqs: phases 10–12.
+- **Not** Unity's `unity mcp` (Editor play/assets/eval/CliCommands — QL-8 / FP-U2).
+  Clients may load **both**. Do not proxy one through the other.
+  [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) · [`unity-cli.md`](unity-cli.md).
 
 ### FP-A2 — Nightly autonomous pipeline · **S · priority MEDIA-ALTA**
 - Scheduled (Task Scheduler/cron/CI): build or fetch latest game build → run suite →
@@ -230,7 +263,7 @@ What a solo Unity game needs tested at each stage, and where Questline covers it
 | Dev stage | Need | Coverage |
 |---|---|---|
 | Prototype | Does core loop work? Crashes? | Smoke e2e (P4), monkey bot (FP-T6) |
-| Systems build-out | Logic correctness | UTF unit tests ingested (P14), save/load (FP-T2) |
+| Systems build-out | Logic correctness | UTF unit tests ingested (P14; Pipeline `run_tests` if FP-U1), save/load (FP-T2) |
 | Content/balance iteration | What changed & what it does to gameplay | **GameLens (FP-G1–G3)** |
 | Feature growth | Regressions | e2e suites (P3–5), visual (FP-T3), impact-aware selection (backlog) |
 | Perf hardening | FPS/memory/leaks | PerfProbe (P9), soak (FP-T7), build budgets (FP-T8) |
