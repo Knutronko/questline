@@ -32,7 +32,7 @@ the CLI uses — no UI-only code paths).
 | ✅ **PR #40** | **13** Eval + generation | **Generate** page (steps → pytest + gate) + **Eval** harness. Live Editor dogfood 2026-09-21. [`ai-eval.md`](ai-eval.md) |
 | **this PR · deferred** | **FP-A1** MCP | **No new HUD page.** Cursor is the client (`questline mcp`). Doctor prints `mcp extra:`. [`mcp.md`](mcp.md) · brief [`phase-fp-a1-mcp.md`](phases/phase-fp-a1-mcp.md) |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
-| later | **FP-U1** Unity CLI sidecar | Launcher **chip**: CLI present / Editor running / play mode + **Ensure Editor**. [`phase-fp-u1`](phases/phase-fp-u1-unity-cli-sidecar.md) |
+| ✅ **FP-U1** | Unity CLI sidecar | Launcher **chip**: CLI present / Editor running / play mode + **Ensure Editor**. [`phase-fp-u1`](phases/phase-fp-u1-unity-cli-sidecar.md) |
 | later | **FP-U2** Pipeline commands | Optional allow-listed command **count** on the chip. **No** HUD command executor |
 
 ### Gap audit (05b–09b → HUD after 10)
@@ -51,7 +51,7 @@ the CLI uses — no UI-only code paths).
 | AI calls / cost | ✅ Phase 11 — table on run detail (allow-listed; no secrets). Agent turn cost on GameLens Ask. Phase-12 `agent.*` costs on the same table. |
 | Test AI agents (triage / diagnose / heal) | ✅ **Phase 12** — run/test buttons. CLI extra. **Cursor:** `questline mcp` (FP-A1; not a HUD panel) |
 | Command palette / arbitrary CLI | ❌ Deferred — CLI until a future BACKLOG item; not a full terminal. **Includes** raw `unity command` / eval (FP-U2 does not ship a HUD runner) |
-| Unity CLI / Editor play | ❌ **FP-U1** — status chip + Ensure Editor (not a second driver) |
+| Unity CLI / Editor play | ✅ **FP-U1** — Launch chip + **Ensure Editor** (not a second driver; no command box) |
 | Questline MCP (Cursor) | ❌ **FP-A1 deferred** — no SPA. `questline doctor` / Cursor MCP. [`mcp.md`](mcp.md) |
 
 If something cannot fit, defer in this evolution table + [`phases/BACKLOG.md`](phases/BACKLOG.md)
@@ -191,6 +191,7 @@ empty state (not an error).
 | GET | `/api/profiles/{name}` | Public fields + secret env names |
 | GET | `/api/quarantine` | Ledger entries |
 | GET | `/api/launcher` | Managed-run status |
+| GET | `/api/unity/status` | Unity CLI / Editor chip (allow-listed; no token, no home path) |
 | GET | `/api/csrf` | Issue CSRF cookie + token |
 | WS | `/live` | Live event fan-out |
 
@@ -200,6 +201,7 @@ empty state (not an error).
 |--------|------|---------|
 | POST | `/api/launcher/start` | Start managed pytest subprocess |
 | POST | `/api/launcher/stop` | Graceful cancel |
+| POST | `/api/unity/ensure-editor` | Open project, Play, wait for Wire (same as `questline unity ensure-editor`) |
 | POST | `/api/quarantine` | Add/update ledger entry (same as CLI) |
 | DELETE | `/api/quarantine?test_id=` | Remove entry |
 | POST | `/api/quarantine/audit` | Limbo audit |

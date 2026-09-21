@@ -581,6 +581,39 @@ export function listGenerateTasks(): Promise<{ tasks: AgentTask[]; empty: boolea
   return getJson("/api/agent-tasks?kind=generate");
 }
 
+export type UnityStatus = {
+  available: boolean;
+  cli_version: string | null;
+  pipeline: "yes" | "no" | "unknown" | string;
+  editor_running: boolean | null;
+  play_mode: boolean | null;
+  project_name: string | null;
+  detail: string;
+};
+
+export type UnityEnsureResult = {
+  ok: boolean;
+  skipped: boolean;
+  wire_ready: boolean;
+  detail: string;
+  unity: UnityStatus;
+};
+
+export function unityStatus(profile?: string, config?: string): Promise<{ unity: UnityStatus }> {
+  const q = new URLSearchParams();
+  if (profile) q.set("profile", profile);
+  if (config) q.set("config", config);
+  const qs = q.toString();
+  return getJson(`/api/unity/status${qs ? `?${qs}` : ""}`);
+}
+
+export function ensureEditor(body: {
+  profile?: string;
+  config?: string;
+}): Promise<UnityEnsureResult> {
+  return mutateJson("POST", "/api/unity/ensure-editor", body);
+}
+
 export function fmtDur(s: number | null | undefined): string {
   if (s == null || Number.isNaN(s)) return "—";
   if (s < 60) return `${s.toFixed(1)}s`;

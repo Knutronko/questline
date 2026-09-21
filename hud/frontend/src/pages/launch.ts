@@ -2,6 +2,7 @@ import {
   esc,
   ensureCsrf,
   getMeta,
+  ensureEditor,
   launchRun,
   launcherStatus,
   listConfigs,
@@ -9,7 +10,9 @@ import {
   listProfiles,
   listReporters,
   stopLaunch,
+  unityStatus,
   type LauncherStatus,
+  type UnityStatus,
 } from "../api";
 
 const LAST_GEN_KEY = "ql-last-generated";
@@ -53,6 +56,43 @@ const WIRE_SMOKE_PRESETS: SuitePreset[] = [
     note: "Dev APK + adb. Pick a serial if more than one device.",
   },
 ];
+
+function tri(value: boolean | null, on: string, off: string): string {
+  if (value == null) return "?";
+  return value ? on : off;
+}
+
+export function unityChipHtml(readOnly: boolean): string {
+  const disabled = readOnly ? "disabled" : "";
+  return `
+    <div class="panel" data-testid="unity-chip" data-state="loading">
+      <div class="toolbar wrap">
+        <strong>Unity Editor</strong>
+        <span class="badge" data-testid="unity-cli">CLI …</span>
+        <span class="badge" data-testid="unity-editor">Editor …</span>
+        <span class="badge" data-testid="unity-play">Play …</span>
+        <span class="badge" data-testid="unity-pipeline">Pipeline …</span>
+        <button type="button" id="unity-ensure" data-testid="unity-ensure" ${disabled}>Ensure Editor</button>
+      </div>
+      <p class="meta" data-testid="unity-detail">Checking Unity CLI…</p>
+    </div>`;
+}
+
+function paintUnity(unity: UnityStatus, note?: string): void {
+  const chip = document.querySelector<HTMLElement>("[data-testid=unity-chip]");
+  const cli = document.querySelector<HTMLElement>("[data-testid=unity-cli]");
+  const editor = document.querySelector<HTMLElement>("[data-testid=unity-editor]");
+  const play = document.querySelector<HTMLElement>("[data-testid=unity-play]");
+  const pipeline = document.querySelector<HTMLElement>("[data-testid=unity-pipeline]");
+  const detail = document.querySelector<HTMLElement>("[data-testid=unity-detail]");
+  if (cli) cli.textContent = unity.available ? `CLI ${unity.cli_version || "present"}` : "CLI missing";
+  if (editor) editor.textContent = `Editor ${tri(unity.editor_running, "running", "stopped")}`;
+  if (play) play.textContent = `Play ${tri(unity.play_mode, "on", "off")}`;
+  if (pipeline) pipeline.textContent = `Pipeline ${unity.pipeline}`;
+  const name = unity.project_name ? ` (${unity.project_name})` : "";
+  if (detail) detail.textContent = `${note || unity.detail || "Unity CLI status."}${name}`;
+  if (chip) chip.dataset.state = unity.available ? "ready" : "missing";
+}
 
 function lastGeneratedTests(fallback: string): string {
   try {
@@ -140,6 +180,7 @@ export async function renderLaunch(): Promise<string> {
 
   if (meta.read_only) {
     return `<h1>Launch</h1>
+      ${unityChipHtml(true)}
       <div class="empty" data-testid="launch-readonly">
         HUD is in <code>--read-only</code> mode. Mutating APIs are disabled.
       </div>`;
@@ -222,6 +263,7 @@ export async function renderLaunch(): Promise<string> {
 
   return `
     <h1>Run launcher</h1>
+    ${unityChipHtml(false)}
     ${busyBanner}
     <p class="meta">Profiles come from <code>questline.toml</code> (not from Unity being open).
       Unity Play + Wire = use preset <strong>Wire Editor</strong> or profile <code>editor</code>.
@@ -317,8 +359,23 @@ export function wireLaunch(): void {
     }
   };
 
+  const refreshUnity = async () => {
+    const detail = document.querySelector<HTMLElement>("[data-testid=unity-detail]");
+    try {
+      const data = await unityStatus(profileEl?.value || undefined, configEl?.value || undefined);
+      paintUnity(data.unity);
+    } catch (err) {
+      if (detail) detail.textContent = String(err);
+    }
+  };
+
   configEl?.addEventListener("change", () => {
     void reloadProfiles();
+    void refreshUnity();
+  });
+
+  profileEl?.addEventListener("change", () => {
+    void refreshUnity();
   });
 
   document.getElementById("launch-refresh-devices")?.addEventListener("click", () => {
@@ -363,6 +420,29 @@ export function wireLaunch(): void {
       if (statusEl) statusEl.textContent = String(err);
     }
   };
+
+  document.getElementById("unity-ensure")?.addEventListener("click", () => {
+    const button = document.getElementById("unity-ensure") as HTMLButtonElement | null;
+    const detail = document.querySelector<HTMLElement>("[data-testid=unity-detail]");
+    if (!button || button.disabled) return;
+    void (async () => {
+      button.disabled = true;
+      if (detail) detail.textContent = "Ensuring Editor…";
+      try {
+        const result = await ensureEditor({
+          profile: profileEl?.value || undefined,
+          config: configEl?.value || undefined,
+        });
+        paintUnity(result.unity, result.detail);
+        const chip = document.querySelector<HTMLElement>("[data-testid=unity-chip]");
+        if (chip) chip.dataset.state = result.ok ? "ready" : result.skipped ? "skipped" : "error";
+      } catch (err) {
+        if (detail) detail.textContent = String(err);
+      } finally {
+        button.disabled = false;
+      }
+    })();
+  });
 
   document.getElementById("launch-start")?.addEventListener("click", () => {
     void (async () => {
@@ -415,6 +495,7 @@ export function wireLaunch(): void {
   });
 
   void refresh();
+  void refreshUnity();
   window.setInterval(() => {
     if (location.hash.replace(/^#\/?/, "").startsWith("launch")) void refresh();
   }, 2000);

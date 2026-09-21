@@ -53,6 +53,13 @@ ai_app = typer.Typer(
 )
 app.add_typer(ai_app, name="ai")
 
+unity_app = typer.Typer(
+    name="unity",
+    help="Unity CLI sidecar (Editor lifecycle). Live tests stay on Wire.",
+    no_args_is_help=True,
+)
+app.add_typer(unity_app, name="unity")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -146,6 +153,73 @@ def doctor(
                 typer.echo(f"  {flag:4} {result.name}: {result.detail}")
         else:
             typer.echo("ai ping:     skipped (--no-ping)")
+
+    try:
+        from questline.unity_cli.doctor import doctor_lines
+
+        unity_lines = doctor_lines(settings)
+    except Exception:
+        unity_lines = ["unity_cli:   warning (probe failed)"]
+    missing_cli = any("available=false" in line for line in unity_lines)
+    for line in unity_lines:
+        if missing_cli:
+            typer.secho(line, fg=typer.colors.YELLOW)
+        else:
+            typer.echo(line)
+
+
+def _unity_settings(config: Path | None, profile: str | None) -> Any:
+    try:
+        return load_settings(config_path=config, profile=profile)
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@unity_app.command("status")
+def unity_status(
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="Profile name from questline.toml"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+) -> None:
+    """Print allow-listed Unity CLI / Editor status as JSON."""
+    import json
+
+    from questline.unity_cli.doctor import status_public
+
+    settings = _unity_settings(config, profile)
+    typer.echo(json.dumps(status_public(settings), indent=2))
+
+
+@unity_app.command("ensure-editor")
+def unity_ensure_editor(
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="Profile name from questline.toml"),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+) -> None:
+    """Open the profile project, enter Play, and wait for Wire hello."""
+    import json
+
+    from questline.unity_cli.ensure import ensure_editor
+
+    settings = _unity_settings(config, profile)
+    result = ensure_editor(settings)
+    typer.echo(json.dumps(result.to_public(), indent=2))
+    if not result.ok and not result.skipped:
+        raise typer.Exit(code=1)
 
 
 def _ledger_path(path: Path | None) -> Path:

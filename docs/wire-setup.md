@@ -78,6 +78,12 @@ uv run pytest examples/wire-smoke -q -o addopts= `
   --questline-config examples/wire-smoke/questline.toml
 ```
 
+`unity_cli.ensure_editor` defaults **off**. Turn it on only in a machine-local
+profile when you want pytest to open the Editor and wait for Wire before the
+driver connects (`questline unity ensure-editor`, or the HUD **Ensure Editor**
+button). If `unity` is not on PATH, that step warns and the manual Play recipe
+above still applies. See [`unity-cli.md`](unity-cli.md).
+
 Includes hooks + **UI** (`test_wire_v2_hierarchy_find_tap`). No `[alttester]` extra.
 Profile key: `driver = "questline"`.
 

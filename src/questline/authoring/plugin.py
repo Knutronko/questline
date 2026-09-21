@@ -497,7 +497,9 @@ def driver_handle(
     pytestconfig: pytest.Config,
 ) -> Any:
     from questline.core.recovery import RecoveryPolicy
+    from questline.unity_cli.ensure import maybe_ensure_editor
 
+    maybe_ensure_editor(questline_settings)
     handle = wire_driver_handle(questline_settings, questline_device)
     target = _connection_target_for(questline_settings, questline_device)
     device_provider = None

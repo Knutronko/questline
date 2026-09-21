@@ -234,6 +234,8 @@ def _settings_public_summary(settings: Settings) -> dict[str, Any]:
         "ai_candidates": list(settings.ai.candidates),
         "ai_budget_per_call_usd": settings.ai.budget_per_call_usd,
         "ai_budget_per_run_usd": settings.ai.budget_per_run_usd,
+        "unity_cli_ensure_editor": settings.unity_cli.ensure_editor,
+        "unity_project_name": settings.unity_cli.project_display_name(),
         "secret_env_names": list(_SECRET_ENV_NAMES),
     }
 

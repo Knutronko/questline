@@ -197,6 +197,8 @@ events. It does not write new real runs into the fixture store.
 | **Stop** | Cancels the managed run. |
 | **Open Live** | Appears while a run is busy. |
 | **Status** | JSON of the launcher (`idle` / `starting` / `running` / `stopping` / `error`, plus `log_tail`). |
+| **Unity Editor** chip | CLI present or missing, Editor running, Play on/off, Pipeline yes/no/unknown. Project name only (no home path). |
+| **Ensure Editor** | Same as `questline unity ensure-editor`: open the profile project, enter Play, wait for Wire on `:13000`. Disabled in read-only. If the CLI is missing, it tells you to press Play yourself. |
 
 Rules of thumb:
 

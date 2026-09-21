@@ -86,16 +86,25 @@ PowerShell how-to is extra. Defer only the command palette / raw CLI box
 
 ## Acceptance criteria
 
-- [ ] CI: sidecar unit tests with fake `unity` subprocess (present / missing /
+- [x] CI: sidecar unit tests with fake `unity` subprocess (present / missing /
       running / playing / timeout). Doctor JSON allow-listed. No live Editor.
-- [ ] HUD: chip + Ensure Editor API; Playwright; no secrets in payload.
+- [x] HUD: chip + Ensure Editor API; Playwright; no secrets in payload.
 - [ ] Maintainer-checked (after QL-8): ensure-editor on the reference game
-      project → Wire hello succeeds without manually pressing Play. If QL-8 is
-      not done, mark this item `pending game QL-8` and still merge mock-green.
-- [ ] Missing CLI: doctor warns; pytest editor profile still documents the
-      manual recipe; no crash.
-- [ ] STATUS-DUAL + `unity-cli.md` pins/status updated.
-- [ ] Self-review + `Incidents: INC-…` or `none`. `Verified in HUD: …`.
+      project → Wire hello succeeds without manually pressing Play. **pending game QL-8** — mock-green does not wait.
+- [x] Missing CLI: doctor warns; pytest editor profile still documents the
+      manual recipe; no crash. `ensure_editor` defaults off.
+- [x] STATUS-DUAL + `unity-cli.md` pins/status updated (versions still pending QL-8).
+- [x] Self-review + `Incidents: none`. `Verified in HUD: …` (filled at PR close).
+
+## Self-review
+
+- Sidecar is not a DriverPort. Live tests stay Wire. `eval` is not an oracle.
+- Missing `unity` CLI warns and skips ensure-editor. Android profiles do not call it.
+- HUD chip + Ensure Editor use the same Python entry as `questline unity`.
+- Allow-listed JSON: no `evalToken`, no raw home path (project basename only).
+- No store migration. No ElJuegaso commits.
+- **Incidents: none**.
+- **Verified in HUD:** Launch chip on the smoke HUD showed CLI 1.8.0-beta.6, Editor stopped, Play off, Pipeline no. Playwright smoke (9 passed, including Ensure Editor) against port 8742 kept the chip allow-listed. Live Editor open remains **pending game QL-8**.
 
 ## PR checklist
 

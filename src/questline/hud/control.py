@@ -167,7 +167,8 @@ def meta(request: Request) -> dict[str, Any]:
             "eval": True,
             "generate": True,
             "generate_launch": True,
-            "revision": 9,
+            "unity": True,
+            "revision": 10,
         },
     }
 

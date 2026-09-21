@@ -12,6 +12,14 @@ wait.deadline = 20.0
 wait.interval = 0.5
 # Keep smoke deterministic; env QUESTLINE_PERF_ENABLED=true still overrides (clear it).
 perf.enabled = false
+# FP-U1 sidecar stays off unless the operator opts in. The project path is
+# machine-local — do not commit it. See docs/unity-cli.md.
+# [profile.editor.unity_cli]
+# ensure_editor = false
+# project = "<unity-project>"
+# command_timeout_s = 120
+# wire_timeout_s = 60
+# probe_timeout_s = 8
 
 [profile.standalone]
 driver = "questline"
