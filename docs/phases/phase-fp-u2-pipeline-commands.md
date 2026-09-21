@@ -8,9 +8,9 @@
 > [`wire-setup.md`](../wire-setup.md),
 > [`GAME-INTEGRATION.md`](../GAME-INTEGRATION.md).
 >
-> **Scheduled:** after **QL-8** (Pipeline in the game) and preferably after or
-> overlapping **FP-U1** (sidecar to list/invoke commands). After numbered
-> **phase-12**. Catalog FP — does **not** renumber 12–15.
+> **Scheduled:** **QL-8** landed (ElJuegaso PR #55, 2026-09-21) and **FP-U1**
+> is merged (PR #43). After numbered **phase-12**. Catalog FP — does **not**
+> renumber 12–15.
 > **Size:** S. Prompts: [`SESSION-PROMPTS-UNITY-CLI.md`](SESSION-PROMPTS-UNITY-CLI.md).
 
 ## Context
@@ -69,7 +69,7 @@ compile the core companion.
 
 | Layer | Owner | Role |
 |-------|-------|------|
-| Pipeline package on the project | **QL-8** | `unity pipeline install` |
+| Pipeline package on the project | **QL-8 ✅** PR #55 | `com.unity.pipeline` `0.7.0-exp.1` |
 | Optional companion slice | **this FP** | Generic wrappers |
 | Game-specific CliCommands | ElJuegaso (optional, later) | Thin calls to QL-7 hooks — game repo only |
 | pytest e2e | Wire | Unchanged |
@@ -87,14 +87,15 @@ compile the core companion.
 - [ ] Docs: how to enable the slice; how game-specific commands belong in the
       game, not the framework.
 - [ ] HUD: `Verified in HUD: deferred command runner (BACKLOG); chip count
-      only if U1 present` — or skip chip if U1 not merged.
+      only if U1 present`. U1 is merged (PR #43).
 - [ ] STATUS-DUAL. Self-review + `Incidents: …` or `none`.
 
 ## PR checklist
 
 Title `fp-u2: companion Pipeline CliCommands`. English PR. Talk to Pablo in
-Spanish. Do not merge unless Pablo asks. Do **not** invent ElJuegaso commits
-(pending QL-8 embed is `pending game QL-8`).
+Spanish. Do not merge unless Pablo asks. Do **not** invent ElJuegaso commits.
+QL-8 already installed Pipeline (ElJuegaso PR #55); the game `[CliCommand]`
+for sprite import is still this FP's trigger, not a questline commit.
 
 ## Lessons / incidents
 
