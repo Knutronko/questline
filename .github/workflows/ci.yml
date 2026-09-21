@@ -25,7 +25,7 @@ jobs:
       - name: Create venv and install dependencies
         run: |
           uv venv --python ${{ matrix.python-version }}
-          uv pip install -e ".[dev,alttester,hud,ai]"
+          uv pip install -e ".[dev,alttester,hud,ai,mcp]"
 
       - name: Setup Node (HUD frontend)
         uses: actions/setup-node@v4

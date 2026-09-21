@@ -30,6 +30,7 @@ the CLI uses — no UI-only code paths).
 | ✅ **FP-G4** | **Balance agent + GameLens HUD** | Browse snapshots/diff/implications/sessions + ask retune priorities. Maintainer walk + live Groq Ask 2026-09-20. [`phase-fp-g4`](phases/phase-fp-g4-balance-agent.md) · [`hud-user-guide.md`](hud-user-guide.md) |
 | ✅ **PR #39** | **12** AI agents | **Triage this run** / **Diagnose this test** / healer on failed runs. [`ai-agents.md`](ai-agents.md) |
 | ✅ **PR #40** | **13** Eval + generation | **Generate** page (steps → pytest + gate) + **Eval** harness. Live Editor dogfood 2026-09-21. [`ai-eval.md`](ai-eval.md) |
+| **this PR · deferred** | **FP-A1** MCP | **No new HUD page.** Cursor is the client (`questline mcp`). Doctor prints `mcp extra:`. [`mcp.md`](mcp.md) · brief [`phase-fp-a1-mcp.md`](phases/phase-fp-a1-mcp.md) |
 | later | **14** Poco + UTF | C# UTF results in the same run store → same Runs/Test detail |
 | later | **FP-U1** Unity CLI sidecar | Launcher **chip**: CLI present / Editor running / play mode + **Ensure Editor**. [`phase-fp-u1`](phases/phase-fp-u1-unity-cli-sidecar.md) |
 | later | **FP-U2** Pipeline commands | Optional allow-listed command **count** on the chip. **No** HUD command executor |
@@ -48,9 +49,10 @@ the CLI uses — no UI-only code paths).
 | GameLens snapshot / diff / implications | ✅ **FP-G4** — `#/lens` + `#/lens/diff` (`questline lens` still for CI/scripting) |
 | Telemetry sessions / KPIs | ✅ **FP-G4** — `#/lens/sessions` (`questline telemetry` still for CI/scripting) |
 | AI calls / cost | ✅ Phase 11 — table on run detail (allow-listed; no secrets). Agent turn cost on GameLens Ask. Phase-12 `agent.*` costs on the same table. |
-| Test AI agents (triage / diagnose / heal) | ✅ **Phase 12** — run/test buttons. CLI extra. |
+| Test AI agents (triage / diagnose / heal) | ✅ **Phase 12** — run/test buttons. CLI extra. **Cursor:** `questline mcp` (FP-A1; not a HUD panel) |
 | Command palette / arbitrary CLI | ❌ Deferred — CLI until a future BACKLOG item; not a full terminal. **Includes** raw `unity command` / eval (FP-U2 does not ship a HUD runner) |
 | Unity CLI / Editor play | ❌ **FP-U1** — status chip + Ensure Editor (not a second driver) |
+| Questline MCP (Cursor) | ❌ **FP-A1 deferred** — no SPA. `questline doctor` / Cursor MCP. [`mcp.md`](mcp.md) |
 
 If something cannot fit, defer in this evolution table + [`phases/BACKLOG.md`](phases/BACKLOG.md)
 with a numbered owner phase.

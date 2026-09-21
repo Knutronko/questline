@@ -124,6 +124,7 @@ def doctor(
             f"budget_call={settings.ai.budget_per_call_usd} "
             f"budget_run={settings.ai.budget_per_run_usd}"
         ),
+        f"mcp extra:   {_mcp_extra_status()}",
     ]
     typer.echo("\n".join(lines))
 
@@ -350,6 +351,94 @@ def hud(
         )
     finally:
         store.close()
+
+
+def _mcp_extra_status() -> str:
+    try:
+        import mcp  # noqa: F401
+    except ImportError:
+        return "missing (pip install 'questline[mcp]')"
+    return "installed"
+
+
+def _load_run_stdio():
+    from questline.mcp.server import run_stdio
+
+    return run_stdio
+
+
+@app.command()
+def mcp(
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", "-c", help="Path to questline.toml"),
+    ] = None,
+    profile: Annotated[
+        str | None,
+        typer.Option("--profile", "-p", help="Profile name from questline.toml"),
+    ] = None,
+    store_db: Annotated[
+        Path | None,
+        typer.Option("--store", help="Override path to store.db"),
+    ] = None,
+    project_root: Annotated[
+        Path | None,
+        typer.Option("--project-root", help="Suite root (locators + collect jail)"),
+    ] = None,
+    allow_write: Annotated[
+        bool,
+        typer.Option(
+            "--allow-write",
+            help="Enable triage / diagnose / heal / GameLens Ask (spends LLM budget)",
+        ),
+    ] = False,
+    allow_fix: Annotated[
+        bool,
+        typer.Option(
+            "--allow-fix",
+            help="Allow diagnose fix mode (pytest gate still owns green)",
+        ),
+    ] = False,
+) -> None:
+    """Speak MCP over stdio for Cursor. Default is read-only. Do not write to stdout."""
+    try:
+        run_stdio = _load_run_stdio()
+    except ImportError as exc:
+        typer.secho(
+            "MCP requires: pip install 'questline[mcp]'",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(code=1) from exc
+
+    try:
+        from questline.mcp.context import open_context
+
+        ctx = open_context(
+            config=config,
+            profile=profile,
+            store_db=store_db,
+            project_root=project_root,
+            allow_write=allow_write,
+            allow_fix=allow_fix,
+        )
+    except AuthoringError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2) from exc
+    except QuestlineError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    mode = "read-only"
+    if ctx.allow_fix:
+        mode = "write+fix"
+    elif ctx.allow_write:
+        mode = "write"
+    typer.secho(f"questline mcp stdio ({mode})", err=True)
+    try:
+        run_stdio(ctx)
+    finally:
+        ctx.store.close()
 
 
 @perf_app.command("report")

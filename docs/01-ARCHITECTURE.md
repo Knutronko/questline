@@ -10,7 +10,7 @@ Language: Python 3.12, `src/` layout, `pyproject.toml`, strict typing (mypy), ru
 
 ```
 questline/
-├── pyproject.toml            # package: questline (extras: [alttester,poco,appium,slack,notion,ai,hud])
+├── pyproject.toml            # package: questline (extras: [alttester,poco,appium,slack,notion,ai,hud,mcp])
 ├── src/questline/
 │   ├── core/                 # kernel: config, events, store, errors, waits, health
 │   ├── authoring/            # pytest plugin, pages, steps, assertions, markers, quarantine
@@ -23,6 +23,7 @@ questline/
 │   ├── telemetry/            # Gameplay telemetry ingest/query (FP-G2)
 │   ├── ai/                   # LLMPort + providers, agents/, evalharness/
 │   ├── hud/                  # FastAPI app + built frontend assets
+│   ├── mcp/                  # FP-A1 MCP server (stdio; extra questline[mcp])
 │   └── cli.py                # `questline` entrypoint (typer)
 ├── unity-package/            # C# UPM package: com.questline.companion
 ├── examples/
@@ -265,6 +266,7 @@ existing hooks. See [`unity-cli.md`](unity-cli.md).
 - **Integration rule:** new observables land in the store/bus first; each phase either
   extends the HUD (API + SPA + `docs/hud.md`) or **explicitly defers** UI. After phase 10,
   prefer HUD-first verification — see [`docs/hud.md`](hud.md) § HUD-first verification.
+  **FP-A1** defers HUD: Cursor is the MCP client (`docs/mcp.md`).
 
 ---
 

@@ -39,6 +39,9 @@ hud = [
     "uvicorn[standard]>=0.27",
     "httpx>=0.27",
 ]
+mcp = [
+    "mcp>=1.12,<2",
+]
 
 [project.scripts]
 questline = "questline.cli:app"
@@ -122,6 +125,7 @@ source_modules = [
     "questline.hud",
     "questline.reporters",
     "questline.perf",
+    "questline.mcp",
 ]
 forbidden_modules = [
     "questline.ai.providers.cursor_cli",
@@ -136,4 +140,23 @@ source_modules = [
 forbidden_modules = [
     "questline.ai.factory",
     "questline.ai.providers.cursor_cli",
+]
+
+[[tool.importlinter.contracts]]
+name = "MCP is a leaf adapter (HUD/core/lens do not import it)"
+type = "forbidden"
+source_modules = [
+    "questline.core",
+    "questline.authoring",
+    "questline.drivers",
+    "questline.devices",
+    "questline.lens",
+    "questline.telemetry",
+    "questline.hud",
+    "questline.reporters",
+    "questline.perf",
+    "questline.ai",
+]
+forbidden_modules = [
+    "questline.mcp",
 ]

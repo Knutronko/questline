@@ -34,6 +34,15 @@ questline hud --open
 
 See [`docs/hud.md`](docs/hud.md).
 
+## Cursor MCP
+
+```powershell
+uv pip install -e ".[mcp]"
+# Cursor loads .cursor/mcp.json → `questline mcp` (read-only by default)
+```
+
+See [`docs/mcp.md`](docs/mcp.md). This is not Unity's `unity mcp`.
+
 ## Documentation
 
 - Index: [`docs/README.md`](docs/README.md)

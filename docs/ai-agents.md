@@ -5,6 +5,8 @@ copilot (that is FP-G4: `questline.lens.agent`, HUD `#/lens` Ask).
 
 Operator surface: **questline hud** — **Triage this run** / **Diagnose this test**.
 CLI (`questline ai triage|diagnose|heal`) is for CI/scripting.
+**Cursor:** [`mcp.md`](mcp.md) (`questline mcp`, read-only by default; `--allow-write`
+to invoke these agents).
 
 Setup / keys / budgets: [`ai-setup.md`](ai-setup.md) · [`ADR-0011`](adr/ADR-0011-llmport-budget.md).
 Roadmap gates: [`02-AI-ROADMAP.md`](02-AI-ROADMAP.md) §2–3.

@@ -96,11 +96,12 @@ G1 → G2/G3 → 11. The G4 agent proposes retune *priorities*; it does not writ
   Ask. Phase-12b browse-only brief is folded here.
 - **Phase-12 test agents ✅ merged PR #39 (2026-09-20):** triage / diagnose / healer. Kernel + HUD buttons.
 - **Phase-13 generation + eval ✅ merged PR #40 (2026-09-21):** HUD **Generate** (suite pages/locators, collect gate, Launch Editor/Android), unit-gen patch, golden harness, HUD Eval. Live Editor dogfood: spec → `test_gen_*.py` → Launch → `RunFinished passed`.
+- **MCP server (FP-A1, this PR)**: expose run/query/triage/GameLens as MCP tools. Distinct
+  from Unity's `unity mcp` (Editor — QL-8 / FP-U2); load both, do not merge.
+  [`mcp.md`](mcp.md). Generate/eval tools register because phase-13 is on this tree.
 - **AI bot policies (post FP-G3 deterministic, later):** LLM chooses in-game actions
   under budget; compared to deterministic baselines; not this FP.
 - **AI crash triage (FP-T6)**: dedupe + suspect-area analysis of monkey-run crashes.
-- **MCP server (FP-A1)**: expose run/query/triage/GameLens as MCP tools. High keyword
-  value. Distinct from Unity's `unity mcp` (Editor — QL-8 / FP-U2); load both, do not merge.
 - **Nightly auto-triage pipeline (FP-A2)**: scheduled run → triage digest → issues filed.
 - **Flakiness predictor (FP-A3)**: classic ML (no LLM) over run-store history.
 - **Self-healing auto-PR mode (FP-A4)**: agents open PRs autonomously only after the eval
