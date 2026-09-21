@@ -8,11 +8,10 @@ Operator guide for the experimental Unity **CLI** (`unity` binary) and
 This page is how we *start, observe, and test the Editor*, and how Cursor talks
 to Unity. It is **not** a second UI driver.
 
-**Status (2026-09-21):** **FP-U1** sidecar is in questline (`questline unity`,
-doctor row, HUD **Ensure Editor** chip). Live open/Play on the reference game
-is **pending QL-8** (CLI + Pipeline not pinned yet). Game dogfood remains
-**QL-8**. **FP-U2** (`[CliCommand]`) is still later. Mock CI does not need the
-CLI: a missing `unity` binary is a warning.
+**Status (2026-09-21):** **FP-U1** is merged (PR #43): `questline unity`,
+doctor row, HUD **Ensure Editor** chip. **QL-8** is merged (ElJuegaso PR #55).
+Pins are in §7, copied from the game doc. **FP-U2** (`[CliCommand]`) is next.
+Mock CI does not need the CLI: a missing `unity` binary is a warning.
 
 CLI and Pipeline are **experimental** (beta / exp). APIs will move. Always
 feature-detect; keep the manual Editor + Wire recipe.
@@ -159,8 +158,8 @@ experimental surface can move.
 
 | Id | Repo | What |
 |----|------|------|
-| **QL-8** | ElJuegaso | Install CLI + Pipeline; Cursor `unity mcp`; prove `editor_play`, `run_tests`, optional Android `build`; pin versions in game `integracion-questline.md`. **No questline core commits.** |
-| **FP-U1** | questline | Python sidecar: detect CLI, ensure-editor, wait Wire, HUD launcher chip, `questline doctor` row. |
+| **QL-8** | ElJuegaso | ✅ PR #55. CLI + Pipeline installed; `editor_play` / `editor_stop` proved; pins in game `integracion-questline.md` §13. `run_tests` and Android `build` were not run. **No questline core commits.** |
+| **FP-U1** | questline | ✅ PR #43. Python sidecar: detect CLI, ensure-editor, wait Wire, HUD launcher chip, `questline doctor` row. |
 | **FP-U2** | questline companion | Optional `[CliCommand]` → existing hooks / lens export / Wire ensure. Compiles without Pipeline. |
 | **phase-14** | questline | UTF: prefer Pipeline `run_tests` if sidecar says so; fallback batchmode. Ingest into store/HUD unchanged. |
 | **phase-15** | questline | Docs/CI: `unity install <version> -m android --accept-eula --yes`. |
@@ -184,14 +183,19 @@ Genre-agnostic rule still applies: no reference-game type/SO names in
 
 ## 7. Version pins
 
-Fill when **QL-8** records them. As of 2026-09-21 the game docs have **not**
-pinned a CLI or Pipeline build — do not guess.
+Copied from ElJuegaso `integracion-questline.md` §13 (QL-8, PR #55, 2026-09-21).
+Do not guess a newer build.
 
 | Tool | Version observed | Date |
 |------|------------------|------|
-| `unity` CLI | *pending QL-8* | |
-| `com.unity.pipeline` | *pending QL-8* | |
-| Unity Editor (reference game) | Unity 6 (exact string in game `ProjectSettings/ProjectVersion.txt`) | |
+| `unity` CLI | `1.0.0-beta.10` (Windows beta; was `1.0.0-beta.6`) | 2026-09-21 |
+| `com.unity.pipeline` | `0.7.0-exp.1` | 2026-09-21 |
+| Unity Editor (reference game) | `6000.3.20f1` (`c9ba695d4f07`) | 2026-09-21 |
+| Pipeline HTTP server field | `0.0.1` (`data.server.version` on `unity command`; not the package) | 2026-09-21 |
 
-Until then treat commands in this doc as **illustrative**. Re-read upstream docs
-in the implementing session.
+Measured on that dogfood, not by this sidecar:
+
+- `editor_play` entered Play; a follow-up `editor_status` reported `playing`. `editor_stop` exited. Wire logged listen on `127.0.0.1:13000`.
+- A Hub-opened Editor did not appear in `unity status` (`STATUS_NO_INSTANCES`) until the command passed `--project-path`. The sidecar probe still calls `editors running` and `status` without that flag, and sends `UNITY_PROJECT_PATH` on `editor_play`.
+- The first `editor_play` during domain reload can fail (`Thread was being aborted` in Pipeline `0.7.0-exp.1`). A retry succeeded. The sidecar does not retry that failure.
+- `list_tests` returned 4 Input System PlayMode tests. `run_tests` and `unity command build` were not run.

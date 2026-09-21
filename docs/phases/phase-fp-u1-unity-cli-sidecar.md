@@ -89,11 +89,13 @@ PowerShell how-to is extra. Defer only the command palette / raw CLI box
 - [x] CI: sidecar unit tests with fake `unity` subprocess (present / missing /
       running / playing / timeout). Doctor JSON allow-listed. No live Editor.
 - [x] HUD: chip + Ensure Editor API; Playwright; no secrets in payload.
-- [ ] Maintainer-checked (after QL-8): ensure-editor on the reference game
-      project → Wire hello succeeds without manually pressing Play. **pending game QL-8** — mock-green does not wait.
+- [ ] Maintainer-checked: `questline unity ensure-editor` on the reference game
+      → Wire hello without pressing Play. QL-8 (ElJuegaso PR #55) proved CLI
+      `editor_play` and a Wire listen log on `:13000`. That session did not
+      call this sidecar.
 - [x] Missing CLI: doctor warns; pytest editor profile still documents the
       manual recipe; no crash. `ensure_editor` defaults off.
-- [x] STATUS-DUAL + `unity-cli.md` pins/status updated (versions still pending QL-8).
+- [x] STATUS-DUAL + `unity-cli.md` pins updated from QL-8 (ElJuegaso PR #55).
 - [x] Self-review + `Incidents: none`. `Verified in HUD: …` (filled at PR close).
 
 ## Self-review
@@ -104,7 +106,7 @@ PowerShell how-to is extra. Defer only the command palette / raw CLI box
 - Allow-listed JSON: no `evalToken`, no raw home path (project basename only).
 - No store migration. No ElJuegaso commits.
 - **Incidents: none**.
-- **Verified in HUD:** Launch chip on the smoke HUD showed CLI 1.8.0-beta.6, Editor stopped, Play off, Pipeline no. Playwright smoke (9 passed, including Ensure Editor) against port 8742 kept the chip allow-listed. Live Editor open remains **pending game QL-8**.
+- **Verified in HUD:** Launch chip on the smoke HUD showed the CLI present, Editor stopped, Play off, Pipeline no. Playwright smoke (9 passed, including Ensure Editor) against port 8742 kept the chip allow-listed. QL-8 later pinned the CLI at `1.0.0-beta.10` (the chip text `1.8.0-beta.6` was not the recorded build). Live sidecar ensure-editor remains unchecked.
 
 ## PR checklist
 

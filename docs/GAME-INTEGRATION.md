@@ -107,7 +107,7 @@ repo's AI process, specified in the game's `integracion-questline.md`.
 | FP-G2 | Game code calls the telemetry API (existing debug-event convention maps ~1:1) | **QL-6 ✅** (2026-08-13 Editor dogfood). Mapping/labels/gaps: game `integracion-questline.md` §10. Contract: [`telemetry.md`](telemetry.md) · ADR-0010. |
 | — | Combat hooks for bots (`DeployAt`, collect, `BoardState`, skill-by-cell, finite `LoadIeb`) | **QL-7 ✅** (2026-08-13). Spec: game `integracion-questline.md` §11 |
 | FP-G3 | Bot scenarios / policies in `automation/` (hooks-first); drain via `drain_telemetry`; set `policy_id` / `seed` / `config_snapshot_id` | ElJuegaso `automation/bots` ✅ live Editor 2026-09-09 (75/75) — brief [`phase-fp-g3-bots.md`](phases/phase-fp-g3-bots.md); policies game §11 |
-| **FP-U1 / FP-U2** | Running Editor with **Pipeline** + CLI on PATH (live ensure-editor / CliCommands). Mock CI does not wait. | **QL-8** — install `unity` CLI + `com.unity.pipeline` + Cursor `unity mcp`; pin versions in game docs. **Does not replace Wire.** [`unity-cli.md`](unity-cli.md) · [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) |
+| **FP-U1 / FP-U2** | Running Editor with **Pipeline** + CLI on PATH (live ensure-editor / CliCommands). Mock CI does not wait. | **QL-8 ✅** ElJuegaso PR #55 (2026-09-21): CLI `1.0.0-beta.10` + `com.unity.pipeline` `0.7.0-exp.1` + Cursor `unity mcp`. Pins: game `integracion-questline.md` §13. **Does not replace Wire.** FP-U2 still open. [`unity-cli.md`](unity-cli.md) · [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) |
 | FP-F1+ | Game repo path configured; feature descriptions at scan time | — |
 
 **Rule for phase sessions:** if your phase's acceptance needs game-side work that is not
