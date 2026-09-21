@@ -98,6 +98,40 @@ class AiSettings(BaseModel):
         return v
 
 
+class UnityCliSettings(BaseModel):
+    """Editor lifecycle sidecar (FP-U1). Not a driver. Paths stay machine-local."""
+
+    project: str | None = None
+    ensure_editor: bool = False
+    command_timeout_s: float = 120.0
+    wire_timeout_s: float = 60.0
+    probe_timeout_s: float = 8.0
+
+    @field_validator("project")
+    @classmethod
+    def _blank_project(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        text = str(v).strip()
+        return text or None
+
+    @field_validator("command_timeout_s", "wire_timeout_s", "probe_timeout_s")
+    @classmethod
+    def _positive_timeout(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("unity_cli timeouts must be > 0")
+        return v
+
+    def project_display_name(self) -> str | None:
+        """Basename only — never a raw home path for HUD / doctor."""
+        if not self.project:
+            return None
+        name = Path(self.project).name
+        if not name or name in {".", ".."} or any(sep in name for sep in ("/", "\\", ":")):
+            return None
+        return name
+
+
 class PerfSettings(BaseModel):
     """Opt-in PerfProbe knobs (phase-09). Off by default."""
 
@@ -144,6 +178,7 @@ class Settings(BaseModel):
     resilience: ResilienceSettings = Field(default_factory=ResilienceSettings)
     perf: PerfSettings = Field(default_factory=PerfSettings)
     ai: AiSettings = Field(default_factory=AiSettings)
+    unity_cli: UnityCliSettings = Field(default_factory=UnityCliSettings)
     log_json: bool = False
     project_root: Path = Field(default_factory=Path.cwd)
     store_dir: Path | None = None
@@ -283,6 +318,13 @@ def _defaults() -> dict[str, Any]:
             "budget_per_run_usd": 5.00,
             "models": {},
             "providers": {},
+        },
+        "unity_cli": {
+            "project": None,
+            "ensure_editor": False,
+            "command_timeout_s": 120.0,
+            "wire_timeout_s": 60.0,
+            "probe_timeout_s": 8.0,
         },
         "log_json": False,
         "target_host": "127.0.0.1",
@@ -441,6 +483,12 @@ def _profile_table(
         raise AuthoringError(
             f"[profile.{name}].ai must be a table "
             f"(e.g. ai.candidates = [\"mistral\"]), got {type(ai).__name__}."
+        )
+    unity_cli = table.get("unity_cli")
+    if unity_cli is not None and not isinstance(unity_cli, dict):
+        raise AuthoringError(
+            f"[profile.{name}].unity_cli must be a table "
+            f"(e.g. unity_cli.ensure_editor = false), got {type(unity_cli).__name__}."
         )
     return table
 
@@ -606,6 +654,16 @@ def _env_overrides(env: dict[str, str]) -> dict[str, Any]:
             ) from exc
     if ai:
         mapping["ai"] = ai
+
+    unity_cli: dict[str, Any] = {}
+    project_env = f"{_ENV_PREFIX}UNITY_CLI_PROJECT"
+    if project_env in env and env[project_env].strip():
+        unity_cli["project"] = env[project_env].strip()
+    ensure_env = f"{_ENV_PREFIX}UNITY_CLI_ENSURE_EDITOR"
+    if ensure_env in env and env[ensure_env] != "":
+        unity_cli["ensure_editor"] = _parse_bool(env[ensure_env], ensure_env)
+    if unity_cli:
+        mapping["unity_cli"] = unity_cli
     return mapping
 
 

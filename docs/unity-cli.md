@@ -8,9 +8,11 @@ Operator guide for the experimental Unity **CLI** (`unity` binary) and
 This page is how we *start, observe, and test the Editor*, and how Cursor talks
 to Unity. It is **not** a second UI driver.
 
-**Status (2026-09-20):** catalogued. Game dogfood = **QL-8**. Questline code =
-**FP-U1** (sidecar) then **FP-U2** (optional `[CliCommand]`). Do **not** start
-FP-U1/U2 before numbered **phase-12**. QL-8 may run in parallel (ElJuegaso).
+**Status (2026-09-21):** **FP-U1** sidecar is in questline (`questline unity`,
+doctor row, HUD **Ensure Editor** chip). Live open/Play on the reference game
+is **pending QL-8** (CLI + Pipeline not pinned yet). Game dogfood remains
+**QL-8**. **FP-U2** (`[CliCommand]`) is still later. Mock CI does not need the
+CLI: a missing `unity` binary is a warning.
 
 CLI and Pipeline are **experimental** (beta / exp). APIs will move. Always
 feature-detect; keep the manual Editor + Wire recipe.
@@ -92,8 +94,51 @@ Auth for unattended CI (phase-15): env var **names**
 `UNITY_SERVICE_ACCOUNT_ID` / `UNITY_SERVICE_ACCOUNT_SECRET` — values from the
 environment only. Never commit them.
 
-`unity doctor` diagnoses CLI/Editor/credentials. `questline doctor` (FP-U1) will
-call or wrap a subset: CLI on PATH, version, optional `editors running`.
+`unity doctor` diagnoses CLI/Editor/credentials. `questline doctor` wraps a
+subset: CLI on PATH, version, Pipeline reachable (`yes` / `no` / `unknown`),
+Editor running, play mode, project **basename**. A missing CLI is a yellow
+warning and exit 0 — open the Editor and press Play (see
+[`wire-setup.md`](wire-setup.md)).
+
+Service-account env **names** (values never in toml, HUD, or the doctor line):
+`UNITY_SERVICE_ACCOUNT_ID`, `UNITY_SERVICE_ACCOUNT_SECRET`. This FP does not
+read those values.
+
+### Questline sidecar (FP-U1)
+
+From the suite root (the Unity project path lives only in that machine's
+`questline.toml` or `QUESTLINE_UNITY_CLI_PROJECT`):
+
+```powershell
+questline doctor --profile editor
+questline unity status --profile editor
+questline unity ensure-editor --profile editor
+```
+
+`ensure-editor` is idempotent: `unity open <project>` when that project is not
+already open, `unity command editor_play` unless Play is already on, then poll
+Wire `hello` on the profile host/port (default `127.0.0.1:13000`). It does not
+start Android players and it does not bind AltTester.
+
+Opt-in for pytest (default **off**, so mock CI never launches Unity):
+
+```toml
+[profile.editor.unity_cli]
+ensure_editor = true
+project = "<unity-project>"   # machine-local; do not commit
+command_timeout_s = 120
+wire_timeout_s = 60
+probe_timeout_s = 8
+```
+
+`QUESTLINE_UNITY_CLI_ENSURE_EDITOR=true` overrides the flag.
+`QUESTLINE_UNITY_CLI_PROJECT` overrides the path. HUD Launch shows the same
+status and an **Ensure Editor** button (`GET /api/unity/status`,
+`POST /api/unity/ensure-editor`). No command palette.
+
+Commands above use `--json` (shorthand for `--format json`), `--non-interactive`,
+and `--no-banner`. Re-check upstream docs when QL-8 pins a CLI build; the
+experimental surface can move.
 
 ---
 
@@ -139,12 +184,13 @@ Genre-agnostic rule still applies: no reference-game type/SO names in
 
 ## 7. Version pins
 
-Fill during **QL-8** (do not guess):
+Fill when **QL-8** records them. As of 2026-09-21 the game docs have **not**
+pinned a CLI or Pipeline build — do not guess.
 
 | Tool | Version observed | Date |
 |------|------------------|------|
-| `unity` CLI | *QL-8* | |
-| `com.unity.pipeline` | *QL-8* | |
+| `unity` CLI | *pending QL-8* | |
+| `com.unity.pipeline` | *pending QL-8* | |
 | Unity Editor (reference game) | Unity 6 (exact string in game `ProjectSettings/ProjectVersion.txt`) | |
 
 Until then treat commands in this doc as **illustrative**. Re-read upstream docs

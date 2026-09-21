@@ -1,5 +1,18 @@
 import { test, expect } from "@playwright/test";
 
+test("HUD unity chip: Ensure Editor stays allow-listed", async ({ page }) => {
+  await page.goto("/#/launch");
+  await expect(page.getByTestId("unity-chip")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("unity-cli")).not.toHaveText("CLI …", { timeout: 40_000 });
+  await page.getByTestId("unity-ensure").click();
+  await expect(page.getByTestId("unity-ensure")).toBeEnabled({ timeout: 40_000 });
+  const chip = await page.getByTestId("unity-chip").innerText();
+  expect(chip).not.toMatch(/evalToken/i);
+  expect(chip).not.toMatch(/\\Users\\/);
+  expect(chip).not.toMatch(/\/Users\//);
+  await expect(page.getByTestId("unity-detail")).not.toHaveText("");
+});
+
 test("HUD smoke: runs → test → steps", async ({ page }) => {
   await page.goto("/#/");
   await expect(page.getByTestId("runs-table")).toBeVisible({ timeout: 15_000 });
