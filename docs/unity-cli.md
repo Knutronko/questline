@@ -60,8 +60,8 @@ Android device live: **Wire + `adb forward`**. Pipeline runtime is not that path
 | Open project + enter Play so Wire can connect | `unity open` + `unity command editor_play` (FP-U1) | Asking a human every smoke (once sidecar exists) |
 | C# UTF EditMode/PlayMode | `unity command run_tests` when Pipeline is up; else `-batchmode -runTests` (phase-14) | Claiming green from eval |
 | Dev APK / standalone build from terminal | `unity command build` (QL-8 dogfood; phase-15 CI notes) | Replacing game Build Profiles without confirm |
-| Cursor while coding the **game** | `unity mcp` | `questline mcp` (does not exist yet; FP-A1) |
-| Cursor asking about **runs / triage / GameLens** | future `questline mcp` (FP-A1) | `unity mcp` |
+| Cursor while coding the **game** | `unity mcp` | `questline mcp` (framework store — FP-A1) |
+| Cursor asking about **runs / triage / GameLens / locators** | `questline mcp` (FP-A1) | `unity mcp` |
 | Balance retune | GameLens HUD / G4 agent (priorities only) | `eval` writing ScriptableObjects |
 
 ---
@@ -86,7 +86,7 @@ unity command            # list commands (Editor must be open with Pipeline)
 
 Cursor: `unity mcp configure` (or the CLI's current MCP helper — confirm during QL-8).
 Load **Unity MCP** for Editor work. Keep Questline's own tools as they are. After
-FP-A1, both MCP servers may be enabled at once.
+FP-A1, both MCP servers may be enabled at once — see [`mcp.md`](mcp.md).
 
 Auth for unattended CI (phase-15): env var **names**
 `UNITY_SERVICE_ACCOUNT_ID` / `UNITY_SERVICE_ACCOUNT_SECRET` — values from the
@@ -119,7 +119,7 @@ call or wrap a subset: CLI on PATH, version, optional `editors running`.
 | **FP-U2** | questline companion | Optional `[CliCommand]` → existing hooks / lens export / Wire ensure. Compiles without Pipeline. |
 | **phase-14** | questline | UTF: prefer Pipeline `run_tests` if sidecar says so; fallback batchmode. Ingest into store/HUD unchanged. |
 | **phase-15** | questline | Docs/CI: `unity install <version> -m android --accept-eula --yes`. |
-| **FP-A1** | questline | `questline mcp` for store/agents — **not** a wrapper around `unity mcp`. |
+| **FP-A1** | questline | `questline mcp` for store/agents — **this PR**. Not a wrapper around `unity mcp`. [`mcp.md`](mcp.md). |
 
 Genre-agnostic rule still applies: no reference-game type/SO names in
 `src/questline`. Game hook names stay in the game repo / companion generic API.

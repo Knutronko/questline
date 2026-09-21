@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "questline": {
+      "command": "uv",
+      "args": ["run", "--extra", "mcp", "questline", "mcp"]
+    }
+  }
+}

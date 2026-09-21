@@ -66,6 +66,10 @@ Format: `- [ ] (phase-NN) description`
       (Dev Player, localhost 7900–7949) — not Android; not a Wire replacement.
 - [x] (phase-12) AI action buttons in HUD (triage/maintainer/healer) — PR #39.
 - [x] (phase-13) Eval HUD panel + **Generate** page (spec→test gate) — PR #40.
+- [x] (fp-a1) `questline mcp` stdio server — this PR. Cursor is the client.
+      Guide: [`mcp.md`](../mcp.md). Generate/eval tools register on this tree.
+- [ ] (fp-a1) HUD MCP status chip — **deferred** (doctor `mcp extra:` is enough).
+- [ ] (fp-a1) Streamable HTTP transport — not needed for Cursor (stdio). Catalog only.
 - [x] (fp-g4) Maintainer walks **entire** HUD (08–11 + GameLens/agent) —
       smoke fixture 2026-09-19 + live Groq Ask 2026-09-20. PR #36 merged.
       Human guide: [`hud-user-guide.md`](../hud-user-guide.md).

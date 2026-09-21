@@ -26,6 +26,7 @@
 | [hud.md](hud.md) | Local HUD control center (`questline hud`): APIs, flags, HUD-first contract |
 | [hud-user-guide.md](hud-user-guide.md) | **Human guide:** what the HUD is, every page/button, live Ask |
 | [hud-operator-guide.md](hud-operator-guide.md) | Operator recipes (capabilities → HUD flows) |
+| [mcp.md](mcp.md) | **FP-A1** `questline mcp`: Cursor tools, flags, test plan |
 | [performance.md](performance.md) | PerfProbe: metrics, asserts, `questline perf report`, overhead notes |
 | [GAME-INTEGRATION.md](GAME-INTEGRATION.md) | Reference-game dogfood contract (phase ↔ game triggers) |
 | [BALANCE-AUTOMATION.md](BALANCE-AUTOMATION.md) | **GameLens loop:** SO → snapshot → bots → telemetry → AI |
@@ -71,6 +72,7 @@ GameLens/HUD contracts. Do not put tokens or machine-private data in the repo.
 | FP-G4 | GameLens balance agent + HUD | [phase-fp-g4-balance-agent.md](phases/phase-fp-g4-balance-agent.md) |
 | FP-U1 | Unity CLI sidecar (after 12) | [phase-fp-u1-unity-cli-sidecar.md](phases/phase-fp-u1-unity-cli-sidecar.md) |
 | FP-U2 | Companion Pipeline `[CliCommand]` | [phase-fp-u2-pipeline-commands.md](phases/phase-fp-u2-pipeline-commands.md) |
+| FP-A1 | Questline MCP server (Cursor) | [phase-fp-a1-mcp.md](phases/phase-fp-a1-mcp.md) |
 
 Joint-wave prompts: [SESSION-PROMPTS-D11-QL5-FPG1.md](phases/SESSION-PROMPTS-D11-QL5-FPG1.md).
 Post-G4 next chats: [SESSION-PROMPTS-POST-G4.md](phases/SESSION-PROMPTS-POST-G4.md).

@@ -231,13 +231,14 @@ Prompts: [`phases/SESSION-PROMPTS-UNITY-CLI.md`](phases/SESSION-PROMPTS-UNITY-CL
 
 ## Group A — AI & automation expansion
 
-### FP-A1 — MCP server · **S-M · priority MEDIA**
+### FP-A1 — MCP server · **S-M · priority MEDIA** · **this PR**
 - `questline mcp`: expose runs/results/triage/GameLens queries as MCP tools so any MCP
   client (Claude, Cursor, custom agents) can drive the **framework** conversationally.
   High keyword value; thin layer over existing APIs. Prereqs: phases 10–12.
 - **Not** Unity's `unity mcp` (Editor play/assets/eval/CliCommands — QL-8 / FP-U2).
   Clients may load **both**. Do not proxy one through the other.
-  [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) · [`unity-cli.md`](unity-cli.md).
+  [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) · [`unity-cli.md`](unity-cli.md) ·
+  operator [`mcp.md`](mcp.md) · brief [`phases/phase-fp-a1-mcp.md`](phases/phase-fp-a1-mcp.md).
 
 ### FP-A2 — Nightly autonomous pipeline · **S · priority MEDIA-ALTA**
 - Scheduled (Task Scheduler/cron/CI): build or fetch latest game build → run suite →

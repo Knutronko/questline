@@ -40,8 +40,8 @@ the first release.
    CLI is absent. Implementing the FP-U1 Python sidecar is **not** this phase.
 
 ## Out of scope
-Implementing any farm adapter for real; iOS code; **`questline mcp`** (FP-A1 — distinct
-from `unity mcp` / QL-8).
+Implementing any farm adapter for real; iOS code. **`questline mcp` shipped in FP-A1**
+(do not re-implement here). Distinct from `unity mcp` / QL-8.
 
 ## Acceptance criteria
 - [ ] Repo's own CI shows GitHubActionsAdapter output (job summary of the demo suite).
