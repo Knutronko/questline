@@ -1,7 +1,8 @@
 # Eval harness (phase 13)
 
 How to add a golden, how to read the metrics, and what the numbers do **not**
-claim. Operator surface: HUD **Eval**. CLI extra: `questline ai eval`.
+claim. Operator surface: HUD **Eval** (scores) and HUD **Generate** (spec→test).
+CLI extra: `questline ai eval` / `questline ai generate --demo`.
 
 Related: [`ai-agents.md`](ai-agents.md) · [`02-AI-ROADMAP.md`](02-AI-ROADMAP.md) §3.6 ·
 brief [`phase-13-ai-generation-eval.md`](phases/phase-13-ai-generation-eval.md).
@@ -70,17 +71,29 @@ If it does not, the harness is lying — `questline ai eval` exits 1.
 - **Variance is not estimated.** Do not quote a single run as “the” accuracy.
 - **Fix class is coarse.** A locator rename vs a wait-budget is distinguished;
   a “correct” patch that the gate did not re-run is not a fix.
-- Generators are adequate, not the flagship. A generated test is a success
-  only when pytest **executed** (green, or red with `expect: red`). Collection
-  errors are never success, even if the model said `passed`.
+- Generators are adequate, not the flagship. Demo generate succeeds when pytest
+  **executes**. Live generate succeeds when pytest **collects** (Unity is a later
+  Launch). Collection errors are never success, even if the model said `passed`.
 
 ## Spec → test / unit-gen
 
+HUD: **Generate**. Point `--project-root` at the game `automation/` folder so the
+model can read pages/locators (never Unity C#). Set `GROQ_API_KEY` in that HUD
+process — game toml often has no `[profile.ai_groq]` (INC-0011). Demo writes a
+canned MockDriver test (**Unity will not move**). Uncheck Demo to follow your
+steps; **collect** is not a live green — use **Launch Editor** / **Launch Android**
+(Unity Play or APK must already be up). Launch is hidden for MockDriver files.
+
 ```powershell
-uv run questline ai generate --spec examples/specs/buy_pack.md --out generated-tests
+uv run questline hud --open --config D:\Projects\ElJuegaso\automation\questline.toml --project-root D:\Projects\ElJuegaso\automation
+uv run questline ai generate --spec examples/specs/buy_pack.md --out generated-tests --demo
+uv run questline ai generate --spec examples/specs/buy_pack.md --out generated-tests -p ai_groq
 uv run questline ai generate --spec path.md --rebuild TEST_ID
 uv run questline ai unit-gen questline.core.errors
 ```
+
+Without `--demo` or a live provider, generate exits 1 with `no pytest file written`
+(the fake/empty provider never calls `write_file`). That is not a HUD bug.
 
 Unit-gen writes `artifacts/agents/<id>/patch.diff`. It never git-commits.
 Coverage with `--coverage` is best-effort and optional (nested pytest-cov is

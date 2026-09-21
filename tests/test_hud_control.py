@@ -243,7 +243,10 @@ def test_meta_exposes_api_revision(client: TestClient) -> None:
     assert meta["api"]["lens"] is True
     assert meta["api"]["agents"] is True
     assert meta["api"]["eval"] is True
-    assert meta["api"]["revision"] >= 6
+    assert meta["api"]["generate"] is True
+    assert meta["api"]["generate_launch"] is True
+    assert meta["api"]["revision"] >= 9
+    assert "has_llm" in meta
 
 
 def test_launch_spawn_failure_surfaces_500(client: TestClient) -> None:

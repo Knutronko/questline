@@ -51,3 +51,14 @@ def spec_matches(expected: str, *, executed: bool, green: bool) -> bool:
     if expected == "green":
         return green
     return not green
+
+
+def classify_collect(result: dict[str, Any]) -> tuple[bool, bool]:
+    """Collect-only gate: collected at least one test, Unity not required."""
+    rc = int(result.get("returncode") if result.get("returncode") is not None else 2)
+    out = f"{result.get('stdout') or ''}\n{result.get('stderr') or ''}"
+    if _COLLECT_FAIL.search(out):
+        return False, False
+    if rc == 0:
+        return True, True
+    return False, False

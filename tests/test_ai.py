@@ -70,8 +70,90 @@ def test_openai_compat_429() -> None:
         transport=http,
         environ={"MISTRAL_API_KEY": "x"},
     )
-    with pytest.raises(RateLimitedError):
+    with pytest.raises(RateLimitedError) as exc:
         provider.complete(_REQ)
+    assert exc.value.retry_after_s == 1.0
+
+
+def test_openai_compat_429_parses_try_again_in_body() -> None:
+    http = FakeHttpTransport()
+    http.enqueue_json(
+        429,
+        {"error": {"message": "Rate limit reached. Please try again in 7.5s."}},
+    )
+    provider = OpenAICompatProvider(
+        name="groq",
+        base_url="https://api.groq.com/openai/v1",
+        model="openai/gpt-oss-20b",
+        api_key_env="GROQ_API_KEY",
+        transport=http,
+        environ={"GROQ_API_KEY": "x"},
+    )
+    with pytest.raises(RateLimitedError) as exc:
+        provider.complete(_REQ)
+    assert exc.value.retry_after_s == 7.5
+
+
+def test_router_429_retries_same_provider(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    slept: list[float] = []
+    monkeypatch.setattr("questline.ai.router._sleep_s", lambda s: slept.append(s))
+    primary = FakeProvider(name="groq", model="openai/gpt-oss-20b")
+    primary.enqueue(RateLimitedError("429"))
+    primary.enqueue("after-retry")
+    store = RunStore(tmp_path / "s.db")
+    try:
+        router = ProviderRouter(
+            [primary],
+            budget_per_call_usd=10.0,
+            budget_per_run_usd=10.0,
+            store=store,
+            run_id="r1",
+        )
+        resp = router.complete(_REQ)
+        assert resp.text == "after-retry"
+        assert slept == [2.0]
+        rows = store.list_ai_calls(run_id="r1")
+        assert len(rows) == 2
+        assert rows[0]["provider"] == "groq"
+        assert rows[0]["outcome"] == "rate_limited"
+        assert rows[1]["provider"] == "groq"
+        assert rows[1]["outcome"] == "ok"
+    finally:
+        store.close()
+
+
+def test_router_429_falls_back_both_ledgered(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("questline.ai.router._sleep_s", lambda s: None)
+    primary = FakeProvider(name="mistral", model="mistral-small-latest")
+    primary.enqueue(RateLimitedError("429"))
+    primary.enqueue(RateLimitedError("429"))
+    secondary = FakeProvider(name="groq", model="llama-3.3-70b-versatile")
+    secondary.enqueue("recovered")
+    store = RunStore(tmp_path / "s.db")
+    try:
+        router = ProviderRouter(
+            [primary, secondary],
+            budget_per_call_usd=10.0,
+            budget_per_run_usd=10.0,
+            store=store,
+            run_id="r1",
+        )
+        resp = router.complete(_REQ)
+        assert resp.text == "recovered"
+        rows = store.list_ai_calls(run_id="r1")
+        assert len(rows) == 3
+        assert rows[0]["provider"] == "mistral"
+        assert rows[0]["outcome"] == "rate_limited"
+        assert rows[1]["provider"] == "mistral"
+        assert rows[1]["outcome"] == "rate_limited"
+        assert rows[2]["provider"] == "groq"
+        assert rows[2]["outcome"] == "ok"
+    finally:
+        store.close()
 
 
 def test_ollama_cost_is_zero(tmp_path: Path) -> None:
@@ -144,35 +226,13 @@ def test_cursor_cli_rejects_images() -> None:
         provider.complete(req)
 
 
-def test_router_429_falls_back_both_ledgered(tmp_path: Path) -> None:
+def test_router_fallback_keeps_each_provider_model(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Profile models.fast must not stamp the primary vendor id onto Groq/Ollama."""
+    monkeypatch.setattr("questline.ai.router._sleep_s", lambda s: None)
     primary = FakeProvider(name="mistral", model="mistral-small-latest")
     primary.enqueue(RateLimitedError("429"))
-    secondary = FakeProvider(name="groq", model="llama-3.3-70b-versatile")
-    secondary.enqueue("recovered")
-    store = RunStore(tmp_path / "s.db")
-    try:
-        router = ProviderRouter(
-            [primary, secondary],
-            budget_per_call_usd=10.0,
-            budget_per_run_usd=10.0,
-            store=store,
-            run_id="r1",
-        )
-        resp = router.complete(_REQ)
-        assert resp.text == "recovered"
-        rows = store.list_ai_calls(run_id="r1")
-        assert len(rows) == 2
-        assert rows[0]["provider"] == "mistral"
-        assert rows[0]["outcome"] == "rate_limited"
-        assert rows[1]["provider"] == "groq"
-        assert rows[1]["outcome"] == "ok"
-    finally:
-        store.close()
-
-
-def test_router_fallback_keeps_each_provider_model(tmp_path: Path) -> None:
-    """Profile models.fast must not stamp the primary vendor id onto Groq/Ollama."""
-    primary = FakeProvider(name="mistral", model="mistral-small-latest")
     primary.enqueue(RateLimitedError("429"))
     secondary = FakeProvider(name="groq", model="llama-3.3-70b-versatile")
     secondary.enqueue("recovered")
@@ -192,7 +252,7 @@ def test_router_fallback_keeps_each_provider_model(tmp_path: Path) -> None:
         assert secondary.last_request.model == "llama-3.3-70b-versatile"
         rows = store.list_ai_calls(run_id="r1")
         assert rows[0]["model"] == "mistral-small-latest"
-        assert rows[1]["model"] == "llama-3.3-70b-versatile"
+        assert rows[-1]["model"] == "llama-3.3-70b-versatile"
     finally:
         store.close()
 
@@ -428,6 +488,43 @@ def test_openai_compat_images_and_tools() -> None:
     assert resp.usage.cached is True
     body = json.loads(http.requests[0]["body"].decode())
     assert body["messages"][0]["role"] == "system"
+
+
+def test_openai_compat_tool_arguments_object() -> None:
+    http = FakeHttpTransport()
+    http.enqueue_json(
+        200,
+        {
+            "choices": [
+                {
+                    "message": {
+                        "content": "",
+                        "tool_calls": [
+                            {
+                                "id": "1",
+                                "function": {
+                                    "name": "write_file",
+                                    "arguments": {"path": "suites/t.py", "content": "x"},
+                                },
+                            }
+                        ],
+                    }
+                }
+            ]
+        },
+    )
+    provider = OpenAICompatProvider(
+        name="groq",
+        base_url="https://api.groq.com/openai/v1",
+        model="openai/gpt-oss-20b",
+        api_key_env="GROQ_API_KEY",
+        transport=http,
+        environ={"GROQ_API_KEY": "x"},
+    )
+    resp = provider.complete(_REQ)
+    assert resp.tool_calls[0].name == "write_file"
+    args = json.loads(resp.tool_calls[0].arguments)
+    assert args["path"] == "suites/t.py"
 
 
 def test_build_router_skips_unset_keys_uses_fallback(tmp_path: Path) -> None:

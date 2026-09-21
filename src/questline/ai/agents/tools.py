@@ -409,7 +409,7 @@ HIERARCHY_SNAPSHOT = ToolSpec(
 )
 WRITE_FILE = ToolSpec(
     name="write_file",
-    description="Write a text file under the project jail (fix mode only).",
+    description="Write a text file under the project jail (generated tests or patches).",
     parameters={
         "type": "object",
         "properties": {

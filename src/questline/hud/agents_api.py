@@ -46,6 +46,7 @@ class GenerateBody(BaseModel):
     dest: str | None = None
     rebuild_test_id: str | None = None
     profile: str | None = None
+    demo: bool = False
 
 
 class UnitGenBody(BaseModel):
@@ -107,6 +108,18 @@ def _task_public(
         ]
         out["ai_cost_total"] = sum(float(c.get("cost") or 0.0) for c in tagged)
     return out
+
+
+@router.get("/agent-tasks")
+def list_agent_tasks_api(
+    request: Request, kind: str | None = None, limit: int = 20
+) -> dict[str, Any]:
+    store = _store(request)
+    rows = store.list_agent_tasks(kind=kind, limit=max(1, min(int(limit), 50)))
+    return {
+        "tasks": [_task_public(store, r, include_body=True) for r in rows],
+        "empty": len(rows) == 0,
+    }
 
 
 @router.get("/runs/{run_id}/agent-tasks")
@@ -198,14 +211,46 @@ def post_heal(body: HealBody, request: Request) -> dict[str, Any]:
     return {"task": _task_public(store, row, include_body=True)}
 
 
+_NO_LLM_DETAIL = (
+    "No live LLM for this HUD. Set GROQ_API_KEY in the HUD process "
+    "(game questline.toml often has no [profile.ai_groq]). "
+    "Demo writes MockDriver and will not touch Unity."
+)
+
+
+def _generate_router(request: Request, store: RunStore, body: GenerateBody) -> Any:
+    if body.demo:
+        from questline.ai.agents.canned import DemoGenerateProvider
+        from questline.ai.router import ProviderRouter
+
+        return ProviderRouter(
+            [DemoGenerateProvider()],
+            budget_per_call_usd=10.0,
+            budget_per_run_usd=10.0,
+            store=store,
+            run_id="hud-generate",
+        )
+    built = build_hud_router(request, store, body.profile, run_id="hud-generate")
+    if built is None:
+        raise HTTPException(status_code=400, detail=_NO_LLM_DETAIL)
+    return built
+
+
 @router.post("/agents/generate")
 def post_generate(body: GenerateBody, request: Request) -> dict[str, Any]:
     store = _store(request)
     root = _root(request)
-    dest = Path(body.dest) if body.dest else (store.artifacts_dir / "generated")
+    from questline.ai.agents.generator import suite_layout
+
+    layout = suite_layout(root)
+    default_dest = "suites" if layout["has_suites"] else "generated-tests"
+    dest = Path(body.dest) if body.dest else (root / default_dest)
     if not dest.is_absolute():
         dest = root / dest
-    router_impl = build_hud_router(request, store, body.profile, run_id="hud-generate")
+    # Demo is MockDriver: never overwrite a live suites/ folder.
+    if body.demo and layout["has_pages"]:
+        dest = root / "generated-tests"
+    router_impl = _generate_router(request, store, body)
     task = run_generator(
         store,
         spec=body.spec,
@@ -213,6 +258,7 @@ def post_generate(body: GenerateBody, request: Request) -> dict[str, Any]:
         router=router_impl,
         project_root=root,
         rebuild_test_id=body.rebuild_test_id,
+        gate_mode="execute" if body.demo else "collect",
     )
     row = store.get_agent_task(task.id)
     if row is None:

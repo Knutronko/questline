@@ -4,7 +4,6 @@ import {
   getMeta,
   listEvalRuns,
   runEval,
-  runGenerate,
 } from "../api";
 
 function pct(n: number | null | undefined): string {
@@ -72,17 +71,7 @@ export async function renderEval(): Promise<string> {
       <span id="eval-msg" class="meta" data-testid="eval-msg"></span>
     </div>
     <div id="eval-compare-out" data-testid="eval-compare-out"></div>
-    ${
-      canMutate
-        ? `<h2>Generate from spec</h2>
-    <p class="meta">Writes a pytest file; the execution gate must collect and run it.</p>
-    <textarea id="eval-spec" data-testid="eval-spec" rows="6" placeholder="When the player taps Play, HUD coins show 100.&#10;Use existing pages.&#10;expect: green"></textarea>
-    <div class="toolbar">
-      <button type="button" id="eval-generate" data-testid="eval-generate">Generate test</button>
-      <span id="eval-gen-msg" class="meta" data-testid="eval-gen-msg"></span>
-    </div>`
-        : ""
-    }
+    <p class="meta">To write steps and generate a pytest file, open <a href="#/generate">Generate</a>.</p>
     <script type="application/json" id="eval-defaults">${JSON.stringify({ a, b })}</script>
   `;
 }
@@ -145,23 +134,6 @@ export function wireEval(): void {
         }
         location.hash = "/eval";
         window.dispatchEvent(new HashChangeEvent("hashchange"));
-      } catch (err) {
-        if (msg) msg.textContent = String(err);
-      }
-    })();
-  });
-
-  document.getElementById("eval-generate")?.addEventListener("click", () => {
-    const spec = (document.getElementById("eval-spec") as HTMLTextAreaElement)?.value || "";
-    const msg = document.getElementById("eval-gen-msg");
-    if (msg) msg.textContent = "generating…";
-    void (async () => {
-      try {
-        const res = await runGenerate({ spec });
-        const gate = (res.task.gate || {}) as { accepted?: boolean; executed?: boolean };
-        if (msg) {
-          msg.textContent = `verdict=${res.task.verdict} executed=${String(gate.executed)} accepted=${String(gate.accepted)}`;
-        }
       } catch (err) {
         if (msg) msg.textContent = String(err);
       }

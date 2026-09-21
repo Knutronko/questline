@@ -500,6 +500,10 @@ class ScriptedBalanceProvider:
         tool_names = _tool_names(req)
         purpose = req.purpose_tag or ""
         if purpose.startswith("agent."):
+            if "generator" in purpose:
+                from questline.ai.agents.canned import demo_generate_complete
+
+                return demo_generate_complete(req)
             if req.tools and not saw_tools:
                 if "healer" in purpose and "hierarchy_snapshot" in tool_names:
                     name = "hierarchy_snapshot"

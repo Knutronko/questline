@@ -289,6 +289,13 @@ def hud(
         Path | None,
         typer.Option("--store", help="Override path to store.db"),
     ] = None,
+    project_root: Annotated[
+        Path | None,
+        typer.Option(
+            "--project-root",
+            help="Suite root (pages/locators jail + Launch cwd). Default: cwd",
+        ),
+    ] = None,
 ) -> None:
     """Serve the local HUD control center (viewer + launcher when not --read-only)."""
     try:
@@ -302,7 +309,10 @@ def hud(
         raise typer.Exit(code=1) from exc
 
     try:
-        settings = load_settings(config_path=config, profile=profile)
+        root = project_root.resolve() if project_root is not None else None
+        settings = load_settings(
+            config_path=config, profile=profile, project_root=root
+        )
     except AuthoringError as exc:
         typer.secho(str(exc), fg=typer.colors.RED, err=True)
         raise typer.Exit(code=2) from exc
@@ -322,7 +332,10 @@ def hud(
     bus = EventBus()
     store.attach(bus)
     mode = "read-only viewer" if read_only else "control center"
-    typer.echo(f"questline hud -> http://{host}:{port}/  ({mode}; store={db_path})")
+    typer.echo(
+        f"questline hud -> http://{host}:{port}/  "
+        f"({mode}; store={db_path}; root={settings.project_root})"
+    )
     try:
         serve(
             store=store,
@@ -1209,6 +1222,13 @@ def ai_generate(
         Path | None,
         typer.Option("--store"),
     ] = None,
+    demo: Annotated[
+        bool,
+        typer.Option(
+            "--demo",
+            help="Write a canned MockDriver test (no live LLM / API key)",
+        ),
+    ] = False,
 ) -> None:
     """Spec → test. Success only if the generated file executes as specified."""
     from questline.ai.agents.generator import run_generator
@@ -1226,7 +1246,19 @@ def ai_generate(
         raise typer.Exit(code=1) from exc
     text = spec.read_text(encoding="utf-8")
     try:
-        router = _ai_router_for(settings, store, "cli-generate")
+        if demo:
+            from questline.ai.agents.canned import DemoGenerateProvider
+            from questline.ai.router import ProviderRouter
+
+            router = ProviderRouter(
+                [DemoGenerateProvider()],
+                budget_per_call_usd=10.0,
+                budget_per_run_usd=10.0,
+                store=store,
+                run_id="cli-generate",
+            )
+        else:
+            router = _ai_router_for(settings, store, "cli-generate")
         task = run_generator(
             store,
             spec=text,
@@ -1234,12 +1266,23 @@ def ai_generate(
             router=router,
             project_root=settings.project_root,
             rebuild_test_id=rebuild,
+            gate_mode="execute" if demo else "collect",
         )
         typer.echo(f"task: {task.id}")
         typer.echo(f"verdict: {task.verdict} cause: {task.cause}")
         if task.gate:
             typer.echo(f"gate: {task.gate}")
+        if (task.gate or {}).get("accepted") and (task.gate or {}).get("mode") == "collect":
+            typer.echo(
+                "Gate collected only (not a live run). "
+                "HUD Generate → Launch Editor / Launch Android, or Launch with this file."
+            )
         if not (task.gate or {}).get("accepted"):
+            reason = (task.gate or {}).get("reason")
+            if reason == "no pytest file written":
+                from questline.ai.agents.canned import NO_KEY_HINT
+
+                typer.secho(NO_KEY_HINT, fg=typer.colors.YELLOW, err=True)
             raise typer.Exit(code=1)
     finally:
         store.close()

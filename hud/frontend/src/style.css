@@ -380,7 +380,7 @@ td.wrap {
 textarea.code,
 textarea#prof-fields,
 textarea#launch-tests,
-textarea#eval-spec {
+textarea#gen-spec {
   width: 100%;
   font-family: var(--mono);
   font-size: 0.78rem;

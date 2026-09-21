@@ -48,8 +48,16 @@ export type Meta = {
     lens?: boolean;
     agents?: boolean;
     eval?: boolean;
+    generate?: boolean;
+    generate_launch?: boolean;
     revision?: number;
   };
+  has_suites?: boolean;
+  has_pages?: boolean;
+  has_locators?: boolean;
+  has_wire_smoke?: boolean;
+  has_llm?: boolean;
+  default_generate_dest?: string;
 };
 
 export type LauncherStatus = {
@@ -564,8 +572,13 @@ export function runGenerate(body: {
   dest?: string;
   rebuild_test_id?: string;
   profile?: string;
+  demo?: boolean;
 }): Promise<{ task: AgentTask }> {
   return mutateJson("POST", "/api/agents/generate", body);
+}
+
+export function listGenerateTasks(): Promise<{ tasks: AgentTask[]; empty: boolean }> {
+  return getJson("/api/agent-tasks?kind=generate");
 }
 
 export function fmtDur(s: number | null | undefined): string {

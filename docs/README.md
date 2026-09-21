@@ -4,6 +4,8 @@
 
 | Doc | Description |
 |-----|-------------|
+| [PROJECT-BRIEFING.md](PROJECT-BRIEFING.md) | **Outsider snapshot (English):** shipped vs remaining, weaknesses, comparable tools |
+| [PROJECT-BRIEFING.es.md](PROJECT-BRIEFING.es.md) | **Misma foto (español):** hecho / falta, debilidades, herramientas parecidas |
 | [00-MASTER-PLAN.md](00-MASTER-PLAN.md) | Vision, goals, design rules, phase overview |
 | [01-ARCHITECTURE.md](01-ARCHITECTURE.md) | Module map, interfaces, data model, contracts |
 | [02-AI-ROADMAP.md](02-AI-ROADMAP.md) | AI features catalog: generation, triage, agents |

@@ -4,7 +4,7 @@
 > **Canónico en este repo** (`questline`). El juego enlaza aquí desde
 > `docs/STATUS-DUAL.md` (puntero).  
 > **Actualizar en cada fase/PR** que cambie estado (ver §5).  
-> Última revisión: **2026-09-20** (phase-13 this PR; phase-12 ✅ PR #39; Unity CLI catalogued **FP-U1/U2** + game **QL-8**; FP-G4 ✅ PR #36/#37/#38).
+> Última revisión: **2026-09-21** (phase-13 ✅ PR #40; phase-12 ✅ PR #39; Unity CLI catalogued **FP-U1/U2** + game **QL-8**; FP-G4 ✅ PR #36/#37/#38).
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Proyecto | Dónde vamos | Hecho reciente | Siguiente | Bloqueo |
 |----------|-------------|----------------|-----------|---------|
-| **questline** | v0.1 + **05b–12** + **FP-G1** + **FP-G2** + **FP-G3** + **FP-G4** ✅ + **phase-13** | G4 merged (PR #36); phase-12 merged (PR #39); **FP-U1/U2** catalogued (Unity CLI sidecar — after 12) | **phase-13** PR (do not merge unless asked). Parallel: D11 feel playtest; optional **QL-8** | AltTester Desktop fuera del happy path; 09c parked; INC-0010 open; **Mistral live smoke deferred** |
+| **questline** | v0.1 + **05b–13** + **FP-G1** + **FP-G2** + **FP-G3** + **FP-G4** ✅ | G4 merged (PR #36); phase-12 merged (PR #39); **phase-13** merged (PR #40); **FP-U1/U2** catalogued | **FP-U1** Unity CLI sidecar (prefer before 14). Parallel: D11 feel playtest; optional **QL-8** | AltTester Desktop fuera del happy path; 09c parked; INC-0010 open; INC-0011–0016 fixed in 13; **Mistral live smoke deferred** |
 | **ElJuegaso P1** | Proto D (feel) | **QL-1…3 + QL-5 + QL-6 + QL-7** + Wire + **`automation/bots`** + **D10.5** + **D11 código** | Playtest D11 (feel); optional `QUESTLINE_SNAPSHOT_ID`; optional **QL-8** (Unity CLI + Pipeline + `unity mcp`) | Poco = 2º UI (fw 14); IEB-1…5 aún no son SO (hueco GameLens) |
 
 
@@ -60,7 +60,7 @@
 | **12b** | HUD GameLens (browse-only) | ✅ **folded into G4** | Do not start. Browse + agent shipped as FP-G4. Historical brief [`phase-12b`](phases/phase-12b-hud-gamelens.md) |
 | **FP-U1** | Unity CLI sidecar | ⬜ catalog | Editor lifecycle / doctor / HUD chip. **After 12**, prefer before 14. Does **not** replace Wire. [`phase-fp-u1`](phases/phase-fp-u1-unity-cli-sidecar.md) · [`unity-cli.md`](unity-cli.md) · [`ADR-0012`](adr/ADR-0012-unity-cli-sidecar.md) |
 | **FP-U2** | Companion `[CliCommand]` | ⬜ catalog | Optional Pipeline wrappers over hooks. After **QL-8**. [`phase-fp-u2`](phases/phase-fp-u2-pipeline-commands.md) |
-| 13 | AI generation + eval | 🔧 **this PR** | Spec→test gate, unit-gen patch, MockDriver goldens, HUD Eval. [`phase-13`](phases/phase-13-ai-generation-eval.md) · [`ai-eval.md`](ai-eval.md) |
+| 13 | AI generation + eval | ✅ **PR #40** | HUD **Generate** (pages/locators + collect gate + Launch Editor/Android) + unit-gen + goldens + HUD Eval. Live Editor dogfood 2026-09-21 (`test_gen_4a18993…` **passed**, Amber 50 measured). [`phase-13`](phases/phase-13-ai-generation-eval.md) · [`ai-eval.md`](ai-eval.md) |
 | 14 | **Poco** + UTF | ⬜ | 2º UI backend + UTF; trigger **QL-4**. UTF **prefers** Pipeline `run_tests` if U1 sidecar sees it |
 | 15 | Integrations & release | ⬜ | v0.1.0; CI docs may use `unity install` |
 
@@ -186,24 +186,23 @@ flowchart TB
 
 | # | Trabajo | Repo | Por qué ahora |
 |---|---------|------|----------------|
-| 1 | **phase-13** AI generation + eval harness | questline | **This PR.** Spec→test + goldens + HUD Eval. Brief [`phase-13`](phases/phase-13-ai-generation-eval.md) |
+| 1 | **FP-U1 / FP-U2** Unity CLI sidecar | questline | **After phase-13.** Prefer U1 before 14 (UTF transport). QL-8 unblocks live |
 | 1∥ | Playtest **D11** (feel B1–B5) | ElJuegaso | **Parallel** (game repo / human). Código D11 listo. Matrix G3 = 75/75 **lose** (dato para retune) |
 | 1∥ | Optional: attach `QUESTLINE_SNAPSHOT_ID` on later bot runs | ElJuegaso | **Parallel** (game). Live G3 used `snap-unset`; G1 report shows the join gap |
 | 1∥ | Optional **QL-8** Unity CLI + Pipeline + `unity mcp` | ElJuegaso | **Parallel** (game). Dogfood only; does not replace Wire. Prompts [`SESSION-PROMPTS-UNITY-CLI.md`](phases/SESSION-PROMPTS-UNITY-CLI.md) |
 | 3 | Wire **09c** stays parked | questline | G3 playability gate = hooks sufficient (no Point-spam / no Drag) |
 | 4 | Rebuild Dev APK (Android Wire v2) | ElJuegaso | Opcional |
-| 5 | **FP-U1 / FP-U2** Unity CLI sidecar | questline | **After phase-12.** Prefer U1 before 14 (UTF transport). QL-8 unblocks live |
-| 6 | **D12** infinito (telemetría más rica: `FUTURE_EVENT_NAMES` en [`telemetry.md`](telemetry.md)) | ElJuegaso | Tras bots baseline; no reinventar nombres; **do not** add `enemy.spawn` “for bots” (they use `BoardState`) |
-| 7 | **phase-14 Poco + QL-4** | ambos | 2º UI backend + UTF (Pipeline `run_tests` if U1 present) |
+| 5 | **D12** infinito (telemetría más rica: `FUTURE_EVENT_NAMES` en [`telemetry.md`](telemetry.md)) | ElJuegaso | Tras bots baseline; no reinventar nombres; **do not** add `enemy.spawn` “for bots” (they use `BoardState`) |
+| 6 | **phase-14 Poco + QL-4** | ambos | 2º UI backend + UTF (Pipeline `run_tests` if U1 present) |
 
 
 **Stack live:** Wire = hooks + hierarchy/find/tap (**09b** ✅). **Poco** = 2º adapter.
 **AltTester** = legacy remoto. Prompts QL-6/QL-7/G3: [`SESSION-PROMPTS-QL6-FPG3.md`](phases/SESSION-PROMPTS-QL6-FPG3.md).
 Prompts G1 implications: [`SESSION-PROMPTS-G1-IMPLICATIONS.md`](phases/SESSION-PROMPTS-G1-IMPLICATIONS.md) (historical).
-**Next (questline):** finish/merge phase-13 generation + eval — [`phase-13-ai-generation-eval.md`](phases/phase-13-ai-generation-eval.md) · [`ai-eval.md`](ai-eval.md).
+**Next (questline):** **FP-U1** Unity CLI sidecar — [`phase-fp-u1-unity-cli-sidecar.md`](phases/phase-fp-u1-unity-cli-sidecar.md) · [`unity-cli.md`](unity-cli.md).
 **Parallel (ElJuegaso):** D11 feel playtest; optional `QUESTLINE_SNAPSHOT_ID`; optional **QL-8**.
 Prompts: [`SESSION-PROMPTS-POST-G4.md`](phases/SESSION-PROMPTS-POST-G4.md) · Unity CLI [`SESSION-PROMPTS-UNITY-CLI.md`](phases/SESSION-PROMPTS-UNITY-CLI.md).
-Phase-12b folded into G4. Do **not** start 09c or phase-14 from this slice. **FP-U1/U2** stay catalogued after 12 (not this PR).
+Phase-12b folded into G4. Do **not** start 09c or phase-14 from this slice. **FP-U1/U2** are next on questline (after 13).
 
 ---
 

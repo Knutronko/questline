@@ -6,7 +6,7 @@ from questline.core.errors import ProviderError, QuestlineError
 
 
 class RateLimitedError(ProviderError):
-    """Provider returned HTTP 429 (or equivalent). Router may fall back."""
+    """Provider returned HTTP 429 (or equivalent). Router may retry, then fall back."""
 
     def __init__(
         self,

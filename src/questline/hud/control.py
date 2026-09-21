@@ -133,24 +133,41 @@ def _read_only(request: Request) -> bool:
     return bool(getattr(_state(request), "read_only", False))
 
 
+def _meta_has_llm(request: Request) -> bool:
+    from questline.hud.ai_router import hud_has_llm
+
+    store = getattr(_state(request), "store", None)
+    return hud_has_llm(request, store)
+
+
 @router.get("/meta")
 def meta(request: Request) -> dict[str, Any]:
     cfg = getattr(_state(request), "config_path", None)
+    root = _project_root(request)
+    has_suites = (root / "suites").is_dir()
     return {
         "read_only": _read_only(request),
         "control_center": not _read_only(request),
         "smoke": bool(getattr(_state(request), "smoke", False)),
         "config_path": str(_config_path(request)) if cfg else None,
-        "project_root": str(_project_root(request)),
+        "project_root": str(root),
         "quarantine_path": str(_quarantine_path(request)),
         "reporters": sorted(KNOWN_REPORTERS),
+        "has_suites": has_suites,
+        "has_pages": (root / "pages").is_dir() or (root / "pages.py").is_file(),
+        "has_locators": (root / "locators.yaml").is_file(),
+        "has_wire_smoke": (root / "examples" / "wire-smoke").is_dir(),
+        "default_generate_dest": "suites" if has_suites else "generated-tests",
+        "has_llm": _meta_has_llm(request),
         # Bump when SPA depends on a new API shape (stale `questline hud` process).
         "api": {
             "test_by_query": True,
             "lens": True,
             "agents": True,
             "eval": True,
-            "revision": 6,
+            "generate": True,
+            "generate_launch": True,
+            "revision": 9,
         },
     }
 

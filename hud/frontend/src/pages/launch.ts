@@ -12,6 +12,8 @@ import {
   type LauncherStatus,
 } from "../api";
 
+const LAST_GEN_KEY = "ql-last-generated";
+
 type SuitePreset = {
   id: string;
   label: string;
@@ -22,7 +24,7 @@ type SuitePreset = {
   note: string;
 };
 
-const PRESETS: SuitePreset[] = [
+const WIRE_SMOKE_PRESETS: SuitePreset[] = [
   {
     id: "mock",
     label: "Mock demo",
@@ -51,6 +53,57 @@ const PRESETS: SuitePreset[] = [
     note: "Dev APK + adb. Pick a serial if more than one device.",
   },
 ];
+
+function lastGeneratedTests(fallback: string): string {
+  try {
+    return sessionStorage.getItem(LAST_GEN_KEY) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function presetsFor(
+  hasWireSmoke: boolean,
+  profiles: string[],
+  testsFallback: string,
+): SuitePreset[] {
+  if (hasWireSmoke) return WIRE_SMOKE_PRESETS;
+  const out: SuitePreset[] = [];
+  if (profiles.includes("mock")) {
+    out.push({
+      id: "mock",
+      label: "Mock",
+      config: "questline.toml",
+      profile: "mock",
+      tests: testsFallback,
+      live_target: false,
+      note: "No Unity. Mock driver profile in this suite.",
+    });
+  }
+  if (profiles.includes("editor")) {
+    out.push({
+      id: "editor",
+      label: "Wire Editor",
+      config: "questline.toml",
+      profile: "editor",
+      tests: testsFallback,
+      live_target: true,
+      note: "Unity Play + Wire on :13000. Device picker stays empty (OK).",
+    });
+  }
+  if (profiles.includes("android_local")) {
+    out.push({
+      id: "android",
+      label: "Wire Android",
+      config: "questline.toml",
+      profile: "android_local",
+      tests: testsFallback,
+      live_target: true,
+      note: "Dev APK + adb. Pick a serial if more than one device.",
+    });
+  }
+  return out;
+}
 
 export async function renderLaunch(): Promise<string> {
   await ensureCsrf();
@@ -97,8 +150,20 @@ export async function renderLaunch(): Promise<string> {
     configs.configs[0]?.path ||
     "questline.toml";
 
+  const testsFallback = lastGeneratedTests(
+    meta.has_suites
+      ? "suites"
+      : meta.has_wire_smoke
+        ? "examples/demo-tests"
+        : ".",
+  );
   const profiles = await listProfiles(defaultConfig);
   const devices = await listDevices();
+  const PRESETS = presetsFor(
+    !!meta.has_wire_smoke,
+    profiles.profiles || [],
+    testsFallback,
+  );
 
   const configOpts = (configs.configs || [])
     .map((c) => {
@@ -181,7 +246,7 @@ export async function renderLaunch(): Promise<string> {
       ${devices.error ? `<p class="meta">adb error: ${esc(devices.error)}</p>` : ""}
       <label class="block">markers <input id="launch-markers" placeholder="optional -m expression" data-testid="launch-markers"/></label>
       <label class="block">tests (one path/nodeid per line)
-        <textarea id="launch-tests" rows="4" data-testid="launch-tests" placeholder="examples/wire-smoke">examples/demo-tests</textarea>
+        <textarea id="launch-tests" rows="4" data-testid="launch-tests" placeholder="suites">${esc(testsFallback)}</textarea>
       </label>
       <div class="toolbar wrap">${reporterChecks || "<span class='meta'>no reporters</span>"}</div>
       <label class="check"><input type="checkbox" id="launch-quarantine"/> include quarantined</label>
@@ -195,6 +260,7 @@ export async function renderLaunch(): Promise<string> {
     </div>
     <h2>Status</h2>
     <pre class="log" id="launch-status" data-testid="launch-status">${esc(JSON.stringify(st, null, 2))}</pre>
+    <script type="application/json" id="launch-preset-data">${JSON.stringify(PRESETS)}</script>
   `;
 }
 
@@ -206,6 +272,9 @@ export function wireLaunch(): void {
   const testsEl = document.getElementById("launch-tests") as HTMLTextAreaElement | null;
   const liveEl = document.getElementById("launch-live") as HTMLInputElement | null;
   const hintEl = document.getElementById("launch-device-hint");
+  const PRESETS = JSON.parse(
+    document.getElementById("launch-preset-data")?.textContent || "[]",
+  ) as SuitePreset[];
 
   const reloadProfiles = async () => {
     if (!configEl || !profileEl) return;

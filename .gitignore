@@ -13,5 +13,9 @@ build/
 htmlcov/
 .questline/
 .questline-hud-smoke/
+.questline-tmp-*.db
+.questline-tmp-*.db-shm
+.questline-tmp-*.db-wal
+generated-tests/
 *.so
 *.dylib

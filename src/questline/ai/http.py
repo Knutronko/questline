@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
@@ -85,7 +86,7 @@ class UrllibHttpTransport:
             status = int(exc.code)
             hdrs = _header_map(exc.headers)
             if status == 429:
-                retry = _retry_after(hdrs)
+                retry = _retry_after(hdrs) or _retry_from_body(text)
                 raise RateLimitedError(
                     f"HTTP 429 from {url}",
                     retry_after_s=retry,
@@ -107,6 +108,22 @@ def _retry_after(headers: dict[str, str]) -> float | None:
         return float(raw)
     except ValueError:
         return None
+
+
+_RETRY_IN_BODY = re.compile(
+    r"try again in\s+(?:(\d+)m)?\s*(\d+(?:\.\d+)?)s",
+    re.IGNORECASE,
+)
+
+
+def _retry_from_body(text: str) -> float | None:
+    """Groq often omits Retry-After and puts 'try again in 7.5s' in the JSON body."""
+    match = _RETRY_IN_BODY.search(text or "")
+    if match is None:
+        return None
+    minutes = float(match.group(1) or 0)
+    seconds = float(match.group(2) or 0)
+    return minutes * 60.0 + seconds
 
 
 @dataclass
@@ -158,7 +175,7 @@ class FakeHttpTransport:
         if isinstance(item, BaseException):
             raise item
         if item.status == 429:
-            retry = _retry_after(item.headers)
+            retry = _retry_after(item.headers) or _retry_from_body(item.text)
             raise RateLimitedError(f"HTTP 429 from {url}", retry_after_s=retry)
         if item.status >= 500:
             raise ProviderError(f"HTTP {item.status} from {url}: {item.text[:200]}")

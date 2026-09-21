@@ -6,9 +6,13 @@ import json
 import shutil
 from pathlib import Path
 
+import pytest
+
+from questline.ai.agents.canned import CANNED_MOCKDRIVER_TEST, DemoGenerateProvider
 from questline.ai.agents.gate import classify_pytest, expected_from_spec
-from questline.ai.agents.generator import run_generator
+from questline.ai.agents.generator import _generate_run_pytest, run_generator
 from questline.ai.agents.unit_gen import run_unit_gen
+from questline.ai.errors import RateLimitedError
 from questline.ai.port import LlmResponse, ToolCall
 from questline.ai.providers.fake import FakeProvider
 from questline.ai.router import ProviderRouter
@@ -128,6 +132,231 @@ def test_generator_five_line_spec_runs_mockdriver(tmp_path: Path) -> None:
     assert task.gate["green"] is True
     assert task.gate["accepted"] is True
     assert task.verdict == "passed"
+    store.close()
+
+
+def test_canned_mockdriver_test_executes(tmp_path: Path) -> None:
+    dest = tmp_path / "generated-tests"
+    dest.mkdir()
+    path = dest / "test_from_spec.py"
+    path.write_text(CANNED_MOCKDRIVER_TEST, encoding="utf-8")
+    result = _generate_run_pytest(str(path), cwd=tmp_path)
+    executed, green = classify_pytest(result)
+    assert executed is True, result
+    assert green is True
+
+
+def test_demo_generate_provider_writes_and_gates(tmp_path: Path) -> None:
+    dest = tmp_path / "generated-tests"
+    store = RunStore(tmp_path / "store.db", artifacts_dir=tmp_path / "arts")
+    task = run_generator(
+        store,
+        spec="When the player taps Play, HUD coins show 100.\nexpect: green",
+        dest=dest,
+        router=_router(DemoGenerateProvider(), store, "g-demo"),
+        project_root=tmp_path,
+        run_id="g-demo",
+    )
+    assert task.gate is not None
+    assert task.gate["executed"] is True, task.gate
+    assert task.gate["accepted"] is True
+    assert task.gate.get("mock_driver") is True
+    nodeid = str(task.gate["nodeid"])
+    assert "test_gen_" in nodeid
+    assert (tmp_path / nodeid).is_file()
+    store.close()
+
+
+def test_collect_gate_with_pages_layout(tmp_path: Path) -> None:
+    (tmp_path / "pages").mkdir()
+    (tmp_path / "pages" / "__init__.py").write_text(
+        "class SmokePage:\n    def ping(self) -> str:\n        return 'pong'\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "locators.yaml").write_text("pages: {}\n", encoding="utf-8")
+    dest = tmp_path / "suites"
+    dest.mkdir()
+    (dest / "test_coverage_demo.py").write_text(
+        "def test_old_module() -> None:\n    assert True\n",
+        encoding="utf-8",
+    )
+    body = (
+        "from pages import SmokePage\n\n"
+        "def test_page_imports() -> None:\n"
+        "    assert SmokePage().ping() == 'pong'\n"
+    )
+    fake = FakeProvider()
+    fake.enqueue_tools(
+        ToolCall(
+            id="w1",
+            name="write_file",
+            arguments=json.dumps({"path": str(dest / "test_from_spec.py"), "content": body}),
+        )
+    )
+    fake.enqueue(json.dumps({"verdict": "diagnosed", "cause": "unknown", "summary": "wrote"}))
+    store = RunStore(tmp_path / "store.db", artifacts_dir=tmp_path / "arts")
+    task = run_generator(
+        store,
+        spec="Ping returns pong.\nexpect: green",
+        dest=dest,
+        router=_router(fake, store, "g-col"),
+        project_root=tmp_path,
+        run_id="g-col",
+        gate_mode="collect",
+    )
+    assert task.gate is not None
+    assert task.gate["mode"] == "collect"
+    assert task.gate["executed"] is True, task.gate
+    assert task.gate["accepted"] is True
+    assert task.gate.get("mock_driver") is False
+    nodeid = str(task.gate["nodeid"])
+    assert "test_coverage_demo" not in nodeid
+    user = fake.requests[0].messages[0].content
+    assert "HAS_PAGES: yes" in user
+    assert "questline_ctx is a pytest fixture, not a module" in user
+    assert "SmokePage" in user
+    assert "ping" in user
+    assert "from questline_ctx import" in user  # the "Never write" example
+    assert "Never write `from questline_ctx import" in user
+    assert "Do not pytest.skip when listed Page hooks can implement the spec." in user
+    write_to = next(
+        ln.split(":", 1)[1].strip()
+        for ln in user.splitlines()
+        if ln.startswith("WRITE_TEST_TO:")
+    )
+    assert write_to.startswith("suites/")
+    assert ":" not in Path(write_to).name
+    assert fake.requests[0].max_tokens >= 2048
+    store.close()
+
+
+def test_authoring_hints_marks_deferred_and_locators(tmp_path: Path) -> None:
+    from questline.ai.agents.generator import _authoring_hints
+
+    pages = tmp_path / "pages"
+    pages.mkdir()
+    (pages / "__init__.py").write_text(
+        "class HudPage:\n"
+        "    def get_amber(self) -> int:\n"
+        '        """Hook GetAmber."""\n'
+        "        return 0\n"
+        "    def ensure_in_combat(self, level_index: int = 0) -> None:\n"
+        '        """LoadLevel; combat session active."""\n'
+        "        return None\n"
+        "    def tap_ui(self) -> None:\n"
+        '        """Deferred: would tap until Poco."""\n'
+        "        raise RuntimeError('no')\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "locators.yaml").write_text(
+        "pages:\n  Hud:\n    pause:\n      by: name\n      value: Btn\n",
+        encoding="utf-8",
+    )
+    text = _authoring_hints(tmp_path)
+    assert "HOOKS_FIRST" in text
+    assert "Do not pytest.skip" in text
+    assert "get_amber()" in text
+    assert "ensure_in_combat(level_index)" in text
+    assert "tap_ui() (deferred" in text
+    assert "Hud: pause" in text
+    assert "expect(page.get_amber()).equals(50).evaluate()" in text
+    assert "Never expect(x).to_equal" in text
+
+
+def test_generator_does_not_gate_existing_suite_file(tmp_path: Path) -> None:
+    dest = tmp_path / "suites"
+    dest.mkdir()
+    (dest / "test_coverage_demo.py").write_text(
+        "def test_old_module() -> None:\n    assert True\n",
+        encoding="utf-8",
+    )
+    fake = FakeProvider()
+    fake.enqueue(
+        json.dumps({"verdict": "passed", "cause": "unknown", "summary": "no write"})
+    )
+    store = RunStore(tmp_path / "store.db", artifacts_dir=tmp_path / "arts")
+    task = run_generator(
+        store,
+        spec="Tap Siguiente Nivel.\nexpect: green",
+        dest=dest,
+        router=_router(fake, store, "g-old"),
+        project_root=tmp_path,
+        run_id="g-old",
+        gate_mode="collect",
+        task_id="gen-no-write",
+    )
+    assert task.gate is not None
+    assert task.gate["accepted"] is False
+    assert task.gate["executed"] is False
+    assert "test_coverage_demo" not in str(task.gate.get("nodeid") or "")
+    store.close()
+
+
+def test_generator_salvages_markdown_pytest(tmp_path: Path) -> None:
+    dest = tmp_path / "suites"
+    dest.mkdir()
+    (dest / "test_coverage_demo.py").write_text(
+        "def test_old_module() -> None:\n    assert True\n",
+        encoding="utf-8",
+    )
+    body = "def test_from_spec() -> None:\n    assert True\n"
+    fake = FakeProvider()
+    fake.enqueue(
+        json.dumps(
+            {
+                "verdict": "diagnosed",
+                "cause": "unknown",
+                "summary": f"proposed test\n```python\n{body}```",
+            }
+        )
+    )
+    store = RunStore(tmp_path / "store.db", artifacts_dir=tmp_path / "arts")
+    task = run_generator(
+        store,
+        spec="Ping returns pong.\nexpect: green",
+        dest=dest,
+        router=_router(fake, store, "g-salv"),
+        project_root=tmp_path,
+        run_id="g-salv",
+        gate_mode="collect",
+        task_id="gen-salvage1",
+    )
+    assert task.gate is not None
+    assert task.gate["accepted"] is True, task.gate
+    nodeid = str(task.gate["nodeid"])
+    assert nodeid.endswith("test_gen_salvage1.py")
+    assert "test_coverage_demo" not in nodeid
+    written = (tmp_path / nodeid).read_text(encoding="utf-8")
+    assert "def test_from_spec" in written
+    store.close()
+
+
+def test_generator_rate_limited_gate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("questline.ai.router._sleep_s", lambda s: None)
+    dest = tmp_path / "suites"
+    dest.mkdir()
+    fake = FakeProvider(name="groq")
+    fake.enqueue(RateLimitedError("HTTP 429 from https://api.groq.com/openai/v1/chat/completions"))
+    fake.enqueue(RateLimitedError("HTTP 429 from https://api.groq.com/openai/v1/chat/completions"))
+    store = RunStore(tmp_path / "store.db", artifacts_dir=tmp_path / "arts")
+    task = run_generator(
+        store,
+        spec="When the player taps Siguiente Nivel: 1, combat loads.\nexpect: green",
+        dest=dest,
+        router=_router(fake, store, "g-429"),
+        project_root=tmp_path,
+        run_id="g-429",
+        gate_mode="collect",
+        task_id="gen-rate1",
+    )
+    assert task.gate is not None
+    assert task.gate["reason"] == "rate_limited"
+    assert task.gate["accepted"] is False
+    assert task.verdict == "inconclusive"
+    assert "no pytest file written" not in (task.summary or "")
+    assert "429" in (task.summary or "")
     store.close()
 
 

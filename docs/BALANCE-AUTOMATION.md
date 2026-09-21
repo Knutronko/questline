@@ -193,4 +193,4 @@ Starter prompts for the joint wave live in
 | 2026-09-10 | **Maintainer reorder:** Immediate next was **FP-G4** (balance agent + HUD). Numbered **phase-12** parked until after G4. **12b folded into G4**. HUD-first lock: new operator phases ship HUD in the same PR (PowerShell is extra). The agent proposes retune *priorities* only — never writes SOs, never invents green/red. |
 | 2026-09-20 | **FP-G4 closed:** PR #36 merged. Maintainer HUD smoke 1–8 + live Groq Ask (`status=ok`, gaps not imputed). Human guide `hud-user-guide.md`. Immediate next was phase-12. |
 | 2026-09-20 | **Phase-12 closed:** PR #39 merged. Kernel + HUD triage/diagnose/heal. Immediate next = phase-13 eval harness. |
-| 2026-09-20 | **Phase-13 (this PR):** spec→test execution gate, unit-gen patch, ≥10 MockDriver goldens, HUD Eval. |
+| 2026-09-20 | **Phase-13 (this PR):** HUD **Generate** (collect + Launch Editor/Android), unit-gen, ≥10 MockDriver goldens, HUD Eval. |

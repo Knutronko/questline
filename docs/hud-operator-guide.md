@@ -88,6 +88,8 @@ useful for Perf compare and drill-down without a live game.
 | **Profiles** | `#/profiles` | Edit/validate/`questline.toml` (secrets = env **names** only) |
 | **Perf** | `#/perf` | PerfProbe series + build-over-build compare |
 | **GameLens** | `#/lens` | Snapshots, typed diff, implications, telemetry sessions, balance agent |
+| **Generate** | `#/generate` | Spec → pytest (collect) + Launch Editor/Android (hidden for MockDriver / INC-0011) |
+| **Eval** | `#/eval` | Golden harness scores |
 | **Trends** | `#/trends` | Pass-rate / duration charts, flakiness, duration-vs-pass |
 | **Live** | `#/live` | WebSocket stream of run events |
 | *(drill)* | `#/runs/{id}` | Tests grid + infra vs test banner |
@@ -386,7 +388,7 @@ Others can browse Runs/Perf/Trends; mutators stay off.
 | One-off pytest outside launcher | `uv run pytest … --questline-profile …` |
 | Arbitrary CLI / shell in browser | Deferred (BACKLOG) |
 | AI actions on a failed run | Phase 12 — **Triage this run** / **Diagnose this test** |
-| Eval harness / spec→test | Phase 13 — **Eval** ([`ai-eval.md`](ai-eval.md)) |
+| Eval harness / spec→test | Phase 13 — **Generate** (collect + Launch Editor/Android) + **Eval** ([`ai-eval.md`](ai-eval.md)) |
 | Poco / UTF C# results UI extras | Phase 14 (results still land in same store later) |
 
 ---

@@ -40,14 +40,18 @@ measures every agent with reproducible metrics.
 MCP server (`questline mcp` = FP-A1; `unity mcp` = QL-8 / not this phase), flakiness predictor, visual regression (BACKLOG.md).
 
 ## Acceptance criteria
-- [ ] CI (fake LLM): generator gate test — generated test that fails to execute is
+- [x] CI (fake LLM): generator gate test — generated test that fails to execute is
       reported as failure, never written as success; unit-gen patch flow works.
-- [ ] Golden set: ≥10 cases across ≥4 failure classes, each reproducible offline.
+- [x] Golden set: ≥10 cases across ≥4 failure classes, each reproducible offline.
 - [ ] Maintainer-checked (live): full eval run on the golden set with 2 providers →
       comparison report renders; false-green rate correctly catches a sabotaged gate
-      (test fixture where the gate is bypassed → metric flags it).
-- [ ] `questline ai eval` results appear in HUD.
-- [ ] Spec→test demo: a 5-line spec produces a running test against the MockDriver game.
+      (test fixture where the gate is bypassed → metric flags it). **Deferred** (same
+      as Mistral live smoke) — CI uses FakeProvider; sabotage golden is covered offline.
+- [x] `questline ai eval` results appear in HUD.
+- [x] Spec→test demo: a 5-line spec produces a running test against the MockDriver game.
+- [x] Live Generate (2026-09-21): HUD `--project-root` at ElJuegaso `automation/`,
+      spec Siguiente Nivel / Amber 50 → `suites/test_gen_4a18993bcece48f7.py` →
+      Launch Editor → `RunFinished passed` (measured `get_amber()==50`).
 
 ## PR checklist
 Title `phase-13: ai generation + eval harness`. Update AI-ROADMAP status.
@@ -62,7 +66,35 @@ Title `phase-13: ai generation + eval harness`. Update AI-ROADMAP status.
   `questline.ai.factory` / `cursor_cli`.
 - Unit-gen never auto-commits.
 - Live two-provider eval is maintainer-checked (`questline ai eval --live`), not CI.
-- **Incidents:** none
-- **Verified in HUD:** Eval table (`eval-a`/`eval-b`) + Compare B−A (Playwright +
-  TestClient). Generator MockDriver demo via pytest, not a live HUD generate click.
+- **Incidents:** INC-0011 (silent MockDriver when game toml has no AI profile);
+  INC-0012 (Generate must write `test_gen_*.py`, never gate an existing suite file);
+  INC-0013 (Groq HTTP 429 is rate limit — retry / wait, not “no pytest file”);
+  INC-0014 (`questline_ctx` is a fixture, not `from questline_ctx import`);
+  INC-0015 (Generate must use listed Page hooks, not `pytest.skip` for “tap”);
+  INC-0016 (`expect(x).equals(y).evaluate()`, not `to_equal`)
+- **Verified in HUD:** Eval table (`eval-a`/`eval-b`) + Compare B−A. **Generate**
+  Demo execute (Playwright; Launch buttons absent on smoke). Collect gate +
+  launcher argv (TestClient). **Live Editor 2026-09-21:** Generate (Demo off) →
+  `suites/test_gen_4a18993bcece48f7.py` → Launch Editor → `TestFinished` +
+  `RunFinished passed` (Amber 50 measured). Collect ≠ live green. MockDriver
+  files do not show Launch Editor.
+
+## Lessons / incidents
+
+- [INC-0011](../incidents/INC-0011-hud-generate-silent-mockdriver.md) — game
+  `questline.toml` without `[profile.ai_groq]` must not fall back to Demo.
+  `GROQ_API_KEY` in the HUD process is enough; Unity does not move for MockDriver.
+- [INC-0012](../incidents/INC-0012-hud-generate-existing-suite-file.md) — Generate
+  writes `test_gen_<id>.py`. Collect of an existing suite module is not success.
+- [INC-0013](../incidents/INC-0013-hud-generate-groq-429.md) — Groq HTTP 429 is
+  quota. Wait ~20s and Generate again (or Ollama); do not treat it as a missing
+  write_file.
+- [INC-0014](../incidents/INC-0014-hud-generate-questline-ctx-import.md) —
+  `questline_ctx` is a pytest fixture. Collect of `from questline_ctx import`
+  is not success.
+- [INC-0015](../incidents/INC-0015-hud-generate-skip-instead-of-hooks.md) —
+  Collect of a skip-only test is not the spec. Use listed hooks, not deferred UI taps.
+- [INC-0016](../incidents/INC-0016-hud-generate-expect-to-equal.md) —
+  Collect does not run `expect`. `to_equal` without `.evaluate()` fails on
+  Launch. Use `expect(x).equals(y).evaluate()`.
 
