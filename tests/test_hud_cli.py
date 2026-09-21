@@ -22,7 +22,7 @@ def test_hud_help() -> None:
     )
     assert result.exit_code == 0
     plain = _ANSI.sub("", (result.stdout or "") + (result.stderr or ""))
-    for token in ("--port", "--open", "--host", "--read-only"):
+    for token in ("--port", "--open", "--host", "--read-only", "--project-root"):
         assert token in plain, f"missing {token!r} in help:\n{plain}"
 
 
@@ -52,3 +52,32 @@ def test_hud_serve_invoked(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.stdout + result.stderr
     assert called.get("port") == 8999
     assert called.get("host") == "127.0.0.1"
+
+
+def test_hud_project_root_passed_to_serve(tmp_path: Path) -> None:
+    config = tmp_path / "questline.toml"
+    config.write_text('[profile.editor]\ndriver = "mock"\n', encoding="utf-8")
+    suite = tmp_path / "suite"
+    suite.mkdir()
+    called: dict[str, object] = {}
+
+    def fake_serve(**kwargs: object) -> None:
+        called.update(kwargs)
+
+    with patch("questline.hud.server.serve", fake_serve):
+        result = runner.invoke(
+            app,
+            [
+                "hud",
+                "--config",
+                str(config),
+                "--profile",
+                "editor",
+                "--project-root",
+                str(suite),
+                "--store",
+                str(tmp_path / "store.db"),
+            ],
+        )
+    assert result.exit_code == 0, result.stdout + result.stderr
+    assert Path(str(called.get("project_root"))).resolve() == suite.resolve()

@@ -1,0 +1,16 @@
+id: timing-wait-short
+failure_class: timing
+cause: flaky
+expected_fix_class: wait-budget
+agent: maintainer
+mode: diagnose
+score_fix: false
+error_type: TimeoutError
+error_message: "wait deadline 0.2s exceeded for hud.root"
+store_verdict: test
+setup: MockDriver HUD appears after 0.5s; test probe budget too short
+reply:
+  verdict: diagnosed
+  cause: flaky
+  fix_class: wait-budget
+  summary: WaitPolicy probe shorter than HUD spawn.

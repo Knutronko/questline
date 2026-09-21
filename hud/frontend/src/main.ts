@@ -18,6 +18,8 @@ import {
   wireLensDiff,
   wireLensHome,
 } from "./pages/lens";
+import { renderEval, wireEval } from "./pages/eval";
+import { renderGenerate, wireGenerate } from "./pages/generate";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -67,6 +69,8 @@ function shell(active: string, body: string): string {
         ${control}
         ${link("#/perf", "Perf")}
         ${link("#/lens", "GameLens")}
+        ${link("#/generate", "Generate")}
+        ${link("#/eval", "Eval")}
         ${link("#/trends", "Trends")}
         ${link("#/live", "Live")}
       </nav>
@@ -100,6 +104,8 @@ function route(): { name: string; params: Record<string, string> } {
   if (parts[0] === "quarantine") return { name: "quarantine", params: {} };
   if (parts[0] === "profiles") return { name: "profiles", params: {} };
   if (parts[0] === "perf") return { name: "perf", params: {} };
+  if (parts[0] === "eval") return { name: "eval", params: {} };
+  if (parts[0] === "generate") return { name: "generate", params: {} };
   if (parts[0] === "lens") {
     if (parts[1] === "diff") return { name: "lens-diff", params: {} };
     if (parts[1] === "sessions" && parts[2]) {
@@ -213,6 +219,12 @@ async function paint(): Promise<void> {
     } else if (r.name === "perf") {
       body = await renderPerf();
       active = "Perf";
+    } else if (r.name === "eval") {
+      body = await renderEval();
+      active = "Eval";
+    } else if (r.name === "generate") {
+      body = await renderGenerate();
+      active = "Generate";
     } else if (r.name === "lens") {
       body = await renderLensHome();
       active = "GameLens";
@@ -267,6 +279,8 @@ function wire(name: string): void {
   if (name === "quarantine") wireQuarantine();
   if (name === "profiles") wireProfiles();
   if (name === "perf") wirePerf();
+  if (name === "eval") wireEval();
+  if (name === "generate") wireGenerate();
   if (name === "lens") wireLensHome();
   if (name === "lens-diff") wireLensDiff();
   if (name === "run") wireRun();
@@ -278,7 +292,13 @@ async function boot(): Promise<void> {
     const meta = await getMeta();
     readOnly = !!meta.read_only;
     smokeMode = !!meta.smoke;
-    staleApi = !meta.api?.test_by_query || !meta.api?.lens || !meta.api?.agents;
+    staleApi =
+      !meta.api?.test_by_query ||
+      !meta.api?.lens ||
+      !meta.api?.agents ||
+      !meta.api?.eval ||
+      !meta.api?.generate ||
+      !meta.api?.generate_launch;
     if (!readOnly) await ensureCsrf();
   } catch {
     readOnly = false;

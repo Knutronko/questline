@@ -15,6 +15,21 @@ from questline.core.events import EventBus
 from questline.core.store import RunStore
 
 _RETRYABLE = (RateLimitedError, ProviderError, TimeoutError)
+_RATE_LIMIT_RETRIES = 1
+_DEFAULT_RETRY_AFTER_S = 2.0
+_MAX_RETRY_AFTER_S = 15.0
+
+
+def _sleep_s(seconds: float) -> None:
+    if seconds > 0:
+        time.sleep(seconds)
+
+
+def _rate_limit_wait(exc: RateLimitedError) -> float:
+    wait = (
+        _DEFAULT_RETRY_AFTER_S if exc.retry_after_s is None else float(exc.retry_after_s)
+    )
+    return max(0.0, min(wait, _MAX_RETRY_AFTER_S))
 
 
 class ProviderRouter:
@@ -65,23 +80,36 @@ class ProviderRouter:
 
         for index, provider in enumerate(self._providers):
             call_req = self._bind_model(provider, req, primary=index == 0)
-            started = time.perf_counter()
-            try:
-                response = provider.complete(call_req)
-            except _RETRYABLE as exc:
-                duration_ms = (time.perf_counter() - started) * 1000.0
-                outcome = "rate_limited" if isinstance(exc, RateLimitedError) else "error"
-                self._ledger_failure(provider, call_req, duration_ms, outcome)
-                errors.append(f"{provider.name}: {exc}")
-                last_exc = exc
-                continue
-            except BudgetExceededError:
-                raise
-            except Exception as exc:
-                duration_ms = (time.perf_counter() - started) * 1000.0
-                self._ledger_failure(provider, call_req, duration_ms, "error")
-                errors.append(f"{provider.name}: {exc}")
-                last_exc = exc
+            response: LlmResponse | None = None
+            for attempt in range(_RATE_LIMIT_RETRIES + 1):
+                started = time.perf_counter()
+                try:
+                    response = provider.complete(call_req)
+                    break
+                except RateLimitedError as exc:
+                    duration_ms = (time.perf_counter() - started) * 1000.0
+                    self._ledger_failure(provider, call_req, duration_ms, "rate_limited")
+                    errors.append(f"{provider.name}: {exc}")
+                    last_exc = exc
+                    if attempt < _RATE_LIMIT_RETRIES:
+                        _sleep_s(_rate_limit_wait(exc))
+                        continue
+                    break
+                except _RETRYABLE as exc:
+                    duration_ms = (time.perf_counter() - started) * 1000.0
+                    self._ledger_failure(provider, call_req, duration_ms, "error")
+                    errors.append(f"{provider.name}: {exc}")
+                    last_exc = exc
+                    break
+                except BudgetExceededError:
+                    raise
+                except Exception as exc:
+                    duration_ms = (time.perf_counter() - started) * 1000.0
+                    self._ledger_failure(provider, call_req, duration_ms, "error")
+                    errors.append(f"{provider.name}: {exc}")
+                    last_exc = exc
+                    break
+            if response is None:
                 continue
 
             duration_ms = response.duration_ms or (time.perf_counter() - started) * 1000.0

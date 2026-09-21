@@ -43,6 +43,7 @@ def parse_agent_output(text: str) -> dict[str, Any]:
     evidence: list[Any] = list(evidence_raw) if isinstance(evidence_raw, list) else []
     summary = str(blob.get("summary") or text or "").strip()
     clusters = blob.get("clusters")
+    fix_class = str(blob.get("fix_class") or "").strip().lower() or None
     return {
         "schema_version": SCHEMA_VERSION,
         "verdict": verdict,
@@ -52,4 +53,5 @@ def parse_agent_output(text: str) -> dict[str, Any]:
         "clusters": clusters if isinstance(clusters, list) else [],
         "patch": blob.get("patch"),
         "suggestion": blob.get("suggestion") if isinstance(blob.get("suggestion"), dict) else None,
+        "fix_class": fix_class,
     }

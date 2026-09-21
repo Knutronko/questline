@@ -57,7 +57,7 @@ def _make_legacy_db(path: Path) -> None:
 def test_fresh_store_is_at_current_schema_version(tmp_path: Path) -> None:
     with RunStore(tmp_path / "fresh.db") as store:
         assert store.schema_version == CURRENT_SCHEMA_VERSION
-        assert CURRENT_SCHEMA_VERSION >= 8
+        assert CURRENT_SCHEMA_VERSION >= 9
 
 
 def test_v1_store_upgrades_to_feature_id_column(tmp_path: Path) -> None:
@@ -320,6 +320,54 @@ def test_v7_store_gains_agent_tasks_table(tmp_path: Path) -> None:
         probe.close()
         assert "agent_tasks" in names
         assert store.list_agent_tasks() == []
+
+
+def test_v8_store_gains_eval_results_table(tmp_path: Path) -> None:
+    """schema_version=8 DB gains eval_results via migration 9 (phase-13)."""
+    from questline.core.migrations import (
+        _migrate_001_initial_core,
+        _migrate_002_tests_feature_id,
+        _migrate_003_balance_snapshots,
+        _migrate_004_telemetry,
+        _migrate_005_ai_calls_ledger,
+        _migrate_006_lens_implications,
+        _migrate_007_lens_agent_turns,
+        _migrate_008_agent_tasks,
+    )
+
+    db_path = tmp_path / "v8.db"
+    conn = sqlite3.connect(str(db_path))
+    conn.isolation_level = None
+    apply_migrations(
+        conn,
+        (
+            Migration(1, "initial_core_schema", _migrate_001_initial_core),
+            Migration(2, "tests_feature_id", _migrate_002_tests_feature_id),
+            Migration(3, "balance_snapshots", _migrate_003_balance_snapshots),
+            Migration(4, "telemetry", _migrate_004_telemetry),
+            Migration(5, "ai_calls_ledger", _migrate_005_ai_calls_ledger),
+            Migration(6, "lens_implications", _migrate_006_lens_implications),
+            Migration(7, "lens_agent_turns", _migrate_007_lens_agent_turns),
+            Migration(8, "agent_tasks", _migrate_008_agent_tasks),
+        ),
+    )
+    assert get_schema_version(conn) == 8
+    names = {
+        r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+    }
+    assert "eval_results" not in names
+    conn.close()
+
+    with RunStore(db_path) as store:
+        assert store.schema_version == CURRENT_SCHEMA_VERSION
+        probe = sqlite3.connect(str(db_path))
+        names = {
+            r[0]
+            for r in probe.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+        }
+        probe.close()
+        assert "eval_results" in names
+        assert store.list_eval_results() == []
 
 
 def test_legacy_store_upgrades_cleanly_preserving_data(tmp_path: Path) -> None:

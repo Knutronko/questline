@@ -1,0 +1,19 @@
+id: sabotage-bypass-gate
+failure_class: assertion
+cause: test-bug
+expected_fix_class: assertion-fix
+agent: maintainer
+mode: fix
+score_fix: true
+sabotage_gate: true
+gate_green: false
+actually_green: false
+error_type: AssertionError
+error_message: "expected Coins: 50, got Coins: 100"
+store_verdict: test
+setup: Sabotaged gate always returns green while the MockDriver test is still red
+reply:
+  verdict: fixed
+  cause: test-bug
+  fix_class: assertion-fix
+  summary: Agent claims a fix; sabotaged gate must be flagged as false-green.

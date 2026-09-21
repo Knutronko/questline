@@ -27,6 +27,8 @@ You use it to:
 | Edit `questline.toml` profiles (no secrets) | **Profiles** |
 | Compare FPS / memory across two runs | **Perf** |
 | Browse balance snapshots and ask “what should we retune?” | **GameLens** |
+| Write steps → AI pytest + gate | **Generate** |
+| See agent eval scores (diagnosis / false-green) | **Eval** |
 | See pass-rate and flaky tests over time | **Trends** |
 | Watch events while a run is in progress | **Live** |
 
@@ -84,6 +86,8 @@ Confirm real HUD: `http://127.0.0.1:8741/api/meta` should show `"smoke": false`.
 | **Profiles** | Edit named configs (`mock`, `editor`, `ai_groq`, …). Hidden in read-only. |
 | **Perf** | Time-series graphs from PerfProbe samples. |
 | **GameLens** | Balance snapshots, typed diff, telemetry sessions, balance **Ask**. |
+| **Generate** | Write test steps; AI writes pytest; the gate runs it. |
+| **Eval** | Golden harness scores (diagnosis / false-green). |
 | **Trends** | Pass-rate / duration / flakiness across recent runs. |
 | **Live** | Live event stream (useful right after Launch). |
 
@@ -197,6 +201,7 @@ events. It does not write new real runs into the fixture store.
 Rules of thumb:
 
 - Only **one** HUD-launched run at a time. 409 “already running” → Open Live or Stop.
+- For a **game suite**, start the HUD with `--project-root` at `automation/` so presets use that `questline.toml` (`editor` / `android_local`) instead of `examples/wire-smoke`.
 - For Android: **stop Unity Play** first. Editor and the phone both want host port `:13000`.
 - Profiles are not “Unity projects”. They are rows in `questline.toml`.
 
@@ -395,7 +400,40 @@ priorities / gaps / citations again.
 
 ---
 
-## 12. Words that confuse newcomers
+## 12. Generate tests
+
+**What for:** “I write the steps, Questline writes a pytest using this HUD’s pages/locators.”
+
+Page: `#/generate`. Point the HUD at the **game suite** (not the questline repo cwd):
+
+```powershell
+uv run questline hud --open `
+  --config D:\Projects\ElJuegaso\automation\questline.toml `
+  --project-root D:\Projects\ElJuegaso\automation
+```
+
+Confirm **no** SMOKE banner. The model reads `pages/`, `locators.yaml`, and existing suites — **not** Unity C#.
+
+| Control | What it does |
+|---------|----------------|
+| **Steps / spec** | Plain text or Markdown. `expect: green` (default) or `expect: red`. Live steps should match **hooks/pages that exist** (e.g. Ping / grant amber). UI find/tap is deferred until Poco — Generate must still call Page hooks for the outcome (`ensure_in_combat`, `get_amber`), not `pytest.skip` (INC-0015). Never `from questline_ctx import` (INC-0014). “Tap Play / coins 100” is the mock demo, not the reference game. |
+| **dest** | Folder under the HUD project root (`suites` when that folder exists, else `generated-tests`). Each Generate writes a **new** `test_gen_<id>.py`. Live models must `write_file` (markdown pytest dumps are salvaged). Collect of an existing suite file is not success. |
+| **Demo (canned MockDriver)** | Smoke: checked. Real HUD: off. Writes a known-good Play→HUD MockDriver test — **no API key**, **Unity will not move**. Launch Editor/Android stay hidden. When `pages/` exist, Demo writes to `generated-tests/`, not `suites/`. |
+| **Generate** | Writes the file. **Demo** then **executes** pytest. Live then **collects** only (Unity not required yet). Live without `GROQ_API_KEY` (or Ollama) returns 400 — it does **not** silently write MockDriver (INC-0011). |
+| **Launch Editor** | After a **non-MockDriver** collect: Wire profile `editor`, `QUESTLINE_LIVE_TARGET=1`. Unity Play + Wire on `:13000` must already be up. Hidden on smoke and on Demo files. |
+| **Launch Android** | Same file, profile `android_local`, optional adb serial. Dev APK must already be on the device. Hidden on smoke and on Demo files. |
+
+Game `questline.toml` usually has no `[profile.ai_groq]`. Set `GROQ_API_KEY` in the
+**same** PowerShell that starts `questline hud`, then restart the HUD. Collect
+**accepted** is not a live green. Launch is the live run. The HUD does **not** start Unity (that is a later sidecar).
+
+HTTP **429** from Groq is a rate limit (INC-0013), not a missing test file. Wait
+about 20 seconds and Generate again. Optional: run Ollama (`llama3.2`) — the HUD
+appends it as fallback after env Groq.
+
+CLI extra: `uv run questline ai generate --spec examples/specs/buy_pack.md --demo`.
+
+## 13. Words that confuse newcomers
 
 | You see | It means | It does **not** mean |
 |---------|----------|----------------------|
@@ -410,19 +448,20 @@ priorities / gaps / citations again.
 
 ---
 
-## 13. First 20 minutes (recommended)
+## 14. First 20 minutes (recommended)
 
 1. Start **smoke** (`serve_hud_smoke.py`). Learn every page; Ask once (fake).
 2. Ctrl+C. Set `GROQ_API_KEY` (or start Ollama). `uv run questline doctor -p ai_groq`.
-3. `uv run questline hud --open` (add `--store` if you want the game DB).
+3. `uv run questline hud --open --config D:\Projects\ElJuegaso\automation\questline.toml --project-root D:\Projects\ElJuegaso\automation`
 4. Confirm **no** SMOKE banner.
 5. GameLens → two snapshots → Open typed diff → profile `ai_groq` → **Ask**.
-6. Check: English priorities, gaps still listed, citations JSON, `cost_usd` set,
+6. **Generate** → uncheck Demo → steps that match existing pages/hooks → **Generate** (collect) → **Launch Editor** (Unity Play already up).
+7. Check: English priorities, gaps still listed, citations JSON, `cost_usd` set,
    turn appears under **Agent**.
 
 ---
 
-## 14. What stays outside the HUD
+## 15. What stays outside the HUD
 
 | Task | Where |
 |------|--------|
@@ -430,12 +469,14 @@ priorities / gaps / citations again.
 | Import a balance snapshot | CLI `questline lens` — see [`gamelens.md`](gamelens.md) |
 | Drain telemetry files | CLI `questline telemetry` — see [`telemetry.md`](telemetry.md) |
 | AI triage / diagnose / heal a failed test | HUD run/test detail (phase-12). CLI extra: `questline ai triage|diagnose|heal` — [`ai-agents.md`](ai-agents.md) |
+| Eval goldens | HUD **Eval**. CLI extra: `questline ai eval` — [`ai-eval.md`](ai-eval.md) |
+| Spec→test | HUD **Generate** (demo checkbox or live LLM). CLI: `questline ai generate --demo` |
 | Poco / second UI backend | Not built (phase-14) |
 | Command palette / arbitrary shell | Not in the HUD |
 
 ---
 
-## 15. Safety (short)
+## 16. Safety (short)
 
 - Mutating actions (Launch, Quarantine, Profiles, Ask) only from **localhost**
   plus a CSRF cookie. Do not expose a writable HUD on the LAN; use

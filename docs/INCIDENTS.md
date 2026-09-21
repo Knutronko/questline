@@ -51,6 +51,11 @@ brief Lessons section, and cite it in the PR Self-review.
 | [INC-0008](incidents/INC-0008-lens-utf8-bom-import.md) | Unity GameLens export UTF-8 BOM broke `lens snapshot --import` | FP-G1, QL-5 | fixed | 2026-08-12 |
 | [INC-0009](incidents/INC-0009-hatch-hud-static-duplicate.md) | Hatch `force-include` duplicated HUD static; git wheel installs fail | FP-G3 | fixed | 2026-08-14 |
 | [INC-0010](incidents/INC-0010-watchdog-thread-exit-during-matrix.md) | Watchdog `pytest.exit` from a thread mid live matrix (warning, 75 still passed) | FP-G3 | open | 2026-09-09 |
+| [INC-0011](incidents/INC-0011-hud-generate-silent-mockdriver.md) | HUD Generate wrote MockDriver when game toml had no AI profile; Launch Editor did not touch Unity | 13 | fixed | 2026-09-21 |
+| [INC-0012](incidents/INC-0012-hud-generate-existing-suite-file.md) | Generate collect globbed an existing `suites/test_*.py` instead of writing a new file | 13 | fixed | 2026-09-21 |
+| [INC-0013](incidents/INC-0013-hud-generate-groq-429.md) | Generate Groq HTTP 429 reported as `no pytest file written` (no same-provider retry) | 13 | fixed | 2026-09-21 |
+| [INC-0014](incidents/INC-0014-hud-generate-questline-ctx-import.md) | Generate wrote `from questline_ctx import` so the new test did not collect | 13 | fixed | 2026-09-21 |
+| [INC-0016](incidents/INC-0016-hud-generate-expect-to-equal.md) | Generate used `expect(x).to_equal` (Launch would AttributeError; collect still passed) | 13 | fixed | 2026-09-21 |
 
 ## Template
 

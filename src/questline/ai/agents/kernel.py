@@ -40,6 +40,8 @@ class AgentKernel:
         max_turns: int = DEFAULT_MAX_TURNS,
         read_only: bool = True,
         purpose_tag: str = "agent.kernel",
+        max_tokens: int = 512,
+        must_write: bool = False,
     ) -> None:
         self.store = store
         self.router = router
@@ -47,6 +49,8 @@ class AgentKernel:
         self.max_turns = max(1, int(max_turns))
         self.read_only = read_only
         self.purpose_tag = purpose_tag
+        self.max_tokens = max(64, int(max_tokens))
+        self.must_write = must_write
 
     def run_batch(
         self,
@@ -89,6 +93,7 @@ class AgentKernel:
         messages: list[LlmMessage] = [LlmMessage(role="user", content=user)]
         pending_images: tuple[ImagePart, ...] | None = None
         finished = False
+        write_nudges = 0
 
         for step in range(self.max_turns):
             try:
@@ -98,7 +103,7 @@ class AgentKernel:
                         messages=tuple(messages),
                         tools=schemas or None,
                         images=pending_images,
-                        max_tokens=512,
+                        max_tokens=self.max_tokens,
                         temperature=0.0,
                         purpose_tag=task.purpose_tag or self.purpose_tag,
                         model_class="fast",
@@ -114,6 +119,11 @@ class AgentKernel:
                 return task
             pending_images = None
             self.ctx.pending_images.clear()
+
+            if resp.text:
+                task.evidence.append(
+                    {"kind": "model_text", "text": str(resp.text)[:6000]}
+                )
 
             if resp.tool_calls:
                 results: list[dict[str, Any]] = []
@@ -139,13 +149,35 @@ class AgentKernel:
                 )
                 continue
 
+            wrote = any(
+                e.get("name") == "write_file" and e.get("ok") for e in task.tool_log
+            )
+            if self.must_write and not wrote and write_nudges < 2:
+                write_nudges += 1
+                messages.append(
+                    LlmMessage(
+                        role="user",
+                        content=(
+                            "REQUIRED: call write_file now. path must be WRITE_TEST_TO. "
+                            "content is the full pytest source. Do not finish with JSON "
+                            "until write_file returns ok."
+                        ),
+                    )
+                )
+                continue
+
             parsed = parse_agent_output(resp.text or "")
             task.agent_claim = parsed
             task.summary = str(parsed.get("summary") or resp.text or "")
             task.verdict = str(parsed.get("verdict") or "inconclusive")
             task.cause = str(parsed.get("cause") or "unknown")
             if parsed.get("evidence"):
-                task.evidence = list(parsed["evidence"])
+                kept = [
+                    e
+                    for e in task.evidence
+                    if isinstance(e, dict) and e.get("kind") == "model_text"
+                ]
+                task.evidence = kept + list(parsed["evidence"])
             if parsed.get("clusters"):
                 task.clusters = list(parsed["clusters"])
             if parsed.get("suggestion"):

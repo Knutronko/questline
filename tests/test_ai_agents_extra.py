@@ -498,6 +498,7 @@ def test_hud_agent_404s(tmp_path: Path) -> None:
 def test_build_hud_router_injected_and_toml(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
     store = RunStore(tmp_path / "s.db", artifacts_dir=tmp_path / "art")
     try:
         fake = FakeProvider()
@@ -575,6 +576,36 @@ model = "fake-test"
             )
         )
         assert build_hud_router(empty_req, store, "ai_groq", run_id="r") is None
+    finally:
+        store.close()
+
+
+def test_build_hud_router_env_groq_when_game_toml_has_no_ai(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """ElJuegaso-style toml: editor only. GROQ_API_KEY in the HUD process is enough."""
+    monkeypatch.setenv("GROQ_API_KEY", "test-not-a-real-key")
+    store = RunStore(tmp_path / "s.db", artifacts_dir=tmp_path / "art")
+    try:
+        cfg = tmp_path / "questline.toml"
+        cfg.write_text(
+            '[profile.editor]\ndriver = "questline"\ntarget_platform = "editor"\n',
+            encoding="utf-8",
+        )
+        req = SimpleNamespace(
+            app=SimpleNamespace(
+                state=SimpleNamespace(
+                    llm_provider=None,
+                    config_path=cfg,
+                    project_root=tmp_path,
+                )
+            )
+        )
+        built = build_hud_router(req, store, None, run_id="r")
+        assert built is not None
+        names = [p.name for p in built._providers]
+        assert names[0] == "groq"
+        assert "ollama" in names
     finally:
         store.close()
 

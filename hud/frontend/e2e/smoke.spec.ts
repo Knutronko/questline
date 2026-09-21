@@ -67,7 +67,26 @@ test("HUD agents: triage run + diagnose test", async ({ page }) => {
   await expect(page.getByTestId("diagnose-test")).toBeVisible();
   await page.getByTestId("diagnose-test").click();
   await expect(page.getByTestId("agent-task").first()).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByTestId("diagnose-msg")).toContainText("diagnosed");
+    await expect(page.getByTestId("diagnose-msg")).toContainText("diagnosed");
+});
+
+test("HUD eval: history + compare two fixture runs", async ({ page }) => {
+  await page.goto("/#/eval");
+  await expect(page.getByTestId("eval-table")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("eval-row").first()).toBeVisible();
+  await page.getByTestId("eval-compare").click();
+  await expect(page.getByTestId("eval-delta-table")).toBeVisible({ timeout: 10_000 });
+});
+
+test("HUD generate: spec writes pytest and gate runs it", async ({ page }) => {
+  await page.goto("/#/generate");
+  await expect(page.getByTestId("gen-form")).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId("gen-run").click();
+  await expect(page.getByTestId("gen-gate")).toContainText("executed=true", {
+    timeout: 45_000,
+  });
+  await expect(page.getByTestId("gen-gate")).toContainText("accepted=true");
+  await expect(page.getByTestId("gen-launch")).toHaveCount(0);
 });
 
 test("HUD telemetry: lose is measured; snap-unset is a gap", async ({ page }) => {

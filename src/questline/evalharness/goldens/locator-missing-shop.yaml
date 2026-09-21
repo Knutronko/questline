@@ -1,0 +1,16 @@
+id: locator-missing-shop
+failure_class: locator
+cause: test-bug
+expected_fix_class: locator-update
+agent: maintainer
+mode: diagnose
+score_fix: false
+error_type: ElementNotFoundError
+error_message: "not found: id=hud.shop"
+store_verdict: test
+setup: MockDriver Hud.shop_button missing after HUD layout change
+reply:
+  verdict: diagnosed
+  cause: test-bug
+  fix_class: locator-update
+  summary: Shop button locator no longer present in hierarchy.

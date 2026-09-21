@@ -16,6 +16,7 @@ from questline.hud import static_dir
 from questline.hud.agents_api import router as agents_router
 from questline.hud.api import router as api_router
 from questline.hud.control import router as control_router
+from questline.hud.eval_api import router as eval_router
 from questline.hud.launcher import RunLauncher
 from questline.hud.lens_api import router as lens_router
 from questline.hud.live import LiveBridge
@@ -100,6 +101,7 @@ def create_app(
     app.include_router(control_router)
     app.include_router(lens_router)
     app.include_router(agents_router)
+    app.include_router(eval_router)
 
     @app.websocket("/api/live")
     async def live_ws(websocket: WebSocket) -> None:

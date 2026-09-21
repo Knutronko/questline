@@ -128,11 +128,16 @@ def _parse_tool_calls(raw: Any) -> tuple[ToolCall, ...]:
         if not isinstance(item, dict):
             continue
         fn = item.get("function") if isinstance(item.get("function"), dict) else {}
+        raw_args = fn.get("arguments")
+        if isinstance(raw_args, dict):
+            arguments = json.dumps(raw_args)
+        else:
+            arguments = str(raw_args or "")
         out.append(
             ToolCall(
                 id=str(item.get("id") or ""),
                 name=str(fn.get("name") or ""),
-                arguments=str(fn.get("arguments") or ""),
+                arguments=arguments,
             )
         )
     return tuple(out)

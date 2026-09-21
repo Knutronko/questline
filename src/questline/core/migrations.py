@@ -300,6 +300,34 @@ def _migrate_008_agent_tasks(conn: sqlite3.Connection) -> None:
     )
 
 
+def _migrate_009_eval_results(conn: sqlite3.Connection) -> None:
+    """Phase-13: eval harness run index (per-case JSON on disk)."""
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS eval_results (
+            id TEXT PRIMARY KEY,
+            agent TEXT NOT NULL,
+            provider TEXT,
+            prompt_version TEXT NOT NULL,
+            status TEXT NOT NULL,
+            diagnosis_accuracy REAL,
+            fix_correctness REAL,
+            false_green_rate REAL,
+            iterations_avg REAL,
+            cost_usd REAL,
+            case_count INTEGER NOT NULL DEFAULT 0,
+            artifact_path TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            meta TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_eval_results_created
+            ON eval_results(created_at);
+        CREATE INDEX IF NOT EXISTS idx_eval_results_agent
+            ON eval_results(agent);
+        """
+    )
+
+
 # Append-only: new modules add the next integer version here.
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_core_schema", _migrate_001_initial_core),
@@ -310,6 +338,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(6, "lens_implications", _migrate_006_lens_implications),
     Migration(7, "lens_agent_turns", _migrate_007_lens_agent_turns),
     Migration(8, "agent_tasks", _migrate_008_agent_tasks),
+    Migration(9, "eval_results", _migrate_009_eval_results),
 )
 
 CURRENT_SCHEMA_VERSION: int = MIGRATIONS[-1].version

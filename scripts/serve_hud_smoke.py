@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import threading
 import time
 from pathlib import Path
@@ -79,6 +80,19 @@ class _SmokeLauncher(RunLauncher):
         return status
 
 
+def _fresh_sqlite(path: Path) -> Path:
+    """Unlink a leftover smoke DB. On WinError 32, use a pid-suffixed sibling."""
+    for extra in (path, path.with_name(path.name + "-wal"), path.with_name(path.name + "-shm")):
+        try:
+            if extra.exists():
+                extra.unlink()
+        except PermissionError:
+            alt = path.with_name(f"store-{os.getpid()}.db")
+            print(f"WARNING: {path} is locked; using {alt}")
+            return alt
+    return path
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8742)
@@ -97,8 +111,7 @@ def main() -> None:
     )
     args = parser.parse_args()
     args.db.parent.mkdir(parents=True, exist_ok=True)
-    if args.db.exists():
-        args.db.unlink()
+    args.db = _fresh_sqlite(args.db)
     store = seed_fixture_store(args.db)
     bus = EventBus()
     store.attach(bus)

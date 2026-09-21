@@ -1,0 +1,16 @@
+id: green-shop-pack
+failure_class: green
+cause: unknown
+expected_fix_class: none
+agent: maintainer
+mode: diagnose
+score_fix: false
+error_type: AssertionError
+error_message: ""
+store_verdict: pass
+setup: MockDriver buy-pack test is already green — do not invent a fix
+reply:
+  verdict: passed
+  cause: unknown
+  fix_class: none
+  summary: Store already green; no diagnosis.

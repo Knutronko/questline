@@ -1,0 +1,16 @@
+id: infra-timeout
+failure_class: infra
+cause: infra
+expected_fix_class: none
+agent: maintainer
+mode: diagnose
+score_fix: false
+error_type: DeviceError
+error_message: "adb wait-for-device timed out"
+store_verdict: infra
+setup: Device probe timeout before MockDriver scene attach
+reply:
+  verdict: diagnosed
+  cause: infra
+  fix_class: none
+  summary: Device timeout; re-run on a healthy target.

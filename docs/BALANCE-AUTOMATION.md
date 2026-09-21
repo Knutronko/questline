@@ -93,7 +93,7 @@ hooks + telemetry, not an LLM.
 | 5 | FP-G1 AI implications ✅; **FP-G4** balance agent + HUD ✅; later AI bot policies | questline | Use *measured* data; never replace it |
 | later | **phase-12** test agents (after G4); 13 eval; D12; G3 soak | both | Scale |
 
-**Immediate next (questline):** numbered **phase-12** (triage/healer). G4 merged PR #36
+**Immediate next (questline):** numbered **phase-13** (generation + eval). Phase-12 merged PR #39. G4 merged PR #36.
 (2026-09-20). Parallel ElJuegaso: D11 feel; optional `QUESTLINE_SNAPSHOT_ID`.
 Do not invert G1 → G2/G3 → 11. Prompts:
 [`SESSION-PROMPTS-POST-G4.md`](phases/SESSION-PROMPTS-POST-G4.md).
@@ -191,4 +191,6 @@ Starter prompts for the joint wave live in
 | 2026-09-10 | **phase-11 live smoke:** Groq (`openai/gpt-oss-20b`) + Ollama (`llama3.2`, cost 0) verified. **Mistral postponed** (no La Plateforme key). Not a merge blocker. |
 | 2026-09-10 | **G1 implications live report:** persist `artifacts/lens/<a>__<b>/implications.json` + `.md` and `lens_implications` (migration 6). `snap-unset` / NULL sessions go to `unjoined` (never a silent `game_version` join). `combat.damage` and other `FUTURE_EVENT_NAMES` stay gaps. **Maintainer live (fixtures):** Groq (`ai_groq`) produced usable *model reasoning* over pack-a→pack-b (`session_count=0` — `.questline-tmp-lens.db` has no G3). Ollama `llama3.2` completed the path but confused gaps with missing KPIs — prefer Groq for implications; Ollama remains a zero-cost smoke. **Mistral** still deferred. HUD GameLens/telemetry panels scheduled as **phase-12b after phase-12** (Pablo full-HUD review). Phase-12 is test agents, not a retune copilot (FP-G4 later). |
 | 2026-09-10 | **Maintainer reorder:** Immediate next was **FP-G4** (balance agent + HUD). Numbered **phase-12** parked until after G4. **12b folded into G4**. HUD-first lock: new operator phases ship HUD in the same PR (PowerShell is extra). The agent proposes retune *priorities* only — never writes SOs, never invents green/red. |
-| 2026-09-20 | **FP-G4 closed:** PR #36 merged. Maintainer HUD smoke 1–8 + live Groq Ask (`status=ok`, gaps not imputed). Human guide `hud-user-guide.md`. Immediate next = phase-12; ElJuegaso D11 feel + optional snapshot id may run in parallel. |
+| 2026-09-20 | **FP-G4 closed:** PR #36 merged. Maintainer HUD smoke 1–8 + live Groq Ask (`status=ok`, gaps not imputed). Human guide `hud-user-guide.md`. Immediate next was phase-12. |
+| 2026-09-20 | **Phase-12 closed:** PR #39 merged. Kernel + HUD triage/diagnose/heal. Immediate next = phase-13 eval harness. |
+| 2026-09-20 | **Phase-13 (this PR):** HUD **Generate** (collect + Launch Editor/Android), unit-gen, ≥10 MockDriver goldens, HUD Eval. |

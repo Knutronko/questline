@@ -1,0 +1,16 @@
+id: locator-stale-close
+failure_class: locator
+cause: test-bug
+expected_fix_class: locator-update
+agent: maintainer
+mode: diagnose
+score_fix: false
+error_type: ElementNotFoundError
+error_message: "not found: id=shop.close"
+store_verdict: test
+setup: MockDriver Shop.close_button id changed to shop.dismiss
+reply:
+  verdict: diagnosed
+  cause: test-bug
+  fix_class: locator-update
+  summary: Close button locator stale after shop chrome rename.

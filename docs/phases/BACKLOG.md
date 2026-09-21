@@ -64,7 +64,8 @@ Format: `- [ ] (phase-NN) description`
       runner). FP-U1 ships only the Editor status chip + Ensure Editor.
 - [ ] (fp-u1) Optional Windows standalone Pipeline **runtime** as a third live target
       (Dev Player, localhost 7900–7949) — not Android; not a Wire replacement.
-- [x] (phase-12) AI action buttons in HUD (triage/maintainer/healer) — this PR.
+- [x] (phase-12) AI action buttons in HUD (triage/maintainer/healer) — PR #39.
+- [x] (phase-13) Eval HUD panel + **Generate** page (spec→test gate) — PR #40.
 - [x] (fp-g4) Maintainer walks **entire** HUD (08–11 + GameLens/agent) —
       smoke fixture 2026-09-19 + live Groq Ask 2026-09-20. PR #36 merged.
       Human guide: [`hud-user-guide.md`](../hud-user-guide.md).

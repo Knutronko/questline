@@ -851,6 +851,103 @@ class RunStore:
             out.append(data)
         return out
 
+    def save_eval_result(
+        self,
+        *,
+        eval_id: str,
+        agent: str,
+        provider: str | None,
+        prompt_version: str,
+        status: str,
+        artifact_path: str,
+        diagnosis_accuracy: float | None = None,
+        fix_correctness: float | None = None,
+        false_green_rate: float | None = None,
+        iterations_avg: float | None = None,
+        cost_usd: float | None = None,
+        case_count: int = 0,
+        created_at: str | None = None,
+        meta: dict[str, Any] | None = None,
+    ) -> None:
+        """Index a phase-13 eval harness run (incremental upsert)."""
+        ts = created_at or datetime.now().astimezone().isoformat()
+        meta_json = json.dumps(meta or {}, sort_keys=True)
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                self._conn.execute(
+                    """
+                    INSERT OR REPLACE INTO eval_results (
+                        id, agent, provider, prompt_version, status,
+                        diagnosis_accuracy, fix_correctness, false_green_rate,
+                        iterations_avg, cost_usd, case_count, artifact_path,
+                        created_at, meta
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        eval_id,
+                        agent,
+                        provider,
+                        prompt_version,
+                        status,
+                        diagnosis_accuracy,
+                        fix_correctness,
+                        false_green_rate,
+                        iterations_avg,
+                        cost_usd,
+                        max(0, int(case_count)),
+                        artifact_path,
+                        ts,
+                        meta_json,
+                    ),
+                )
+                self._conn.execute("COMMIT")
+            except Exception:
+                self._conn.execute("ROLLBACK")
+                raise
+
+    def get_eval_result(self, eval_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT * FROM eval_results WHERE id = ?", (eval_id,)
+            ).fetchone()
+        if row is None:
+            return None
+        data = dict(row)
+        data["meta"] = _json_obj(data.get("meta"))
+        return data
+
+    def list_eval_results(
+        self,
+        *,
+        agent: str | None = None,
+        provider: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if agent:
+            clauses.append("agent = ?")
+            params.append(agent)
+        if provider:
+            clauses.append("provider = ?")
+            params.append(provider)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = (
+            f"SELECT * FROM eval_results {where} "
+            f"ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?"
+        )
+        params.extend([max(0, int(limit)), max(0, int(offset))])
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            data["meta"] = _json_obj(data.get("meta"))
+            out.append(data)
+        return out
+
     def save_telemetry_session(
         self,
         *,
