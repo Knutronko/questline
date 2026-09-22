@@ -201,9 +201,11 @@ def test_run_and_test_not_found(client: TestClient) -> None:
 def test_spa_fallback_and_asset(client: TestClient) -> None:
     res = client.get("/does-not-exist-route")
     assert res.status_code == 200
+    assert res.headers.get("cache-control") == "no-cache"
     # Hashed asset from Vite build (if present).
     index = client.get("/")
     assert index.status_code == 200
+    assert index.headers.get("cache-control") == "no-cache"
 
 
 def test_missing_api_route_is_json_not_html(client: TestClient) -> None:
