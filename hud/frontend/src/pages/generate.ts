@@ -14,8 +14,35 @@ const DEFAULT_SPEC_MOCK = `When the player taps Play, the HUD is visible.
 Coins start at 100.
 expect: green`;
 
-const DEFAULT_SPEC_SUITE = `Ping the game. The Ping hook returns pong.
+/** Filled example when the HUD project has pages/. Per-step expect: is for the human. */
+const SPEC_COMBAT = `1. Ping the game.
+   expect: the Ping hook returns pong.
+
+2. Start combat on level 1 (player story: tap Siguiente Nivel).
+   expect: the combat session is loaded and amber is 50.
+
 expect: green`;
+
+const SPEC_PING = `1. Ping the game.
+   expect: the Ping hook returns pong.
+
+expect: green`;
+
+const SPEC_BLANK = `1.
+   do:
+   expect:
+
+2.
+   do:
+   expect:
+
+expect: green`;
+
+const SPEC_TEMPLATES: Record<string, string> = {
+  ping: SPEC_PING,
+  combat: SPEC_COMBAT,
+  blank: SPEC_BLANK,
+};
 
 type GateInfo = {
   nodeid?: string;
@@ -221,7 +248,7 @@ export async function renderGenerate(): Promise<string> {
     !smoke && !hasLlm
       ? `<p class="empty" data-testid="gen-no-llm">No live LLM in this HUD process. Set <code>GROQ_API_KEY</code> (or run Ollama with an <code>ai_ollama</code> profile) and restart <code>questline hud</code>. Without that, Generate with Demo unchecked returns 400 — it will not silently write MockDriver.</p>`
       : "";
-  const spec = hasPages && !smoke ? DEFAULT_SPEC_SUITE : DEFAULT_SPEC_MOCK;
+  const spec = hasPages && !smoke ? SPEC_COMBAT : DEFAULT_SPEC_MOCK;
 
   return `
     <h1>Generate tests</h1>
@@ -231,8 +258,14 @@ export async function renderGenerate(): Promise<string> {
     ${
       canMutate
         ? `<form id="gen-form" data-testid="gen-form" class="panel">
+      <div class="toolbar" data-testid="gen-templates">
+        <span class="meta">Templates</span>
+        <button type="button" data-testid="gen-tpl-ping" data-tpl="ping">Ping</button>
+        <button type="button" data-testid="gen-tpl-combat" data-tpl="combat">Combat + amount</button>
+        <button type="button" data-testid="gen-tpl-blank" data-tpl="blank">Blank</button>
+      </div>
       <label>Steps / spec
-        <textarea id="gen-spec" data-testid="gen-spec" rows="8">${esc(spec)}</textarea>
+        <textarea id="gen-spec" data-testid="gen-spec" rows="12">${esc(spec)}</textarea>
       </label>
       <div class="toolbar">
         <label>dest <input id="gen-dest" data-testid="gen-dest" value="${esc(dest)}"/></label>
@@ -253,6 +286,13 @@ export async function renderGenerate(): Promise<string> {
 }
 
 export function wireGenerate(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-tpl]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const spec = SPEC_TEMPLATES[btn.dataset.tpl || ""];
+      const box = document.getElementById("gen-spec") as HTMLTextAreaElement | null;
+      if (spec && box) box.value = spec;
+    });
+  });
   document.getElementById("gen-run")?.addEventListener("click", () => {
     const spec = (document.getElementById("gen-spec") as HTMLTextAreaElement)?.value || "";
     const dest =
