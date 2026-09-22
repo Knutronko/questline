@@ -94,6 +94,13 @@ test("HUD eval: history + compare two fixture runs", async ({ page }) => {
 test("HUD generate: spec writes pytest and gate runs it", async ({ page }) => {
   await page.goto("/#/generate");
   await expect(page.getByTestId("gen-form")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("gen-tpl-ping")).toBeVisible();
+  await page.getByTestId("gen-tpl-blank").click();
+  await expect(page.getByTestId("gen-spec")).toHaveValue(/^\s*1\.\s*\n\s*do:/);
+  await page.getByTestId("gen-tpl-combat").click();
+  await expect(page.getByTestId("gen-spec")).toHaveValue(/amber is 50/);
+  await page.getByTestId("gen-tpl-ping").click();
+  await expect(page.getByTestId("gen-spec")).toHaveValue(/Ping hook returns pong/);
   await page.getByTestId("gen-run").click();
   await expect(page.getByTestId("gen-gate")).toContainText("executed=true", {
     timeout: 45_000,

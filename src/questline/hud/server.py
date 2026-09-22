@@ -25,6 +25,14 @@ from questline.hud.unity_api import router as unity_router
 
 logger = logging.getLogger("questline.hud")
 
+# index.html names a hashed bundle. If the browser caches the shell, a HUD
+# restart keeps showing the previous Generate page.
+_SPA_CACHE = {"Cache-Control": "no-cache"}
+
+
+def _spa_shell(index: Path) -> FileResponse:
+    return FileResponse(index, headers=_SPA_CACHE)
+
 _EMPTY_SHELL = """<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"/><title>Questline HUD</title>
 <style>
@@ -136,7 +144,7 @@ def create_app(
         async def spa_index() -> Any:
             if not index.is_file():
                 return HTMLResponse(_EMPTY_SHELL, status_code=503)
-            return FileResponse(index)
+            return _spa_shell(index)
 
         @app.get("/{full_path:path}")
         async def spa_fallback(full_path: str) -> Any:
@@ -151,7 +159,7 @@ def create_app(
             if candidate.is_file():
                 return FileResponse(candidate)
             if index.is_file():
-                return FileResponse(index)
+                return _spa_shell(index)
             return HTMLResponse(_EMPTY_SHELL, status_code=503)
     else:
 
